@@ -19,7 +19,7 @@ export default function Topbar() {
 
   return (
     <div className="topbar">
-      {/* Lado esquerdo da Topbar (vazio ou podes pôr um título futuramente) */}
+      {/* Lado esquerdo da Topbar */}
       <div className="topbar-left"></div>
 
       {/* Lado direito onde ficam as notificações e o perfil */}

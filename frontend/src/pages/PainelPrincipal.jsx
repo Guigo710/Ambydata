@@ -95,7 +95,7 @@ export default function PainelPrincipal() {
     <>
       <div className="page-header">
         <h1 className="page-title">Painel Principal</h1>
-        <p className="page-greeting">Olá Erick Silva!</p>
+        <p className="page-greeting">Olá Fulano</p>
       </div>
 
       <div className="charts-grid">
@@ -114,7 +114,7 @@ export default function PainelPrincipal() {
           <LegendRow />
         </div>
 
-        {/* OEE em Tempo Real (MUDADO PARA DINÂMICO! 🚀) */}
+        {/* OEE em Tempo Real */}
         <div className="card">
           <p className="card-title">OEE em Tempo Real (%)</p>
           <ResponsiveContainer width="100%" height={200}>
@@ -140,7 +140,7 @@ export default function PainelPrincipal() {
           </div>
         </div>
 
-        {/* Report de Manutenção (Estático) */}
+        {/* Report de Manutenção */}
         <div className="card">
           <p className="card-title">Report de Manutenção</p>
           <ResponsiveContainer width="100%" height={200}>
@@ -155,8 +155,7 @@ export default function PainelPrincipal() {
           <LegendRow />
         </div>
 
-        {/* Custos e Lucros (MUDADO DE PIECHART PARA BARCHART DINÂMICO! 📊🚀) */}
-        {/* Dica: O PieChart antigo precisava de um formato engessado que não batia bem com as linhas do banco. Mudar para colunas ou barras verticais deixa a comparação de Custos vs Lucros perfeita! */}
+        {/* Custos e Lucros) */}
         <div className="card">
           <p className="card-title">Custos e Lucros Reais (R$)</p>
           <ResponsiveContainer width="100%" height={200}>

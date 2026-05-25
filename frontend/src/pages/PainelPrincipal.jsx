@@ -75,7 +75,7 @@ export default function PainelPrincipal() {
   useEffect(() => {
     const buscarDadosDoJava = async () => {
       try {
-        const resposta = await axios.get("http://localhost:8080/api/dados");
+        const resposta = await axios.get(`${import.meta.env.VITE_API_URL}/api/dados`);
         setMetricasReais(resposta.data); // Armazena a lista vinda do banco
         setCarregando(false);
       } catch (erro) {

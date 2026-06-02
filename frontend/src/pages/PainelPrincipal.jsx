@@ -75,7 +75,8 @@ export default function PainelPrincipal() {
   useEffect(() => {
     const buscarDadosDoJava = async () => {
       try {
-        const resposta = await axios.get(`${import.meta.env.VITE_API_URL}/api/dados`);
+        const resposta = await axios.get('https://ambydata-backend-api-2.onrender.com/api/dados');
+        //const resposta = await axios.get(`${import.meta.env.VITE_API_URL}/api/dados`);
         setMetricasReais(resposta.data); // Armazena a lista vinda do banco
         setCarregando(false);
       } catch (erro) {
@@ -87,6 +88,14 @@ export default function PainelPrincipal() {
     buscarDadosDoJava();
   }, []);
 
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  useEffect(() => {
+    const deStr = localStorage.getItem("usuarioLogado"); // Usa a mesma chave que definiste no Login
+    if (deStr) {
+      setUsuarioLogado(JSON.parse(deStr));
+    }
+  }, []);
+  
   if (carregando) {
     return <div style={{ padding: "28px", color: "var(--text-secondary)" }}>A sincronizar dados com o servidor Java...</div>;
   }
@@ -95,7 +104,7 @@ export default function PainelPrincipal() {
     <>
       <div className="page-header">
         <h1 className="page-title">Painel Principal</h1>
-        <p className="page-greeting">Olá Fulano</p>
+        <p className="page-greeting">Olá {usuarioLogado?.nome || "Usuário"}</p>
       </div>
 
       <div className="charts-grid">

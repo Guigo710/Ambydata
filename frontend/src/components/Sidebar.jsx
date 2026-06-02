@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 
 const navItems = [
   {
     to: "/painel",
     label: "Painel principal",
+    roles: ["DIRETOR", "OPERARIO"],
     icon: (
       <svg
         width="16"
@@ -25,6 +27,7 @@ const navItems = [
   {
     to: "/status-maquina",
     label: "Status da Máquina",
+    roles: ["DIRETOR", "OPERARIO"],
     icon: (
       <svg
         width="16"
@@ -44,6 +47,7 @@ const navItems = [
   {
     to: "/oee-tempo-real",
     label: "OEE em Tempo Real",
+    roles: ["DIRETOR", "OPERARIO"],
     icon: (
       <svg
         width="16"
@@ -62,6 +66,7 @@ const navItems = [
   {
     to: "/report-manutencao",
     label: "Report de Manutenção",
+    roles: ["DIRETOR", "OPERARIO"],
     icon: (
       <svg
         width="16"
@@ -84,6 +89,7 @@ const navItems = [
   {
     to: "/custos-lucros",
     label: "Custos e Lucros",
+    roles: ["DIRETOR"],
     icon: (
       <svg
         width="16"
@@ -103,6 +109,7 @@ const navItems = [
   {
     to: "/produtividade",
     label: "Produtividade",
+    roles: ["DIRETOR"],
     icon: (
       <svg
         width="16"
@@ -123,6 +130,7 @@ const navItems = [
   {
     to: "/parametros-ia",
     label: "Parâmetros com IA",
+    roles: ["DIRETOR"],
     icon: (
       <svg
         width="16"
@@ -137,7 +145,7 @@ const navItems = [
         <circle cx="12" cy="12" r="3" />
         <path
           d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 
-12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
+          12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
         />
       </svg>
     ),
@@ -145,6 +153,17 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+
+  const [usuarioLogado, setUsuarioLogado] = useState(null);
+  useEffect(() => {
+    const userStr = localStorage.getItem("usuarioLogado");
+    if (userStr) {
+      setUsuarioLogado(JSON.parse(userStr));
+    }
+  }, []);
+
+  const cargoUsuario = usuarioLogado?.cargo?.nomeCargo || "OPERARIO";
+
   return (
     <aside className="sidebar">
       {/* Logo */}
@@ -173,7 +192,7 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
+        {navItems.filter((item) => item.roles.includes(cargoUsuario)).map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

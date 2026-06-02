@@ -1,30 +1,54 @@
 import React from "react";
 
 export default function Topbar() {
-  // Simulando dados do usuário que virão do banco mais tarde
-  const usuarioLogado = {
-    nome: "Fulano",
-    cargo: "Diretor" // Pode testar mudar para "Diretor" ou "Suporte"
+  // ==========================================
+  // 1. GERENCIAMENTO DE ESTADO / DADOS DO USUÁRIO
+  // ==========================================
+
+  // Busca a string de texto que o login salvou no navegador
+  const usuarioData = localStorage.getItem("usuarioLogado");
+
+  // Converte o texto JSON de volta para um Objeto JavaScript para podermos usar as propriedades
+  // Se não houver ninguém logado (ex: deslogado), cria um usuário "Visitante" padrão para o sistema não quebrar
+  const usuarioLogado = usuarioData ? JSON.parse(usuarioData) : {
+    nome: "Visitante",
+    cargo: { nomeCargo: "Padrão" }
   };
 
-  // Função para retornar a classe de estilo baseada no cargo
+  // Extrai o nome do cargo de dentro do objeto aninhado vindo do Java.
+  // Se por acaso o objeto cargo estiver nulo, define o texto "Sem Cargo" por segurança.
+  const nomeDoCargo = usuarioLogado.cargo?.nomeCargo || "Sem Cargo";
+
+  // Função que analisa o nome do cargo e retorna a classe CSS correspondente.
+  // Isso serve para pintar a etiqueta (badge) com cores diferentes baseadas no cargo.
   const obterClasseCargo = (cargo) => {
     switch (cargo?.toLowerCase()) {
-      case "diretor": return "tag-diretor";
-      case "operario": case "operário": return "tag-operario";
-      case "suporte": return "tag-suporte";
-      default: return "tag-padrao";
+      case "diretor":
+        return "tag-diretor";       
+      case "operario":
+      case "operário":
+        return "tag-operario";      
+      case "suporte":
+        return "tag-suporte";       
+      default:
+        return "tag-padrao";       
     }
   };
 
+
   return (
     <div className="topbar">
-      {/* Lado esquerdo da Topbar */}
+
+      {/* LADO ESQUERDO DA BARRA SUPERIOR */}
+      {/* Espaço reservado caso queira colocar um título de página */}
       <div className="topbar-left"></div>
 
-      {/* Lado direito onde ficam as notificações e o perfil */}
+      {/* LADO DIREITO DA BARRA SUPERIOR */}
       <div className="topbar-right">
+
+        {/* BOTÃO DE NOTIFICAÇÕES */}
         <button className="topbar-icon" title="Notificações">
+          {/* Ícone de um Sino em formato SVG vetorial */}
           <svg
             width="16"
             height="16"
@@ -40,16 +64,32 @@ export default function Topbar() {
           </svg>
         </button>
 
-        {/* Bloco de perfil adicionado ao lado do ícone */}
+        {/* CAIXA DO PERFIL DO USUÁRIO  */}
         <div className="user-profile-box">
-          <div className="user-text-info">
+
+          {/* CONTAINER DOS TEXTOS  */}
+          <div className="user-text-info"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",    
+              justifyContent: "center", 
+              textAlign: "center"
+            }}>
+
+            {/* Nome dinâmico obtido direto do banco de dados através do login */}
             <span className="user-name">{usuarioLogado.nome}</span>
-            <span className={`user-role-badge ${obterClasseCargo(usuarioLogado.cargo)}`}>
-              {usuarioLogado.cargo}
+
+            {/* Etiqueta (Badge) do cargo dinâmico */}
+            {/* O classname injeta dinamicamente a cor da tag, e o .toUpperCase() deixa o texto em letras maiúsculas */}
+            <span className={`user-role-badge ${obterClasseCargo(nomeDoCargo)}`} style={{ fontSize: "11px", fontWeight: "bold" }}>
+              {nomeDoCargo.toUpperCase()}
             </span>
           </div>
-          
+
+          {/* BOTÃO COM O ÍCONE DO PERFIL */}
           <button className="topbar-icon profile-active" title="Perfil">
+            {/* Ícone de um Bonequinho (Usuário) em formato SVG vetorial */}
             <svg
               width="16"
               height="16"
@@ -64,8 +104,9 @@ export default function Topbar() {
               <circle cx="12" cy="7" r="4" />
             </svg>
           </button>
-        </div>
-      </div>
-    </div>
+
+        </div> {/* Fim da user-profile-box */}
+      </div> {/* Fim da topbar-right */}
+    </div> /* Fim da classe principal topbar */
   );
 }

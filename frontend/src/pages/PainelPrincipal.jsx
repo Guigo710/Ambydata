@@ -70,6 +70,7 @@ export default function PainelPrincipal() {
   // 1. Estados para guardar as métricas dinâmicas vindas do Spring Boot
   const [metricasReais, setMetricasReais] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const cargoUsuario = localStorage.getItem('cargo'); // Ou a lógica que usou antes
 
   // 2. Chamada HTTP com Axios para buscar os dados no MySQL assim que carregar a tela
   useEffect(() => {
@@ -86,6 +87,12 @@ export default function PainelPrincipal() {
     };
 
     buscarDadosDoJava();
+    // Define o intervalo para buscar dados automaticamente a cada 5 segundos
+    const intervalo = setInterval(buscarDadosDoJava, 5000);
+
+    //Limpa o intervalo se o usuário sair da página
+    return () => clearInterval(intervalo);
+
   }, []);
 
   const [usuarioLogado, setUsuarioLogado] = useState(null);

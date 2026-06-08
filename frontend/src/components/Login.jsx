@@ -24,7 +24,6 @@ export default function Login() {
                 email: email,
                 senha: senha
             });
-            console.log("DADOS VINDOS DO JAVA:", resposta.data);
             // Se o Java responder com sucesso (Status 200) e retornar os dados do usuário:
             if (resposta.data) {
                 // Opcional: Salvar o nome e cargo do usuário para exibir no topo do painel

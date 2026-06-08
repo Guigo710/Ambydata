@@ -429,11 +429,7 @@ body,
   background-color: #e0e0e0;
   color: #666;
 }
-/* ==========================================================================
-   --- TELA DE LOGIN 
-   ========================================================================== */
-
-/* Container principal que cobre 100% da viewport e usa o background global */
+/*TELA DE LOGIN */
 .login-container {
   display: flex;
   justify-content: center;
@@ -446,8 +442,6 @@ body,
   left: 0;
   z-index: 9999;
 }
-
-/* O card centralizado que herda o mesmo raio e sombra dos cards do dashboard */
 .login-box {
   background: var(--card-bg);
   padding: 40px;
@@ -456,10 +450,9 @@ body,
   width: 100%;
   max-width: 400px;
   text-align: center;
-  animation: fadeUp 0.5s ease both; /* Utiliza a mesma animação do grid */
+  animation: fadeUp 0.5s ease both;
 }
 
-/* Identidade visual - Logo baseada na Sidebar */
 .login-logo {
   margin-bottom: 32px;
 }
@@ -552,7 +545,6 @@ body,
   box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
 }
 
-/* Botão de envio usando as cores ativas da Sidebar */
 .login-btn {
   width: 100%;
   padding: 14px;

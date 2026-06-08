@@ -16,7 +16,7 @@ export default function Login() {
         setCarregando(true);
 
         try {
-            // Pega a URL do Spring Boot configurada no seu .env (ex: http://localhost:8080)
+            // Pega a URL do Spring Boot
             const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:22441";
 
             // Envia o e-mail e senha digitados para a rota de autenticação do Java
@@ -24,9 +24,7 @@ export default function Login() {
                 email: email,
                 senha: senha
             });
-            // Se o Java responder com sucesso (Status 200) e retornar os dados do usuário:
             if (resposta.data) {
-                // Opcional: Salvar o nome e cargo do usuário para exibir no topo do painel
                 localStorage.setItem("usuarioLogado", JSON.stringify(resposta.data));
 
                 // Redireciona o usuário para o painel principal

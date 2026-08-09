@@ -1,16 +1,78 @@
-# React + Vite
+# AmbyData — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend do **AmbyData**, dashboard de monitoramento industrial em tempo real: acompanha OEE, produtividade, lucros, desvios, necessidade de manutenção e temperatura das máquinas/produtos.
 
-Currently, two official plugins are available:
+Este repositório contém apenas a interface. A API está em [`Ambydata-backend`](https://github.com/ErickWL/Ambydata-backend).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+**Deploy:** [ambydata-react.vercel.app](https://ambydata-react.vercel.app)
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19
+- Vite 8
+- React Router DOM (navegação)
+- Recharts (gráficos do dashboard)
+- Axios (consumo da API)
+- ESLint
 
-## Expanding the ESLint configuration
+## Pré-requisitos
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- API do backend rodando (local ou deployada) — veja [`Ambydata-backend`](https://github.com/ErickWL/Ambydata-backend)
+
+## Instalação e execução
+
+Clone o repositório:
+
+\`\`\`bash
+git clone https://github.com/ErickWL/Ambydata-react.git
+cd Ambydata-react
+\`\`\`
+
+Instale as dependências:
+
+\`\`\`bash
+npm install
+\`\`\`
+
+Configure a URL da API (ex: \`src/services/api.js\` ou variável de ambiente \`.env\`):
+
+\`\`\`env
+VITE_API_URL=http://localhost:8080
+\`\`\`
+
+Rode em modo desenvolvimento:
+
+\`\`\`bash
+npm run dev
+\`\`\`
+
+A aplicação sobe por padrão em \`http://localhost:5173\`.
+
+## Scripts disponíveis
+
+| Comando | Descrição |
+|---|---|
+| \`npm run dev\` | Sobe o servidor de desenvolvimento (Vite) |
+| \`npm run build\` | Gera build de produção |
+| \`npm run preview\` | Serve o build de produção localmente |
+| \`npm run lint\` | Roda o ESLint |
+
+## Estrutura do projeto
+
+\`\`\`
+public/          # assets estáticos
+src/
+  components/    # componentes React
+  pages/         # telas/rotas
+  services/      # chamadas à API (axios)
+index.html
+vite.config.js
+\`\`\`
+
+## Deploy
+
+Configurado via \`vercel.json\` para deploy no Vercel.
+
+## Roadmap / Status
+
+Projeto em desenvolvimento ativo — telas e integração com a API ainda sujeitas a mudanças.

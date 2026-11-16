@@ -1,6 +1,6 @@
 # AmbyData — Backend
 
-![Java](https://img.shields.io/badge/Java-17-orange)
+![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.9-brightgreen)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)
 ![License](https://img.shields.io/badge/license-uso%20pessoal%2Facad%C3%AAmico-lightgrey)
@@ -10,7 +10,7 @@ Backend do **AmbyData**, um dashboard de monitoramento industrial. Este reposit�
 
 ## Stack
 
-- Java 17+
+- Java 21
 - Spring Boot 4.0.9
 - Spring Web MVC
 - Spring Data MongoDB
@@ -23,7 +23,7 @@ Backend do **AmbyData**, um dashboard de monitoramento industrial. Este reposit�
 
 ## Pré-requisitos
 
-- JDK 17 ou superior
+- JDK 21 ou superior
 - Instância MongoDB acessível pela aplicação, como MongoDB Atlas ou MongoDB local
 - Docker, opcional
 

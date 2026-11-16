@@ -150,9 +150,26 @@ class AuthTests {
 
     @Test
     void rotaAntigaDeLoginNaoExisteMais() throws Exception {
+        // Sem token: barrada pela segurança.
         mvc.perform(post("/api/usuarios/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"ana@ambydata.demo\",\"senha\":\"" + SENHA + "\"}"))
                 .andExpect(status().isUnauthorized());
+        // Mesmo com token de ADMIN, a rota não existe mais: nenhum login acontece por ela.
+        Usuario admin = repositorio.save(new Usuario(null, "Admin", "admin@ambydata.demo",
+                encoder.encode(SENHA), Perfil.ADMIN, true));
+        mvc.perform(post("/api/usuarios/login").header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.emitir(admin).token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"ana@ambydata.demo\",\"senha\":\"" + SENHA + "\"}"))
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string(not(containsString("token"))));
+    }
+
+    @Test
+    void errosDeValidacaoSaemEmPortugues() throws Exception {
+        mvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"\",\"senha\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.email").value("não deve estar em branco"));
     }
 
     @Test

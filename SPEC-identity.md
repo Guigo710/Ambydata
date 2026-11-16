@@ -113,7 +113,7 @@ Erro padrão em qualquer endpoint:
 
 Regras:
 
-- Senha com no mínimo 8 caracteres; e-mail normalizado (minúsculas, sem espaços) e único.
+- Senha com 8 a 72 caracteres (no máximo 72 bytes, limite do BCrypt); e-mail normalizado (minúsculas, sem espaços) e único.
 - A cada requisição, o filtro do JWT recarrega o usuário: desativar alguém ou mudar o perfil
   vale na hora, sem esperar o token expirar.
 - O ADMIN não pode desativar a si mesmo nem rebaixar/desativar o último ADMIN ativo (409).

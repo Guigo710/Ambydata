@@ -5,6 +5,10 @@ server:
   port: 8080
 
 spring:
+  # Mensagens de validação (Bean Validation) em português, para qualquer cliente
+  web:
+    locale: pt_BR
+    locale-resolver: fixed
   # [Guigo710] Ponto 1: cria automaticamente os índices declarados com @Indexed
   data:
     mongodb:
@@ -13,6 +17,11 @@ spring:
     uri: ${MONGODB_URI}
     # ambydata_dev para desenvolvimento local, ambydata_prod no deploy
     database: ${MONGODB_DATABASE:ambydata_dev}
+
+springdoc:
+  swagger-ui:
+    # Endereço curto da documentação (o mesmo da spec e dos READMEs)
+    path: /swagger-ui
 
 app:
   jwt:

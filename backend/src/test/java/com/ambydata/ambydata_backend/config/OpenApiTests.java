@@ -47,4 +47,16 @@ class OpenApiTests {
         mvc.perform(get("/swagger-ui/index.html"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void enderecoDaSpecLevaAoSwagger() throws Exception {
+        mvc.perform(get("/swagger-ui"))
+                .andExpect(status().is3xxRedirection());
+    }
+
+    @Test
+    void loginNaoExigeTokenNaDocumentacao() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                .andExpect(jsonPath("$.paths['/api/auth/login'].post.security").isEmpty());
+    }
 }

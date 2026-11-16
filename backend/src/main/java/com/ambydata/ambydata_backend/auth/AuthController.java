@@ -3,6 +3,7 @@ package com.ambydata.ambydata_backend.auth;
 import com.ambydata.ambydata_backend.usuario.Usuario;
 import com.ambydata.ambydata_backend.usuario.UsuarioResponse;
 import com.ambydata.ambydata_backend.usuario.UsuarioService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,6 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @SecurityRequirements // público: sem cadeado no Swagger
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         Usuario usuario = usuarioService.autenticar(request.email(), request.senha())
                 .orElseThrow(CredenciaisInvalidasException::new);

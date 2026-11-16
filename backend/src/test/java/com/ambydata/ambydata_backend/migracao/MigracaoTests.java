@@ -2,6 +2,7 @@ package com.ambydata.ambydata_backend.migracao;
 
 import com.ambydata.ambydata_backend.TestcontainersConfig;
 import org.bson.Document;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,13 @@ class MigracaoTests {
     void limpar() {
         mongoTemplate.dropCollection("usuario");
         mongoTemplate.dropCollection(ExecutorMigracoes.COLECAO);
+    }
+
+    // O contexto Spring é compartilhado entre classes de teste: devolve o índice único
+    // de e-mail que o dropCollection apagou, para os outros testes não dependerem da ordem.
+    @AfterEach
+    void restaurarIndice() {
+        m001.aplicar(mongoTemplate);
     }
 
     @Test

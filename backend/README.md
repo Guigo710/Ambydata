@@ -136,7 +136,7 @@ O backend atual usa **MongoDB**, não MySQL nem JPA.
 ## Endpoints implementados
 
 Com a aplicação rodando, a documentação interativa fica em
-[`/swagger-ui`](http://localhost:8080/swagger-ui.html) (pública). Faça login em
+[`/swagger-ui`](http://localhost:8080/swagger-ui) (pública). Faça login em
 `POST /api/auth/login`, copie o `token` e cole em **Authorize** para testar as demais rotas.
 O contrato também está descrito em [`SPEC-identity.md`](../SPEC-identity.md#contrato-da-api).
 
@@ -144,7 +144,7 @@ O contrato também está descrito em [`SPEC-identity.md`](../SPEC-identity.md#co
 |--------|------|--------|-----------|
 | POST | `/api/auth/login` | público | Recebe `{ email, senha }` e devolve `{ token, expiraEm, usuario }` |
 | GET | `/api/auth/me` | autenticado | Dados do usuário do token |
-| PUT | `/api/auth/me/senha` | autenticado | Recebe `{ senhaAtual, novaSenha }` (mínimo 8 caracteres); 204 |
+| PUT | `/api/auth/me/senha` | autenticado | Recebe `{ senhaAtual, novaSenha }` (8 a 72 caracteres); 204 |
 | GET | `/api/usuarios` | ADMIN | Lista os usuários, por nome |
 | POST | `/api/usuarios` | ADMIN | Cria `{ nome, email, senha, perfil }`; 201 |
 | PUT | `/api/usuarios/{id}` | ADMIN | Edita `{ nome, email, perfil }` |
@@ -163,7 +163,7 @@ Authorization: Bearer <token>
 Erros saem sempre no mesmo formato:
 
 ```json
-{ "status": 400, "erro": "Dados inválidos.", "campos": { "email": "must not be blank" } }
+{ "status": 400, "erro": "Dados inválidos.", "campos": { "email": "não deve estar em branco" } }
 ```
 
 ## Autenticação e segurança

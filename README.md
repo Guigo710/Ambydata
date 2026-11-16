@@ -54,7 +54,7 @@ sem `MONGODB_URI`:
 Para criar o primeiro usuário, defina também `ADMIN_EMAIL`, `ADMIN_SENHA` e, opcionalmente,
 `ADMIN_NOME` antes de iniciar. Com `DEMO_SENHA` definida, sobem também `operario@`,
 `engenheiro@` e `diretor@ambydata.demo`, um por perfil. Com o backend rodando, a documentação
-da API fica em `http://localhost:8080/swagger-ui.html`.
+da API fica em `http://localhost:8080/swagger-ui`.
 
 ### Frontend
 

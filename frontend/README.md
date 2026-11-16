@@ -73,6 +73,7 @@ A aplicação sobe por padrão em `http://localhost:5173`.
 | `npm run build` | Gera build de produção |
 | `npm run preview` | Serve o build de produção localmente |
 | `npm run lint` | Roda o ESLint |
+| `npm test` | Roda os testes (Vitest + Testing Library, ambiente jsdom) |
 
 ## Estrutura do projeto
 

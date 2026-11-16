@@ -22,7 +22,7 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Revisão com o agente security-auditor (High, Medium e mensagens internas corrigidos; resto no Deferred da spec)
 
 ## Phase 2: Frontend
-- [ ] Task 9: Infra de testes, cliente da API e matriz de permissões (M)
+- [x] Task 9: Infra de testes, cliente da API e matriz de permissões (M)
 - [ ] Task 10: AuthContext, rotas protegidas e tela de login (M)
 - [ ] Task 11: Menu, topo e limpeza do Painel; lint bloqueante (M)
 

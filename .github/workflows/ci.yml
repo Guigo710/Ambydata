@@ -73,6 +73,7 @@ jobs:
       # Não bloqueante até o módulo identity reescrever Login, Sidebar e Painel.
       - run: npm run lint
         continue-on-error: true
+      - run: npm test
       - run: npm run build
 
   # Único check obrigatório na proteção da main. Falha se qualquer job anterior

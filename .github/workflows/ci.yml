@@ -6,16 +6,17 @@ on:
     branches: [main]
 
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Só cancela runs antigos de PR; pushes na main sempre terminam.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
   pull-requests: read
 
 jobs:
-  # Descobre quais lados do monorepo mudaram. Jobs pulados contam como
-  # aprovados na proteção da main, então os dois podem ser checks obrigatórios.
+  # Descobre quais lados do monorepo mudaram. Mudanças no próprio workflow
+  # disparam os dois lados.
   changes:
     runs-on: ubuntu-latest
     outputs:
@@ -38,6 +39,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -53,7 +55,8 @@ jobs:
           --health-retries 10
     env:
       MONGODB_URI: mongodb://localhost:27017
-      JWT_SECRET: segredo-apenas-para-o-ci
+      # 32+ caracteres: o JJWT rejeita chaves HMAC-SHA256 menores que 256 bits.
+      JWT_SECRET: segredo-apenas-para-o-ci-nao-usar-em-producao
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -67,6 +70,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -82,3 +86,14 @@ jobs:
       - run: npm run lint
         continue-on-error: true
       - run: npm run build
+
+  # Único check obrigatório na proteção da main. Falha se qualquer job anterior
+  # falhou ou foi cancelado; jobs pulados por não haver mudança no lado contam
+  # como aprovados. Sem ele, uma falha em "changes" pularia backend e frontend
+  # e o PR ficaria mergeável sem build nem testes.
+  ci-ok:
+    needs: [changes, backend, frontend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: '! ${{ contains(needs.*.result, ''failure'') || contains(needs.*.result, ''cancelled'') }}'

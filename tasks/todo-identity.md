@@ -33,8 +33,8 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Task 13: Tela de Usuários (ADMIN) (M)
 
 ## Phase 3: Fechamento
-- [ ] Task 14: Verificação ponta a ponta, documentação e revisão (S)
+- [x] Task 14: Verificação ponta a ponta, documentação e revisão (S)
 
 ### Checkpoint: Marco 1 completo
-- [ ] Success Criteria do SPEC-identity.md atendidos
+- [x] Success Criteria do SPEC-identity.md atendidos (11 critérios; revisões de código, segurança e testes)
 - [ ] Variáveis do Render atualizadas antes do merge

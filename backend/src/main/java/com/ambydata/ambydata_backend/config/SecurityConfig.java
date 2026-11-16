@@ -36,6 +36,9 @@ public class SecurityConfig {
                 .accessDeniedHandler((req, res, ex) -> resolver.resolveException(req, res, null, ex)))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/error").permitAll()
+                // Documentação pública (decisão da spec do identity): só descreve a API.
+                .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**",
+                        "/swagger-ui.html", "/swagger-ui/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/**").authenticated()
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")

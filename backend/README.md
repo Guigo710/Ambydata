@@ -135,7 +135,10 @@ O backend atual usa **MongoDB**, não MySQL nem JPA.
 
 ## Endpoints implementados
 
-O contrato completo está em [`SPEC-identity.md`](../SPEC-identity.md#contrato-da-api).
+Com a aplicação rodando, a documentação interativa fica em
+[`/swagger-ui`](http://localhost:8080/swagger-ui.html) (pública). Faça login em
+`POST /api/auth/login`, copie o `token` e cole em **Authorize** para testar as demais rotas.
+O contrato também está descrito em [`SPEC-identity.md`](../SPEC-identity.md#contrato-da-api).
 
 | Método | Rota | Acesso | Descrição |
 |--------|------|--------|-----------|
@@ -204,7 +207,7 @@ mvnw.cmd
 - [x] Implementar emissão e validação de JWT
 - [x] Proteger a listagem de usuários e revisar o acesso às demais rotas
 - [x] Adicionar testes para cadastro e autenticação
-- [ ] Documentar a API com OpenAPI/Swagger
+- [x] Documentar a API com OpenAPI/Swagger
 - [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
 
 ## Licença

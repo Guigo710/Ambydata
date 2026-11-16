@@ -444,17 +444,28 @@ body,
 }
 .login-box {
   background: var(--card-bg);
-  padding: 40px;
+  padding: 32px 28px;
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
   width: 100%;
-  max-width: 400px;
+  max-width: 360px;
+  margin: 0 auto;
   text-align: center;
   animation: fadeUp 0.5s ease both;
 }
 
 .login-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 32px;
+}
+
+.login-logo-img {
+  width: 140px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.05));
 }
 
 .logo-bars {
@@ -569,6 +580,25 @@ body,
 
 .login-btn:active {
   transform: translateY(0);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+/* Aviso neutro (sessão expirada, "Procure seu gestor") */
+.info-message {
+  background-color: rgba(67, 97, 238, 0.08);
+  color: var(--blue);
+  border: 1px solid rgba(67, 97, 238, 0.2);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 /* Alerta de erro estilizado com base na cor de destaque pink */

@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useAuth } from "../auth/contexto";
 import {
   RadarChart,
   Radar,
@@ -18,7 +17,15 @@ import {
   Bar,
 } from "recharts";
 
-// Dados estáticos de exemplo mantidos para os gráficos que não ligámos ao banco ainda
+// Dados de exemplo até o módulo "indicadores" ligar os gráficos à simulação.
+const metricasExemplo = [
+  { label: "Seg", oee: 72, custo: 1500, lucro: 3200 },
+  { label: "Ter", oee: 78, custo: 1420, lucro: 3550 },
+  { label: "Qua", oee: 69, custo: 1610, lucro: 2980 },
+  { label: "Qui", oee: 81, custo: 1380, lucro: 3720 },
+  { label: "Sex", oee: 76, custo: 1450, lucro: 3400 },
+];
+
 const radarData = [
   { subject: "CoreID RAW", A: 80, B: 65, C: 70 },
   { subject: "Sketch", A: 90, B: 75, C: 60 },
@@ -67,51 +74,13 @@ const tooltipStyle = {
 };
 
 export default function PainelPrincipal() {
-  // 1. Estados para guardar as métricas dinâmicas vindas do Spring Boot
-  const [metricasReais, setMetricasReais] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const cargoUsuario = localStorage.getItem('cargo'); // Ou a lógica que usou antes
-
-  // 2. Chamada HTTP com Axios para buscar os dados no MySQL assim que carregar a tela
-  useEffect(() => {
-    const buscarDadosDoJava = async () => {
-      try {
-        const resposta = await axios.get('https://ambydata-backend-api-2.onrender.com/api/dados');
-        //const resposta = await axios.get(`${import.meta.env.VITE_API_URL}/api/dados`);
-        setMetricasReais(resposta.data); // Armazena a lista vinda do banco
-        setCarregando(false);
-      } catch (erro) {
-        console.error("Erro ao ligar ao Spring Boot de dados:", erro);
-        setCarregando(false);
-      }
-    };
-
-    buscarDadosDoJava();
-    // Define o intervalo para buscar dados automaticamente a cada 5 segundos
-    const intervalo = setInterval(buscarDadosDoJava, 5000);
-
-    //Limpa o intervalo se o usuário sair da página
-    return () => clearInterval(intervalo);
-
-  }, []);
-
-  const [usuarioLogado, setUsuarioLogado] = useState(null);
-  useEffect(() => {
-    const deStr = localStorage.getItem("usuarioLogado"); // Usa a mesma chave que definiste no Login
-    if (deStr) {
-      setUsuarioLogado(JSON.parse(deStr));
-    }
-  }, []);
-  
-  if (carregando) {
-    return <div style={{ padding: "28px", color: "var(--text-secondary)" }}>A sincronizar dados com o servidor Java...</div>;
-  }
+  const { usuario } = useAuth();
 
   return (
     <>
       <div className="page-header">
         <h1 className="page-title">Painel Principal</h1>
-        <p className="page-greeting">Olá {usuarioLogado?.nome || "Usuário"}</p>
+        <p className="page-greeting">Olá {usuario?.nome || "Usuário"}</p>
       </div>
 
       <div className="charts-grid">
@@ -134,7 +103,7 @@ export default function PainelPrincipal() {
         <div className="card">
           <p className="card-title">OEE em Tempo Real (%)</p>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={metricasReais}>
+            <AreaChart data={metricasExemplo}>
               <defs>
                 <linearGradient id="oeeDinamic" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={COLORS_2020} stopOpacity={0.25} />
@@ -151,7 +120,7 @@ export default function PainelPrincipal() {
           <div className="chart-legend">
             <div className="legend-item">
               <div className="legend-dot" style={{ background: COLORS_2020 }} />
-              OEE Atualizado via MySQL
+              OEE (dados de exemplo)
             </div>
           </div>
         </div>
@@ -173,9 +142,9 @@ export default function PainelPrincipal() {
 
         {/* Custos e Lucros) */}
         <div className="card">
-          <p className="card-title">Custos e Lucros Reais (R$)</p>
+          <p className="card-title">Custos e Lucros (R$)</p>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={metricasReais} barGap={4}>
+            <BarChart data={metricasExemplo} barGap={4}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F0F2F8" vertical={false} />
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />

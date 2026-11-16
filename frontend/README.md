@@ -80,18 +80,25 @@ A aplicação sobe por padrão em `http://localhost:5173`.
 ```
 public/          # assets estáticos
 src/
+  auth/          # sessão (AuthContext), rotas protegidas e permissões por perfil
   components/    # componentes React
   pages/         # telas/rotas
-  services/      # chamadas à API (axios) — criada no módulo identity
+  services/      # cliente único da API (axios)
+  test/          # apoio aos testes
 index.html
 vite.config.js
 ```
 
 ## Autenticação / Login
 
-O frontend possui um formulário de login que envia e-mail/senha para `POST /api/usuarios/login` no backend. O backend confere as credenciais no banco e, se corretas, retorna o usuário — liberando o acesso ao dashboard no frontend.
-
-⚠️ **Atenção:** o backend atual não emite token (JWT ou similar) nessa etapa — veja a seção de Autenticação do [README do backend](../backend/README.md#autenticação-e-segurança). Ou seja, o "login" apenas confirma as credenciais uma vez; não há sessão validada nas requisições seguintes. Trate como autenticação provisória, não pronta para produção.
+- O login envia e-mail e senha para `POST /api/auth/login` e recebe um token JWT (válido por
+  8 horas), guardado pelo `AuthContext`, o único lugar que lê ou grava a sessão.
+- Toda chamada ao backend passa por `services/api.js`, que anexa o token. Se o backend
+  recusar o token (401), a sessão acaba e o login mostra "Sua sessão expirou".
+- As telas que cada perfil vê estão em `auth/permissoes.js`; `RotaProtegida` aplica essas
+  regras às rotas, e o backend aplica as mesmas regras na API.
+- Depois do login, o ADMIN vai para Usuários e os demais perfis para o Painel.
+- "Esqueci minha senha" orienta a procurar o gestor: quem redefine é o ADMIN.
 
 ## Deploy
 
@@ -99,8 +106,8 @@ Configurado via `vercel.json` para deploy no Vercel.
 
 ## Roadmap
 
-- [ ] Autenticação real de sessão (token JWT + persistência segura, alinhado com o backend)
-- [ ] Testes automatizados (componentes e integração)
+- [x] Autenticação real de sessão (token JWT, alinhado com o backend)
+- [x] Testes automatizados (Vitest + Testing Library)
 - [ ] Dark mode
 - [x] CI (lint + build em pull requests) — `.github/workflows/ci.yml` na raiz; lint ainda não bloqueante
 

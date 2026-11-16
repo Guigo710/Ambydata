@@ -23,7 +23,7 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 
 ## Phase 2: Frontend
 - [x] Task 9: Infra de testes, cliente da API e matriz de permissões (M)
-- [ ] Task 10: AuthContext, rotas protegidas e tela de login (M)
+- [x] Task 10: AuthContext, rotas protegidas e tela de login (M)
 - [ ] Task 11: Menu, topo e limpeza do Painel; lint bloqueante (M)
 
 ### Checkpoint: Sessão no frontend

@@ -91,7 +91,7 @@ links para os READMEs internos); `.gitignore` da raiz para itens comuns (`.idea/
 #### Task 5: Workflow de CI
 **Description:** `.github/workflows/ci.yml` com dois jobs. Backend: Temurin 21, cache Maven,
 serviço `mongo:7`, `MONGODB_URI=mongodb://localhost:27017` e `JWT_SECRET` de teste,
-`./mvnw -B verify`. Frontend: Node 20, cache npm, `npm ci`, `npm run lint` (`continue-on-error`),
+`./mvnw -B verify`. Frontend: Node 22, cache npm, `npm ci`, `npm run lint` (`continue-on-error`),
 `npm run build`. Disparo em `pull_request` e `push` na `main`, filtrado por `paths`.
 **Acceptance criteria:**
 - [ ] Um PR que só muda `frontend/**` não roda o job backend, e vice-versa

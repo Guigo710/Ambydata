@@ -18,7 +18,7 @@ para quem usa o sistema: login e dashboard continuam funcionando exatamente como
 
 - Backend: Java 21, Spring Boot 4.0.9, Maven Wrapper, MongoDB (inalterado neste marco)
 - Frontend: Node 20.19+ ou 22.13+, React 19, Vite 8, ESLint 10 (inalterado neste marco)
-- CI: GitHub Actions
+- CI: GitHub Actions (Java 21, Node 22)
 - Deploy: Vercel (frontend), Render via Dockerfile (backend)
 - Skills: addyosmani/agent-skills, licença MIT, fixado no commit `39b723c`
 

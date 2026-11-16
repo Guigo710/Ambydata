@@ -17,7 +17,7 @@ para quem usa o sistema: login e dashboard continuam funcionando exatamente como
 ## Tech Stack
 
 - Backend: Java 21, Spring Boot 4.0.9, Maven Wrapper, MongoDB (inalterado neste marco)
-- Frontend: Node 20+, React 19, Vite 8, ESLint 10 (inalterado neste marco)
+- Frontend: Node 20.19+ ou 22.13+, React 19, Vite 8, ESLint 10 (inalterado neste marco)
 - CI: GitHub Actions
 - Deploy: Vercel (frontend), Render via Dockerfile (backend)
 - Skills: addyosmani/agent-skills, licença MIT, fixado no commit `39b723c`
@@ -46,14 +46,14 @@ Ambydata/
   .claude/
     skills/                 cópia de agent-skills/skills/ (25 skills)
     agents/                 code-reviewer, security-auditor, test-engineer, web-performance-auditor
-    commands/               spec, plan, build, test, review, constraints, code-simplify, ship, webperf
+    commands/               spec, plan, build, test, revisar, constraints, code-simplify, ship, webperf
     references/             checklists usados pelas skills
     AGENT-SKILLS.md         origem, commit fixado, licença MIT e como atualizar
   CAPABILITY-MAP.md
   SPEC-monorepo.md          (e os próximos SPEC-<module-id>.md)
   tasks/                    plan.md e todo.md gerados pelo /plan
   README.md                 visão geral, como rodar os dois, links para os READMEs internos
-  .gitignore                regras dos dois projetos combinadas
+  .gitignore                regras comuns (SO, IDE, .env); as de cada projeto ficam nos .gitignore internos
 ```
 
 ## Code Style
@@ -92,9 +92,10 @@ Este marco não escreve código de aplicação. Convenções que passam a valer:
 4. Ajustes mínimos, cada um num commit próprio:
    - `backend/mvnw` com permissão de execução (hoje está 100644, e `./mvnw` falha no CI)
    - `frontend/package-lock.json` regenerado (hoje `npm ci` falha: lockfile fora de sincronia)
-   - `pom.xml` com `java.version` 21, alinhado ao Dockerfile
+   - `pom.xml` com `java.version` 21, alinhado ao Dockerfile, e `backend/README.md` com a versão do JDK
 5. O CI roda em PR e push na `main`, e fica verde: o job backend só roda quando `backend/**` muda,
-   o job frontend só quando `frontend/**` muda.
+   o job frontend só quando `frontend/**` muda (os dois rodam quando o `ci.yml` muda); o job
+   `ci-ok` resume os dois e é o único check obrigatório.
 6. `.claude/` contém as skills, agentes, comandos e referências, com AGENT-SKILLS.md
    explicando origem, commit e licença; uma sessão do Claude Code aberta no repositório
    lista os comandos `/spec`, `/plan` e `/build`.

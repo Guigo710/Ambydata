@@ -6,7 +6,9 @@
 Thumbs.db
 .idea/
 
-# Variáveis de ambiente locais (nunca versionar credenciais)
+# Variáveis de ambiente locais (nunca versionar credenciais). Inclui
+# .env.production e .env.development de propósito: valores de deploy ficam
+# no painel da Vercel e do Render; só o .env.example é versionado.
 .env
 .env.*
 !.env.example

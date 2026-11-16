@@ -15,7 +15,7 @@ Source spec: SPEC-monorepo.md — detalhes em tasks/plan.md
 - [x] Task 6: Skills, agentes e comandos em `.claude/` (S)
 
 ## Checkpoint: Repositório pronto
-- [ ] Revisão com o agente code-reviewer
+- [x] Revisão com o agente code-reviewer (achados obrigatórios corrigidos)
 - [ ] Aprovação do Guilherme antes de publicar
 
 - [ ] Task 7: Publicar no repositório `Ambydata` (XS)

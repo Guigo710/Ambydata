@@ -16,7 +16,9 @@ Claude Code aberta neste repositório (local ou na nuvem) sem nenhum passo extra
 | `agent-skills:<nome>` trocado por `<nome>` nos comandos | Sem plugin, as skills não têm prefixo |
 
 Os textos das skills e dos agentes não foram alterados. Onde eles citam `/review`, neste
-repositório o comando é `/revisar`.
+repositório o comando é `/revisar`. O link `../docs/agents.md` no fim de cada agente aponta
+para a documentação do repositório original, que não foi copiada: leia-a
+[no GitHub](https://github.com/addyosmani/agent-skills/blob/39b723ceebf81474d0557c1fecd01eddab585563/docs/agents.md).
 
 ## Comandos
 
@@ -42,7 +44,10 @@ git clone https://github.com/addyosmani/agent-skills /tmp/agent-skills
 cd /tmp/agent-skills && git log -1 --format=%H   # anote o commit novo
 ```
 
-Depois, a partir da raiz deste repositório:
+Depois, a partir da raiz deste repositório. Atenção: o primeiro comando apaga as quatro pastas
+inteiras. Se o grupo tiver criado comandos ou agentes próprios em `.claude/commands/` ou
+`.claude/agents/`, salve-os antes e restaure depois. No macOS, use `sed -i ''` no lugar de
+`sed -i`.
 
 ```bash
 rm -rf .claude/skills .claude/agents .claude/references .claude/commands

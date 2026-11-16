@@ -77,8 +77,8 @@ repositório `Ambydata` local e fazer merge dos dois históricos com `--allow-un
 
 #### Task 4: README, .gitignore, mapa, spec e plano na raiz
 **Description:** README.md da raiz (estrutura, como rodar cada lado, onde ficam specs e skills,
-links para os READMEs internos); `.gitignore` da raiz para itens comuns (`.idea/`, `.vscode/`,
-`.DS_Store`, `.env`); copiar `CAPABILITY-MAP.md`, `SPEC-monorepo.md` e `tasks/`.
+links para os READMEs internos); `.gitignore` da raiz para itens comuns (`.idea/`, `.DS_Store`,
+`.env`; `.vscode/` fica de fora porque anularia o `!.vscode/extensions.json` do frontend); copiar `CAPABILITY-MAP.md`, `SPEC-monorepo.md` e `tasks/`.
 **Acceptance criteria:**
 - [ ] README explica os comandos de dev de cada lado e as variáveis de ambiente sem valores reais
 - [ ] Os `.gitignore` internos continuam valendo (nenhum arquivo ignorado antes passa a ser rastreado)
@@ -149,7 +149,7 @@ Liberar a URL nova da Vercel no CORS do backend se necessário.
 
 #### Task 9 (Guilherme): Colaboradores e proteção da `main`
 **Description:** Convidar Erick e o grupo; ativar a proteção da `main` (PR obrigatório, 1
-aprovação, CI verde).
+aprovação, check obrigatório `ci-ok`).
 **Acceptance criteria:**
 - [ ] Um push direto na `main` é recusado
 **Verification:**

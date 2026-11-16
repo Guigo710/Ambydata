@@ -1,7 +1,7 @@
 # Capability Map: AmbyData — V1
 
 Fonte: documento "AmbyData — Decisões do Projeto" (rev 12).
-Status: proposto — aguardando aprovação.
+Status: aprovado.
 
 | Module id | Responsabilidade | Depende de | Marco |
 |---|---|---|---|

@@ -40,13 +40,23 @@ export JWT_SECRET="<segredo-local>"
 ./mvnw spring-boot:run
 ```
 
-A API sobe em `http://localhost:8080`. Testes: `./mvnw verify`.
+A API sobe em `http://localhost:8080`. No Windows, use `.\mvnw.cmd` no lugar de `./mvnw`.
+
+Os testes sobem o contexto do Spring e precisam de um MongoDB. Para não usar o Atlas, rode um
+MongoDB descartável, como o CI faz:
+
+```bash
+docker run --rm -d -p 27017:27017 --name mongo-teste mongo:7
+MONGODB_URI=mongodb://localhost:27017 ./mvnw verify
+docker stop mongo-teste
+```
+
 Para criar o primeiro usuário, defina também `ADMIN_EMAIL`, `ADMIN_SENHA` e, opcionalmente,
 `ADMIN_NOME` antes de iniciar.
 
 ### Frontend
 
-Pré-requisito: Node.js 20 ou superior.
+Pré-requisito: Node.js 20.19+ ou 22.13+ (exigência do Vite 8 e do ESLint 10).
 
 ```bash
 cd frontend
@@ -84,7 +94,10 @@ O workflow `.github/workflows/ci.yml` roda em todo Pull Request e em todo push n
 
 - **backend:** `./mvnw -B verify` com Java 21 e um MongoDB temporário, quando `backend/` muda;
 - **frontend:** `npm ci`, `npm run lint` (ainda não bloqueante) e `npm run build`, quando
-  `frontend/` muda.
+  `frontend/` muda;
+- **ci-ok:** resume o resultado dos dois. É o único check obrigatório na proteção da `main`.
+
+Uma mudança no próprio `ci.yml` dispara os dois lados.
 
 ## Licença
 

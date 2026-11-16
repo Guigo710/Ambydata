@@ -272,4 +272,16 @@ class UsuarioAdminTests {
     private static String edicao(String nome, String email, String perfil) {
         return "{\"nome\":\"" + nome + "\",\"email\":\"" + email + "\",\"perfil\":\"" + perfil + "\"}";
     }
+
+    // Critério 4: um ADMIN inativo não conta como substituto na regra do último ADMIN ativo.
+    @Test
+    void adminInativoNaoContaParaARegraDoUltimoAdmin() throws Exception {
+        repositorio.save(new Usuario(null, "Admin Inativo", "admin-inativo@ambydata.demo", encoder.encode(SENHA), Perfil.ADMIN, false));
+
+        mvc.perform(comoAdmin(put("/api/usuarios/" + admin.getId())).contentType(MediaType.APPLICATION_JSON)
+                        .content(edicao("Admin", "admin@ambydata.demo", "DIRETOR")))
+                .andExpect(status().isConflict());
+        org.assertj.core.api.Assertions.assertThat(repositorio.findById(admin.getId()).orElseThrow().getPerfil())
+                .isEqualTo(Perfil.ADMIN);
+    }
 }

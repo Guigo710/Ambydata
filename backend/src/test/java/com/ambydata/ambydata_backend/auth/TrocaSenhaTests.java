@@ -1,5 +1,7 @@
 package com.ambydata.ambydata_backend.auth;
 
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.ParameterizedTest;
 import com.ambydata.ambydata_backend.TestcontainersConfig;
 import com.ambydata.ambydata_backend.usuario.Perfil;
 import com.ambydata.ambydata_backend.usuario.Usuario;
@@ -97,5 +99,15 @@ class TrocaSenhaTests {
 
     private static String corpo(String atual, String nova) {
         return "{\"senhaAtual\":\"" + atual + "\",\"novaSenha\":\"" + nova + "\"}";
+    }
+
+    // Critério 5: todo perfil, inclusive o ADMIN, troca a própria senha.
+    @ParameterizedTest
+    @EnumSource(Perfil.class)
+    void todoPerfilTrocaAPropriaSenha(Perfil perfil) throws Exception {
+        Usuario usuario = repositorio.save(new Usuario(null, "U " + perfil, perfil.name().toLowerCase() + "@x.com",
+                encoder.encode(SENHA_ATUAL), perfil, true));
+        mvc.perform(trocarSenha(jwtService.emitir(usuario).token(), SENHA_ATUAL, SENHA_NOVA))
+                .andExpect(status().isNoContent());
     }
 }

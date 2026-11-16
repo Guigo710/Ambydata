@@ -1,5 +1,7 @@
 package com.ambydata.ambydata_backend.auth;
 
+import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 import com.ambydata.ambydata_backend.usuario.Perfil;
 import com.ambydata.ambydata_backend.usuario.Usuario;
 import org.junit.jupiter.api.Test;
@@ -64,5 +66,16 @@ class JwtServiceTests {
 
     private static Clock relogioEm(Instant instante) {
         return Clock.fixed(instante, ZoneOffset.UTC);
+    }
+
+    // Critério 1: a validade vem da configuração (valor diferente do padrão) e o algoritmo é HS256.
+    @Test
+    void validadeSegueAConfiguracaoEOAlgoritmoEHS256() {
+        JwtService duasHoras = new JwtService(new JwtProperties(SEGREDO, 2), relogioEm(AGORA));
+        TokenEmitido emitido = duasHoras.emitir(usuario("u1", Perfil.OPERARIO));
+
+        assertThat(emitido.expiraEm()).isEqualTo(AGORA.plus(Duration.ofHours(2)));
+        String cabecalho = new String(Base64.getUrlDecoder().decode(emitido.token().split("\\.")[0]), StandardCharsets.UTF_8);
+        assertThat(cabecalho).contains("\"alg\":\"HS256\"");
     }
 }

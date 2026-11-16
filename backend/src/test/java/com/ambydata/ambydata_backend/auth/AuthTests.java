@@ -1,5 +1,9 @@
 package com.ambydata.ambydata_backend.auth;
 
+import java.time.ZoneOffset;
+import java.time.Instant;
+import java.time.Duration;
+import java.time.Clock;
 import com.ambydata.ambydata_backend.TestcontainersConfig;
 import com.ambydata.ambydata_backend.usuario.Perfil;
 import com.ambydata.ambydata_backend.usuario.Usuario;
@@ -202,5 +206,21 @@ class AuthTests {
     private static org.springframework.test.web.servlet.RequestBuilder login(String email, String senha) {
         return post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"email\":\"" + email + "\",\"senha\":\"" + senha + "\"}");
+    }
+
+    @Test
+    void tokenExpiradoNaApiDevolve401() throws Exception {
+        JwtService noPassado = new JwtService(new JwtProperties("segredo-de-teste-com-mais-de-32-caracteres", 8),
+                Clock.fixed(Instant.now().minus(Duration.ofHours(9)), ZoneOffset.UTC));
+        mvc.perform(get("/api/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + noPassado.emitir(engenheiro).token()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void tokenDeUsuarioRemovidoDevolve401() throws Exception {
+        String token = tokenDaAna();
+        repositorio.deleteById(engenheiro.getId());
+        mvc.perform(get("/api/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isUnauthorized());
     }
 }

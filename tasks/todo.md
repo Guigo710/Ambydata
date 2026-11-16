@@ -16,9 +16,9 @@ Source spec: SPEC-monorepo.md — detalhes em tasks/plan.md
 
 ## Checkpoint: Repositório pronto
 - [x] Revisão com o agente code-reviewer (achados obrigatórios corrigidos)
-- [ ] Aprovação do Guilherme antes de publicar
+- [x] Aprovação do Guilherme antes de publicar
 
-- [ ] Task 7: Publicar no repositório `Ambydata` (XS)
+- [x] Task 7: Publicar no repositório `Ambydata` (XS) — senha antiga da Aiven removida do histórico
 - [ ] Task 8 (Guilherme): Novos deploys na Vercel e no Render (XS)
 - [ ] Task 9 (Guilherme): Colaboradores e proteção da `main` (XS)
 

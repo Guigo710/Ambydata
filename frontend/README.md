@@ -8,9 +8,9 @@
 
 Frontend do **AmbyData**, dashboard de monitoramento industrial em tempo real: acompanha OEE, produtividade, lucros, desvios, necessidade de manutenção e temperatura das máquinas/produtos.
 
-Este repositório contém apenas a interface. A API está em [`Ambydata-backend`](https://github.com/ErickWL/Ambydata-backend).
+Esta pasta contém apenas a interface. A API está em [`../backend`](../backend), no mesmo monorepo; o [README da raiz](../README.md) explica como rodar os dois.
 
-**Deploy:** [ambydata-react.vercel.app](https://ambydata-react.vercel.app)
+**Deploy:** Vercel, com Root Directory `frontend`.
 
 ## Stack
 
@@ -23,22 +23,22 @@ Este repositório contém apenas a interface. A API está em [`Ambydata-backend`
 
 ## Pré-requisitos
 
-- Node.js 20+
-- API do backend rodando (local ou deployada) — veja [`Ambydata-backend`](https://github.com/ErickWL/Ambydata-backend)
+- Node.js 20.19+ ou 22.13+ (exigência do Vite 8 e do ESLint 10)
+- API do backend rodando (local ou deployada) — veja [`../backend`](../backend)
 
 ## Instalação e execução
 
-Clone o repositório:
+Clone o monorepo e entre na pasta do frontend:
 
 ```bash
-git clone https://github.com/ErickWL/Ambydata-react.git
-cd Ambydata-react
+git clone https://github.com/Guigo710/Ambydata.git
+cd Ambydata/frontend
 ```
 
-Instale as dependências:
+Instale as dependências exatamente como estão no lockfile:
 
 ```bash
-npm install
+npm ci
 ```
 
 ### Variáveis de ambiente
@@ -81,7 +81,7 @@ public/          # assets estáticos
 src/
   components/    # componentes React
   pages/         # telas/rotas
-  services/      # chamadas à API (axios)
+  services/      # chamadas à API (axios) — criada no módulo identity
 index.html
 vite.config.js
 ```
@@ -90,7 +90,7 @@ vite.config.js
 
 O frontend possui um formulário de login que envia e-mail/senha para `POST /api/usuarios/login` no backend. O backend confere as credenciais no banco e, se corretas, retorna o usuário — liberando o acesso ao dashboard no frontend.
 
-⚠️ **Atenção:** o backend atual não emite token (JWT ou similar) nessa etapa — veja a seção de Autenticação do [README do backend](https://github.com/ErickWL/Ambydata-backend). Ou seja, o "login" apenas confirma as credenciais uma vez; não há sessão validada nas requisições seguintes. Trate como autenticação provisória, não pronta para produção.
+⚠️ **Atenção:** o backend atual não emite token (JWT ou similar) nessa etapa — veja a seção de Autenticação do [README do backend](../backend/README.md#autenticação-e-segurança). Ou seja, o "login" apenas confirma as credenciais uma vez; não há sessão validada nas requisições seguintes. Trate como autenticação provisória, não pronta para produção.
 
 ## Deploy
 
@@ -101,7 +101,7 @@ Configurado via `vercel.json` para deploy no Vercel.
 - [ ] Autenticação real de sessão (token JWT + persistência segura, alinhado com o backend)
 - [ ] Testes automatizados (componentes e integração)
 - [ ] Dark mode
-- [ ] CI (lint + build em pull requests)
+- [x] CI (lint + build em pull requests) — `.github/workflows/ci.yml` na raiz; lint ainda não bloqueante
 
 ## Licença
 

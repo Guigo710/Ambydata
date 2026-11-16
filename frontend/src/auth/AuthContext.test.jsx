@@ -1,7 +1,9 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../services/api";
+import { criarQueryClient } from "../services/queryClient";
 import { AuthProvider } from "./AuthContext";
 import { useAuth } from "./contexto";
 import { CHAVE_SESSAO, EVENTO_SESSAO_EXPIRADA } from "./sessao";
@@ -20,16 +22,25 @@ function Sonda() {
   );
 }
 
+let queryClient;
+
 function montar() {
+  queryClient = criarQueryClient();
   return render(
-    <AuthProvider>
-      <Sonda />
-    </AuthProvider>,
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Sonda />
+      </AuthProvider>
+    </QueryClientProvider>,
   );
 }
 
+function salvar({ expiraEm = new Date(Date.now() + 3_600_000).toISOString(), usuario = { id: "1", nome: "Ana", perfil: "ADMIN" } } = {}) {
+  localStorage.setItem(CHAVE_SESSAO, JSON.stringify({ token: "t1", expiraEm, usuario }));
+}
+
 beforeEach(() => localStorage.clear());
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => vi.useRealTimers());
 
 describe("AuthContext", () => {
   it("começa sem sessão", () => {
@@ -103,5 +114,43 @@ describe("AuthContext", () => {
 
     expect(screen.getByText("autenticado: false")).toBeTruthy();
     expect(screen.getByText("aviso: Sua sessão expirou. Faça login de novo.")).toBeTruthy();
+  });
+
+  it("ao abrir com a sessão já vencida, avisa que ela expirou", () => {
+    salvar({ expiraEm: new Date(Date.now() - 1000).toISOString() });
+    montar();
+    expect(screen.getByText("aviso: Sua sessão expirou. Faça login de novo.")).toBeTruthy();
+  });
+
+  it("sai sozinho quando o token vence com o app aberto", () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+    salvar({ expiraEm: new Date(Date.now() + 60_000).toISOString() });
+    montar();
+    expect(screen.getByText("autenticado: true")).toBeTruthy();
+
+    act(() => vi.advanceTimersByTime(60_001));
+
+    expect(screen.getByText("autenticado: false")).toBeTruthy();
+    expect(screen.getByText("aviso: Sua sessão expirou. Faça login de novo.")).toBeTruthy();
+  });
+
+  it("revalida o usuário no backend ao abrir (nome e perfil atuais)", async () => {
+    salvar({ usuario: { id: "1", nome: "Ana", perfil: "ADMIN" } });
+    api.get.mockImplementation(async () => ({ data: { id: "1", nome: "Ana Paula", perfil: "DIRETOR" } }));
+    montar();
+
+    expect(await screen.findByText("nome: Ana Paula")).toBeTruthy();
+    expect(screen.getByText("perfil: DIRETOR")).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem(CHAVE_SESSAO)).usuario.perfil).toBe("DIRETOR");
+  });
+
+  it("sair limpa os dados em cache da sessão anterior", async () => {
+    salvar();
+    montar();
+    queryClient.setQueryData(["usuarios"], [{ id: "9", nome: "Dado de outra sessão" }]);
+
+    await userEvent.click(screen.getByText("sair"));
+
+    expect(queryClient.getQueryData(["usuarios"])).toBeUndefined();
   });
 });

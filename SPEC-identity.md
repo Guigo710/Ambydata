@@ -232,6 +232,14 @@ inglês; comentários só para explicar pasta/módulo ou bloco não óbvio; sem 
     - `server.forward-headers-strategy` para o HSTS e o Swagger reconhecerem o HTTPS do Render;
     - 404/405/415 no formato padrão de erro; `@Size(max)` nos demais campos; `iss`/`aud` no JWT;
       recusar `CORS_ORIGINS="*"`; log das ações do ADMIN; Dockerfile sem root e `.dockerignore`.
+- Itens "pode esperar" da revisão final (código, segurança do frontend e testes):
+    - restringir o `connect-src` da CSP ao endereço do Render (hoje `https:`); `allowAbsoluteUrls: false` no axios;
+    - CI: fixar actions de terceiros por SHA, passo `npm audit`, Dependabot;
+    - avaliar `sessionStorage` se os terminais da fábrica forem compartilhados;
+    - documentar `ErroResponse` e as respostas 4xx no Swagger; normalizar e-mails antigos na migração;
+    - testes: 401 sem token nas 5 rotas de usuários, esquemas do Swagger, `MONGODB_DATABASE` diferente
+      do padrão, `DuplicateKeyException` pelo índice; uma anotação de teste composta para usar um só
+      contexto Spring (suíte ~30% mais rápida); testes de navegador versionados (exige Playwright).
 
 ## Decisões (antes perguntas em aberto)
 

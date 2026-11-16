@@ -10,7 +10,7 @@ const CHAVE = ["usuarios"];
 
 // Gestão de usuários pelo ADMIN: lista, criação, edição, ativação e redefinição de senha.
 export default function Usuarios() {
-  const { usuario: eu } = useAuth();
+  const { usuario: eu, atualizarUsuario } = useAuth();
   const queryClient = useQueryClient();
   // null | { tipo: "novo" } | { tipo: "editar", usuario } | { tipo: "senha", usuario }
   const [painel, setPainel] = useState(null);
@@ -25,7 +25,10 @@ export default function Usuarios() {
 
   const salvar = useMutation({
     mutationFn: ({ id, ...dados }) => (id ? api.put(`/api/usuarios/${id}`, dados) : api.post("/api/usuarios", dados)),
-    onSuccess: (_, { id }) => {
+    onSuccess: (resposta, { id }) => {
+      if (id && id === eu?.id) {
+        atualizarUsuario(resposta.data); // o ADMIN editou a si mesmo: topo e menu acompanham
+      }
       setPainel(null);
       setAviso(id ? "Usuário atualizado." : "Usuário criado.");
       return atualizarLista();

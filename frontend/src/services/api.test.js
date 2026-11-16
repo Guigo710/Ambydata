@@ -1,5 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { api, configurarSessao, mensagemDeErro } from "./api";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { api, configurarSessao, mensagemDeErro, resolverEnderecoDaApi } from "./api";
+
+const adapterOriginal = api.defaults.adapter;
 
 // Substitui o transporte HTTP do axios: responde com o status pedido e devolve a config.
 function responderCom(status, data = {}) {
@@ -17,7 +19,11 @@ function responderCom(status, data = {}) {
   return api.defaults.adapter;
 }
 
-afterEach(() => configurarSessao({ obterToken: () => null, aoExpirar: () => {} }));
+beforeEach(() => api.get.mockRestore?.()); // aqui o GET real passa pelos interceptors
+afterEach(() => {
+  api.defaults.adapter = adapterOriginal;
+  configurarSessao({ obterToken: () => null, aoExpirar: () => {} });
+});
 
 describe("cliente da API", () => {
   it("anexa o token da sessão em toda requisição", async () => {
@@ -55,8 +61,42 @@ describe("cliente da API", () => {
     expect(aoExpirar).not.toHaveBeenCalled();
   });
 
-  it("usa VITE_API_URL como endereço base", () => {
-    expect(api.defaults.baseURL).toBe(import.meta.env.VITE_API_URL || "http://localhost:8080");
+  it("um 401 atrasado de uma sessão antiga não derruba a sessão nova", async () => {
+    let tokenAtual = "token-antigo";
+    const aoExpirar = vi.fn();
+    configurarSessao({ obterToken: () => tokenAtual, aoExpirar });
+    api.defaults.adapter = vi.fn(async (config) => {
+      tokenAtual = "token-novo"; // novo login enquanto a requisição antiga voltava
+      const erro = new Error("HTTP 401");
+      erro.response = { status: 401, data: {}, headers: {}, config };
+      erro.config = config;
+      throw erro;
+    });
+
+    await expect(api.get("/api/usuarios")).rejects.toThrow();
+    expect(aoExpirar).not.toHaveBeenCalled();
+  });
+});
+
+describe("endereço da API", () => {
+  it("usa VITE_API_URL quando definida", () => {
+    expect(resolverEnderecoDaApi({ VITE_API_URL: "https://api.exemplo.com", DEV: false })).toBe("https://api.exemplo.com");
+  });
+
+  it("em desenvolvimento, sem VITE_API_URL, usa o backend local", () => {
+    expect(resolverEnderecoDaApi({ DEV: true })).toBe("http://localhost:8080");
+  });
+
+  it("em produção, sem VITE_API_URL, nunca manda credenciais para localhost", () => {
+    expect(resolverEnderecoDaApi({ DEV: false })).toBeUndefined();
+  });
+
+  it("o cliente usa de fato a VITE_API_URL do build", async () => {
+    vi.stubEnv("VITE_API_URL", "https://api.exemplo.test");
+    vi.resetModules();
+    const { api: recarregado } = await import("./api");
+    expect(recarregado.defaults.baseURL).toBe("https://api.exemplo.test");
+    vi.unstubAllEnvs();
   });
 });
 

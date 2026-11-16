@@ -13,7 +13,8 @@ function erroDaApi(status, erro, campos) {
 }
 
 function backendFalso() {
-  vi.spyOn(api, "get").mockImplementation(async () => ({ data: structuredClone(usuarios) }));
+  vi.spyOn(api, "get").mockImplementation(async (url) =>
+    url === "/api/auth/me" ? { data: structuredClone(usuarios[0]) } : { data: structuredClone(usuarios) });
   vi.spyOn(api, "post").mockImplementation(async (url, corpo) => {
     if (proximoErro) throw proximoErro;
     const novo = { id: String(usuarios.length + 1), nome: corpo.nome, email: corpo.email, perfil: corpo.perfil, ativo: true };
@@ -145,6 +146,29 @@ describe("tela de Usuários", () => {
     await userEvent.click(within(linhaDe("Bia Souza")).getByRole("button", { name: "Ativar" }));
     expect(api.patch).toHaveBeenLastCalledWith("/api/usuarios/2/ativo", { ativo: true });
     expect(await within(linhaDe("Bia Souza")).findByText("Ativo")).toBeTruthy();
+  });
+
+  it("editar o próprio nome atualiza a barra superior", async () => {
+    renderizarApp("/usuarios");
+    await screen.findByRole("row", { name: /Admin Geral/ });
+
+    await userEvent.click(within(linhaDe("Admin Geral")).getByRole("button", { name: "Editar" }));
+    await userEvent.clear(screen.getByLabelText("Nome"));
+    await userEvent.type(screen.getByLabelText("Nome"), "Admin Principal");
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(await within(screen.getByRole("banner")).findByText("Admin Principal")).toBeTruthy();
+  });
+
+  it("mostra o erro do backend ao desativar", async () => {
+    renderizarApp("/usuarios");
+    await screen.findByRole("row", { name: /Bia Souza/ });
+    proximoErro = erroDaApi(409, "O sistema precisa de pelo menos um ADMIN ativo.");
+
+    await userEvent.click(within(linhaDe("Bia Souza")).getByRole("button", { name: "Desativar" }));
+
+    expect(await screen.findByText("O sistema precisa de pelo menos um ADMIN ativo.")).toBeTruthy();
+    expect(within(linhaDe("Bia Souza")).getByText("Ativo")).toBeTruthy();
   });
 
   it("o ADMIN não pode desativar a si mesmo", async () => {

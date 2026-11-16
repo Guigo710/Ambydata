@@ -27,6 +27,8 @@ public class SecurityConfig {
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            // Sem sessão no servidor: "sair" é o frontend apagar o token.
+            .logout(AbstractHttpConfigurer::disable)
             .cors(cors -> {})
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

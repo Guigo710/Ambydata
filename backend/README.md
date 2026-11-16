@@ -41,7 +41,7 @@ cd Ambydata/backend
 
 A aplicação lê a URI do MongoDB pela variável de ambiente `MONGODB_URI`. O banco vem de `MONGODB_DATABASE` (padrão `ambydata_dev`), e a coleção de usuários é `usuario`.
 
-`JWT_SECRET` é obrigatória e precisa ter pelo menos 32 caracteres: sem ela, ou com menos, a aplicação não sobe. `JWT_EXPIRACAO_HORAS` define a validade do token (padrão 8 horas). `CORS_ORIGINS` lista as origens do frontend (padrão `http://localhost:5173`).
+`JWT_SECRET` é obrigatória e precisa ter pelo menos 32 caracteres: sem ela, ou com menos, a aplicação não sobe. Use um valor aleatório, nunca uma frase (`openssl rand -base64 48`), e um diferente em cada ambiente: quem descobre o segredo consegue forjar o token de qualquer usuário. `JWT_EXPIRACAO_HORAS` define a validade do token (padrão 8 horas). `CORS_ORIGINS` lista as origens do frontend (padrão `http://localhost:5173`).
 
 Usuários criados na subida (quem já existe, pelo e-mail, não é alterado):
 

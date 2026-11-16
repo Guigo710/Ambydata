@@ -223,6 +223,15 @@ inglês; comentários só para explicar pasta/módulo ou bloco não óbvio; sem 
 - Token em cookie httpOnly: front e back em domínios diferentes; reavaliar se houver domínio próprio.
 - Campos `setor` e `turno` no usuário (documento do PI): chegam com `fabrica` e `chao-de-fabrica`.
 - Telas das demais rotas do menu: cada uma no seu módulo.
+- Achados da auditoria de segurança classificados como "pode esperar" (os High/Medium e o
+  vazamento de mensagens foram corrigidos):
+    - trava na regra do último ADMIN (corrida entre dois ADMINs se rebaixando ao mesmo tempo);
+    - seed não recriar ADMIN se já existir algum, e exigir 8+ caracteres em `ADMIN_SENHA`/`DEMO_SENHA`
+      (até lá: remover `ADMIN_SENHA` do Render depois da primeira subida);
+    - recusar tokens emitidos antes da última troca/redefinição de senha (`senhaAlteradaEm`);
+    - `server.forward-headers-strategy` para o HSTS e o Swagger reconhecerem o HTTPS do Render;
+    - 404/405/415 no formato padrão de erro; `@Size(max)` nos demais campos; `iss`/`aud` no JWT;
+      recusar `CORS_ORIGINS="*"`; log das ações do ADMIN; Dockerfile sem root e `.dockerignore`.
 
 ## Decisões (antes perguntas em aberto)
 

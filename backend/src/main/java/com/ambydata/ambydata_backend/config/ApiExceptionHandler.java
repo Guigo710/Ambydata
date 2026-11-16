@@ -3,6 +3,7 @@ package com.ambydata.ambydata_backend.config;
 import com.ambydata.ambydata_backend.auth.CredenciaisInvalidasException;
 import com.ambydata.ambydata_backend.usuario.EmailJaCadastradoException;
 import com.ambydata.ambydata_backend.usuario.RegraDeAdminException;
+import com.ambydata.ambydata_backend.usuario.SenhaInvalidaException;
 import com.ambydata.ambydata_backend.usuario.UsuarioNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +34,15 @@ public class ApiExceptionHandler {
         return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, "Corpo da requisição inválido."));
     }
 
+    @ExceptionHandler(SenhaInvalidaException.class)
+    public ResponseEntity<ErroResponse> senhaInvalida(SenhaInvalidaException ex) {
+        return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, ex.getMessage()));
+    }
+
+    // Mensagem genérica: a de uma IllegalArgumentException pode vir de qualquer biblioteca.
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErroResponse> argumentoInvalido(IllegalArgumentException ex) {
-        return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, ex.getMessage()));
+        return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, "Requisição inválida."));
     }
 
     @ExceptionHandler(EmailJaCadastradoException.class)

@@ -18,8 +18,8 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Task 8: Swagger (S)
 
 ### Checkpoint: Backend completo
-- [ ] Critérios 1–5, 9 e 10 cobertos por teste
-- [ ] Revisão com o agente security-auditor
+- [x] Critérios 1–5, 9 e 10 cobertos por teste
+- [x] Revisão com o agente security-auditor (High, Medium e mensagens internas corrigidos; resto no Deferred da spec)
 
 ## Phase 2: Frontend
 - [ ] Task 9: Infra de testes, cliente da API e matriz de permissões (M)

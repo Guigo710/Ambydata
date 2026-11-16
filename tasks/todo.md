@@ -12,7 +12,7 @@ Source spec: SPEC-monorepo.md — detalhes em tasks/plan.md
 
 - [x] Task 4: README, .gitignore, mapa, spec e plano na raiz (M)
 - [x] Task 5: Workflow de CI (XS)
-- [ ] Task 6: Skills, agentes e comandos em `.claude/` (S)
+- [x] Task 6: Skills, agentes e comandos em `.claude/` (S)
 
 ## Checkpoint: Repositório pronto
 - [ ] Revisão com o agente code-reviewer

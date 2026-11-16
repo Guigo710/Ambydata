@@ -43,6 +43,12 @@ A aplicação lê a URI do MongoDB pela variável de ambiente `MONGODB_URI`. O b
 
 `JWT_SECRET` é obrigatória e precisa ter pelo menos 32 caracteres: sem ela, ou com menos, a aplicação não sobe. `JWT_EXPIRACAO_HORAS` define a validade do token (padrão 8 horas). `CORS_ORIGINS` lista as origens do frontend (padrão `http://localhost:5173`).
 
+Usuários criados na subida (quem já existe, pelo e-mail, não é alterado):
+
+- `ADMIN_EMAIL`, `ADMIN_SENHA` e `ADMIN_NOME` (opcional): o primeiro ADMIN.
+- `DEMO_SENHA`: se definida, cria `operario@ambydata.demo`, `engenheiro@ambydata.demo` e
+  `diretor@ambydata.demo` com essa senha, para demonstração.
+
 Configure as variáveis no terminal que iniciará o backend. Não coloque credenciais no GitHub.
 
 No PowerShell:
@@ -170,7 +176,9 @@ Erros saem sempre no mesmo formato:
 
 ## Métricas
 
-A rota antiga `/api/dados` não está implementada na versão atual: o controller e o repositório de métricas estão comentados. A configuração atual do backend não usa MySQL/JPA.
+Ainda não há endpoints de métricas: eles chegam com os módulos `fabrica`, `simulacao` e
+`indicadores` (ver [`CAPABILITY-MAP.md`](../CAPABILITY-MAP.md)). A rota antiga `/api/dados` e o
+modelo MySQL/JPA que a servia foram removidos.
 
 ## Estrutura do projeto
 
@@ -180,9 +188,8 @@ src/
     java/com/ambydata/ambydata_backend/
       auth/         # Login, /me e JWT (emissão, validação e filtro)
       usuario/      # Usuario, Perfil, repositório e regras
-      config/       # Segurança, CORS, erros padrão, PasswordEncoder, seed
+      config/       # Segurança, CORS, erros padrão, PasswordEncoder, usuários iniciais
       migracao/     # Migrações versionadas do banco (coleção migracao)
-      controller/, model/, repository/  # Métricas antigas (código morto, sai no Marco 1)
     resources/
       application.yml
   test/

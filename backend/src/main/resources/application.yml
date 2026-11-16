@@ -19,6 +19,13 @@ app:
     # Obrigatório, 32+ caracteres. Sem ele a aplicação não sobe.
     secret: ${JWT_SECRET}
     expiracao-horas: ${JWT_EXPIRACAO_HORAS:8}
+  seed:
+    # Primeiro ADMIN (criado só se o e-mail ainda não existir)
+    admin-email: ${ADMIN_EMAIL:}
+    admin-senha: ${ADMIN_SENHA:}
+    admin-nome: ${ADMIN_NOME:}
+    # Se definida, cria operario@, engenheiro@ e diretor@ambydata.demo com esta senha
+    demo-senha: ${DEMO_SENHA:}
   cors:
     # Origens do frontend, separadas por vírgula (ex.: a URL da Vercel)
     origins: ${CORS_ORIGINS:http://localhost:5173}

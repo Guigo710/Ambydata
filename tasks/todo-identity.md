@@ -14,7 +14,7 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 
 - [x] Task 5: Troca da própria senha (S)
 - [x] Task 6: Gestão de usuários pelo ADMIN (M)
-- [ ] Task 7: Seed do ADMIN e dos demos; remoção do código morto (S)
+- [x] Task 7: Seed do ADMIN e dos demos; remoção do código morto (S)
 - [ ] Task 8: Swagger (S)
 
 ### Checkpoint: Backend completo

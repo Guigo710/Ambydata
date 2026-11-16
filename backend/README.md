@@ -135,6 +135,7 @@ O contrato completo está em [`SPEC-identity.md`](../SPEC-identity.md#contrato-d
 |--------|------|--------|-----------|
 | POST | `/api/auth/login` | público | Recebe `{ email, senha }` e devolve `{ token, expiraEm, usuario }` |
 | GET | `/api/auth/me` | autenticado | Dados do usuário do token |
+| PUT | `/api/auth/me/senha` | autenticado | Recebe `{ senhaAtual, novaSenha }` (mínimo 8 caracteres); 204 |
 
 Envie o token em toda requisição autenticada:
 

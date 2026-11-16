@@ -33,6 +33,15 @@ public class UsuarioService {
                         && passwordEncoder.matches(senha, usuario.getSenhaHash()));
     }
 
+    // Troca feita pelo próprio usuário: exige a senha atual.
+    public void trocarPropriaSenha(Usuario usuario, String senhaAtual, String novaSenha) {
+        if (usuario.getSenhaHash() == null || !passwordEncoder.matches(senhaAtual, usuario.getSenhaHash())) {
+            throw new IllegalArgumentException("Senha atual incorreta.");
+        }
+        usuario.setSenhaHash(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
+
     public Usuario salvar(Usuario usuario) {
         if (usuario.getEmail() != null) {
             usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));

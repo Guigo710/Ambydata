@@ -40,7 +40,7 @@ cd Ambydata/backend
 
 A aplicação lê a URI do MongoDB pela variável de ambiente `MONGODB_URI`. O banco vem de `MONGODB_DATABASE` (padrão `ambydata_dev`), e a coleção de usuários é `usuario`.
 
-O `application.yml` também define a propriedade `JWT_SECRET`. Embora as dependências JWT estejam no projeto, a autenticação por token ainda não foi implementada.
+`JWT_SECRET` é obrigatória e precisa ter pelo menos 32 caracteres: sem ela, ou com menos, a aplicação não sobe. `JWT_EXPIRACAO_HORAS` define a validade do token (padrão 8 horas). O login ainda não usa o token; isso chega com os endpoints de `/api/auth`.
 
 Configure as variáveis no terminal que iniciará o backend. Não coloque credenciais no GitHub.
 

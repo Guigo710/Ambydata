@@ -43,10 +43,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
-    # O MongoDB dos testes vem do Testcontainers (Docker já existe no runner).
-    env:
-      # 32+ caracteres: o JJWT rejeita chaves HMAC-SHA256 menores que 256 bits.
-      JWT_SECRET: segredo-apenas-para-o-ci-nao-usar-em-producao
+    # O MongoDB dos testes vem do Testcontainers (Docker já existe no runner) e o
+    # segredo do JWT de teste, de backend/src/test/resources/application.properties.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

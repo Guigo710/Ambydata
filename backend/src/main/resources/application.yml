@@ -16,5 +16,6 @@ spring:
 
 app:
   jwt:
+    # Obrigatório, 32+ caracteres. Sem ele a aplicação não sobe.
     secret: ${JWT_SECRET}
-    expiration-ms: 3600000
+    expiracao-horas: ${JWT_EXPIRACAO_HORAS:8}

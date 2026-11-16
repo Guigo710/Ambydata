@@ -61,7 +61,7 @@ Pré-requisito: Node.js 20.19+ ou 22.13+ (exigência do Vite 8 e do ESLint 10).
 ```bash
 cd frontend
 npm ci
-echo "VITE_API_URL=http://localhost:8080" > .env
+cp -n .env.example .env   # não sobrescreve um .env existente
 npm run dev
 ```
 

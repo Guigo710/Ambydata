@@ -16,7 +16,8 @@ Backend do **AmbyData**, um dashboard de monitoramento industrial. Esta pasta co
 - Spring Data MongoDB
 - Spring Security
 - BCrypt para hash de senhas
-- JJWT — dependências presentes, mas a emissão e validação de JWT ainda não estão implementadas
+- JJWT — token de sessão JWT (HS256)
+- Testcontainers — MongoDB descartável nos testes
 - Lombok
 - Maven Wrapper
 - Docker
@@ -40,7 +41,7 @@ cd Ambydata/backend
 
 A aplicação lê a URI do MongoDB pela variável de ambiente `MONGODB_URI`. O banco vem de `MONGODB_DATABASE` (padrão `ambydata_dev`), e a coleção de usuários é `usuario`.
 
-`JWT_SECRET` é obrigatória e precisa ter pelo menos 32 caracteres: sem ela, ou com menos, a aplicação não sobe. `JWT_EXPIRACAO_HORAS` define a validade do token (padrão 8 horas). O login ainda não usa o token; isso chega com os endpoints de `/api/auth`.
+`JWT_SECRET` é obrigatória e precisa ter pelo menos 32 caracteres: sem ela, ou com menos, a aplicação não sobe. `JWT_EXPIRACAO_HORAS` define a validade do token (padrão 8 horas). `CORS_ORIGINS` lista as origens do frontend (padrão `http://localhost:5173`).
 
 Configure as variáveis no terminal que iniciará o backend. Não coloque credenciais no GitHub.
 
@@ -128,34 +129,35 @@ O backend atual usa **MongoDB**, não MySQL nem JPA.
 
 ## Endpoints implementados
 
-| Método | Rota | Descrição | Acesso atual |
-|--------|------|-----------|--------------|
-| GET | `/api/usuarios` | Lista os usuários, retornando `UsuarioResponse` sem o hash da senha | Público temporariamente |
-| POST | `/api/usuarios` | Cria um usuário e aplica BCrypt à senha recebida | Requer autenticação Spring Security |
-| POST | `/api/usuarios/login` | Valida e-mail, senha e estado ativo do usuário | Público |
+O contrato completo está em [`SPEC-identity.md`](../SPEC-identity.md#contrato-da-api).
 
-O login recebe JSON neste formato:
+| Método | Rota | Acesso | Descrição |
+|--------|------|--------|-----------|
+| POST | `/api/auth/login` | público | Recebe `{ email, senha }` e devolve `{ token, expiraEm, usuario }` |
+| GET | `/api/auth/me` | autenticado | Dados do usuário do token |
 
-```json
-{
-  "email": "usuario@exemplo.com",
-  "senha": "senha-original"
-}
+Envie o token em toda requisição autenticada:
+
+```http
+Authorization: Bearer <token>
 ```
 
-Envie a senha original em texto no corpo da requisição; não envie o hash BCrypt armazenado no banco. O endpoint de login retorna os dados públicos do usuário quando as credenciais são válidas. Ele ainda não emite JWT.
+Erros saem sempre no mesmo formato:
+
+```json
+{ "status": 400, "erro": "Dados inválidos.", "campos": { "email": "must not be blank" } }
+```
 
 ## Autenticação e segurança
 
-O projeto usa Spring Security e BCrypt. Atualmente:
-
-- `POST /api/usuarios/login` está liberado para permitir o login.
-- `GET /api/usuarios` também está público temporariamente para testes. Essa rota deve ser protegida antes de disponibilizar a API em produção.
-- As demais requisições exigem autenticação Spring Security.
-- A autenticação JWT ainda não está implementada, apesar das dependências JJWT e da propriedade `JWT_SECRET` estarem configuradas.
-- O login rejeita usuários inativos e senhas que não correspondam ao hash BCrypt salvo.
-
-Antes de produção, implemente a emissão e validação de tokens e revise as permissões das rotas.
+- A API nega por padrão: toda rota precisa de uma regra explícita em `config/SecurityConfig.java`.
+- O login recusa e-mail inexistente, senha errada e usuário inativo com a mesma mensagem
+  ("E-mail ou senha incorretos."), para não revelar quais e-mails existem.
+- A cada requisição o usuário é recarregado do banco: desativar alguém ou mudar o perfil vale
+  na hora, mesmo com o token ainda válido.
+- Sem token, ou com token inválido ou expirado: 401. Com token de um perfil sem permissão: 403.
+- CORS: só as origens de `CORS_ORIGINS` (padrão `http://localhost:5173`, separadas por vírgula).
+- Senhas guardadas com BCrypt; o hash nunca sai em nenhuma resposta.
 
 ## Métricas
 
@@ -167,13 +169,11 @@ A rota antiga `/api/dados` não está implementada na versão atual: o controlle
 src/
   main/
     java/com/ambydata/ambydata_backend/
-      config/       # Configurações, incluindo o PasswordEncoder
-      controller/   # Endpoints REST
-      dto/          # Objetos de entrada e resposta
-      model/        # Modelos MongoDB
-      repository/   # Repositórios Spring Data MongoDB
-      security/     # Configuração de acesso do Spring Security
-      service/      # Regras de negócio
+      auth/         # Login, /me e JWT (emissão, validação e filtro)
+      usuario/      # Usuario, Perfil, repositório e regras
+      config/       # Segurança, CORS, erros padrão, PasswordEncoder, seed
+      migracao/     # Migrações versionadas do banco (coleção migracao)
+      controller/, model/, repository/  # Métricas antigas (código morto, sai no Marco 1)
     resources/
       application.yml
   test/
@@ -185,9 +185,9 @@ mvnw.cmd
 
 ## Roadmap
 
-- [ ] Implementar emissão e validação de JWT
-- [ ] Proteger a listagem de usuários e revisar o acesso às demais rotas
-- [ ] Adicionar testes para cadastro e autenticação
+- [x] Implementar emissão e validação de JWT
+- [x] Proteger a listagem de usuários e revisar o acesso às demais rotas
+- [ ] Adicionar testes para cadastro e autenticação (autenticação feita; cadastro vem com a gestão de usuários)
 - [ ] Documentar a API com OpenAPI/Swagger
 - [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
 

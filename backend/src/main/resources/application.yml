@@ -19,3 +19,6 @@ app:
     # Obrigatório, 32+ caracteres. Sem ele a aplicação não sobe.
     secret: ${JWT_SECRET}
     expiracao-horas: ${JWT_EXPIRACAO_HORAS:8}
+  cors:
+    # Origens do frontend, separadas por vírgula (ex.: a URL da Vercel)
+    origins: ${CORS_ORIGINS:http://localhost:5173}

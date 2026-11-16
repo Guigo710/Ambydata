@@ -6,11 +6,11 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Task 1: Testes com Testcontainers e banco configurável (M)
 - [x] Task 2: Perfil, entidade Usuario e executor de migrações (M)
 - [x] Task 3: Emissão e validação do JWT (S)
-- [ ] Task 4: Login, /me e segurança negar-por-padrão (M)
+- [x] Task 4: Login, /me e segurança negar-por-padrão (M)
 
 ### Checkpoint: Login
-- [ ] `./mvnw -B verify` verde
-- [ ] Login + `/api/auth/me` funcionam localmente
+- [x] `./mvnw -B verify` verde
+- [x] Login + `/api/auth/me` funcionam localmente
 
 - [ ] Task 5: Troca da própria senha (S)
 - [ ] Task 6: Gestão de usuários pelo ADMIN (M)

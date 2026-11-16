@@ -36,7 +36,7 @@ Pré-requisitos: JDK 21 e um MongoDB acessível (Atlas ou local).
 ```bash
 cd backend
 export MONGODB_URI="mongodb+srv://<usuario>:<senha>@<cluster>/"
-export JWT_SECRET="<segredo-local>"
+export JWT_SECRET="$(openssl rand -base64 48)"   # 32+ caracteres aleatórios
 ./mvnw spring-boot:run
 ```
 
@@ -52,7 +52,9 @@ sem `MONGODB_URI`:
 ```
 
 Para criar o primeiro usuário, defina também `ADMIN_EMAIL`, `ADMIN_SENHA` e, opcionalmente,
-`ADMIN_NOME` antes de iniciar.
+`ADMIN_NOME` antes de iniciar. Com `DEMO_SENHA` definida, sobem também `operario@`,
+`engenheiro@` e `diretor@ambydata.demo`, um por perfil. Com o backend rodando, a documentação
+da API fica em `http://localhost:8080/swagger-ui.html`.
 
 ### Frontend
 
@@ -65,9 +67,26 @@ cp -n .env.example .env   # não sobrescreve um .env existente
 npm run dev
 ```
 
-A interface sobe em `http://localhost:5173`. Outros comandos: `npm run lint`, `npm run build`.
+A interface sobe em `http://localhost:5173`. Outros comandos: `npm test`, `npm run lint`,
+`npm run build`.
 
 Nunca versione credenciais: os arquivos `.env` são ignorados pelo Git.
+
+## Deploy
+
+O backend roda no Render (Docker, Root Directory `backend`) e o frontend na Vercel (Root
+Directory `frontend`); os dois publicam a partir da `main`.
+
+| Onde | Variável | Valor |
+|---|---|---|
+| Render | `MONGODB_URI` | URI do cluster no Atlas |
+| Render | `MONGODB_DATABASE` | `ambydata_prod` |
+| Render | `JWT_SECRET` | aleatório, 32+ caracteres (`openssl rand -base64 48`), diferente do local |
+| Render | `CORS_ORIGINS` | URL do frontend na Vercel (várias, separadas por vírgula) |
+| Render | `ADMIN_EMAIL`, `ADMIN_SENHA`, `ADMIN_NOME` | primeiro ADMIN; remova `ADMIN_SENHA` depois da primeira subida |
+| Render | `DEMO_SENHA` | opcional: usuários de demonstração; use uma senha forte |
+| Render | `JWT_EXPIRACAO_HORAS` | opcional, padrão 8 |
+| Vercel | `VITE_API_URL` | URL do backend no Render, sem barra no final |
 
 ## Como trabalhamos
 
@@ -81,7 +100,7 @@ Nunca versione credenciais: os arquivos `.env` são ignorados pelo Git.
 | Etapa | Comando | Resultado |
 |---|---|---|
 | Especificar | `/spec` | `SPEC-<modulo>.md` |
-| Planejar | `/plan` | `tasks/plan.md` e `tasks/todo.md` |
+| Planejar | `/plan` | `tasks/plan.md` e `tasks/todo.md` (o do identity está em `tasks/plan-identity.md`) |
 | Construir | `/build` | Uma tarefa por vez, com teste primeiro |
 | Testar | `/test` | Testes que provam o comportamento |
 | Revisar | `/revisar` | Revisão em cinco eixos antes do merge |

@@ -1,0 +1,12 @@
+# Regras comuns ao monorepo. As regras de cada projeto ficam em
+# backend/.gitignore e frontend/.gitignore.
+
+# Sistema operacional e IDE
+.DS_Store
+Thumbs.db
+.idea/
+
+# Variáveis de ambiente locais (nunca versionar credenciais)
+.env
+.env.*
+!.env.example

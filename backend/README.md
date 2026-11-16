@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/badge/license-uso%20pessoal%2Facad%C3%AAmico-lightgrey)
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 
-Backend do **AmbyData**, um dashboard de monitoramento industrial. Este repositório contém a API desenvolvida em Java e Spring Boot. O frontend está em [`Ambydata-frontend`](https://github.com/ErickWL/Ambydata-react).
+Backend do **AmbyData**, um dashboard de monitoramento industrial. Esta pasta contém a API desenvolvida em Java e Spring Boot. O frontend está em [`../frontend`](../frontend), no mesmo monorepo; o [README da raiz](../README.md) explica como rodar os dois.
 
 ## Stack
 
@@ -29,11 +29,11 @@ Backend do **AmbyData**, um dashboard de monitoramento industrial. Este reposit�
 
 ## Instalação e execução
 
-Clone o repositório:
+Clone o monorepo e entre na pasta do backend:
 
 ```bash
-git clone https://github.com/ErickWL/Ambydata-backend.git
-cd Ambydata-backend
+git clone https://github.com/Guigo710/Ambydata.git
+cd Ambydata/backend
 ```
 
 ### Configuração
@@ -189,7 +189,7 @@ mvnw.cmd
 - [ ] Proteger a listagem de usuários e revisar o acesso às demais rotas
 - [ ] Adicionar testes para cadastro e autenticação
 - [ ] Documentar a API com OpenAPI/Swagger
-- [ ] Configurar CI para build e testes
+- [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
 
 ## Licença
 

@@ -27,7 +27,7 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Task 11: Menu, topo e limpeza do Painel; lint bloqueante (M)
 
 ### Checkpoint: Sessão no frontend
-- [ ] Login, menu e logout funcionam para os 4 perfis
+- [x] Login, menu e logout funcionam para os 4 perfis (Chromium contra o backend local)
 
 - [ ] Task 12: Meu perfil (S)
 - [ ] Task 13: Tela de Usuários (ADMIN) (M)

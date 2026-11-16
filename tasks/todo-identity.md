@@ -13,7 +13,7 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Login + `/api/auth/me` funcionam localmente
 
 - [x] Task 5: Troca da própria senha (S)
-- [ ] Task 6: Gestão de usuários pelo ADMIN (M)
+- [x] Task 6: Gestão de usuários pelo ADMIN (M)
 - [ ] Task 7: Seed do ADMIN e dos demos; remoção do código morto (S)
 - [ ] Task 8: Swagger (S)
 

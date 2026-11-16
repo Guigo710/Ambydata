@@ -136,6 +136,14 @@ O contrato completo está em [`SPEC-identity.md`](../SPEC-identity.md#contrato-d
 | POST | `/api/auth/login` | público | Recebe `{ email, senha }` e devolve `{ token, expiraEm, usuario }` |
 | GET | `/api/auth/me` | autenticado | Dados do usuário do token |
 | PUT | `/api/auth/me/senha` | autenticado | Recebe `{ senhaAtual, novaSenha }` (mínimo 8 caracteres); 204 |
+| GET | `/api/usuarios` | ADMIN | Lista os usuários, por nome |
+| POST | `/api/usuarios` | ADMIN | Cria `{ nome, email, senha, perfil }`; 201 |
+| PUT | `/api/usuarios/{id}` | ADMIN | Edita `{ nome, email, perfil }` |
+| PATCH | `/api/usuarios/{id}/ativo` | ADMIN | Ativa ou desativa `{ ativo }` |
+| PUT | `/api/usuarios/{id}/senha` | ADMIN | Redefine a senha `{ novaSenha }`; 204 |
+
+Regras da gestão: e-mail único (400), o ADMIN não desativa a si mesmo e o sistema nunca fica
+sem um ADMIN ativo (409).
 
 Envie o token em toda requisição autenticada:
 
@@ -188,7 +196,7 @@ mvnw.cmd
 
 - [x] Implementar emissão e validação de JWT
 - [x] Proteger a listagem de usuários e revisar o acesso às demais rotas
-- [ ] Adicionar testes para cadastro e autenticação (autenticação feita; cadastro vem com a gestão de usuários)
+- [x] Adicionar testes para cadastro e autenticação
 - [ ] Documentar a API com OpenAPI/Swagger
 - [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
 

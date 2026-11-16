@@ -1,5 +1,7 @@
 package com.ambydata.ambydata_backend.usuario;
 
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -7,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+// Regras de usuário: autenticação, troca de senha e a gestão feita pelo ADMIN.
 @Service
 public class UsuarioService {
 
@@ -18,16 +21,11 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<Usuario> listarTodos() {
-        return usuarioRepository.findAll();
-    }
-
     public Optional<Usuario> autenticar(String email, String senha) {
         if (email == null || email.isBlank() || senha == null || senha.isBlank()) {
             return Optional.empty();
         }
-
-        return usuarioRepository.findByEmail(email.trim().toLowerCase(Locale.ROOT))
+        return usuarioRepository.findByEmail(normalizarEmail(email))
                 .filter(usuario -> Boolean.TRUE.equals(usuario.getAtivo())
                         && usuario.getSenhaHash() != null
                         && passwordEncoder.matches(senha, usuario.getSenhaHash()));
@@ -42,47 +40,76 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    public Usuario salvar(Usuario usuario) {
-        if (usuario.getEmail() != null) {
-            usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
-        }
+    public List<Usuario> listar() {
+        return usuarioRepository.findAll(Sort.by("nome"));
+    }
 
-        // [Guigo710] Ponto 1: checagem de e-mail duplicado (além do índice único no banco)
-        if (usuario.getEmail() != null) {
-            usuarioRepository.findByEmail(usuario.getEmail())
-                    .filter(existente -> !existente.getId().equals(usuario.getId()))
-                    .ifPresent(existente -> {
-                        throw new IllegalArgumentException("E-mail já cadastrado.");
-                    });
+    public Usuario criar(CriarUsuarioRequest dados) {
+        String email = normalizarEmail(dados.email());
+        if (usuarioRepository.findByEmail(email).isPresent()) {
+            throw new EmailJaCadastradoException();
         }
+        Usuario usuario = new Usuario(null, dados.nome().trim(), email,
+                passwordEncoder.encode(dados.senha()), dados.perfil(), true);
+        return salvarComEmailUnico(usuario);
+    }
 
-        if (usuario.getPerfil() == null) {
-            throw new IllegalArgumentException("Perfil é obrigatório.");
+    public Usuario atualizar(String id, AtualizarUsuarioRequest dados) {
+        Usuario usuario = buscar(id);
+        String email = normalizarEmail(dados.email());
+        usuarioRepository.findByEmail(email)
+                .filter(outro -> !outro.getId().equals(id))
+                .ifPresent(outro -> { throw new EmailJaCadastradoException(); });
+        if (deixariaSemAdminAtivo(usuario, dados.perfil(), usuario.getAtivo())) {
+            throw new RegraDeAdminException("O sistema precisa de pelo menos um ADMIN ativo.");
         }
+        usuario.setNome(dados.nome().trim());
+        usuario.setEmail(email);
+        usuario.setPerfil(dados.perfil());
+        return salvarComEmailUnico(usuario);
+    }
 
-        // [Guigo710] Ponto 5: ativo nunca fica null (padrão true)
-        if (usuario.getAtivo() == null) {
-            usuario.setAtivo(true);
+    public Usuario alterarAtivo(String id, boolean ativo, Usuario solicitante) {
+        Usuario usuario = buscar(id);
+        if (!ativo && usuario.getId().equals(solicitante.getId())) {
+            throw new RegraDeAdminException("Você não pode desativar o próprio usuário.");
         }
-
-        // [Guigo710] Ponto 2: evita hash duplo. Só aplica BCrypt quando a senha ainda não é um hash;
-        // em atualização sem senha informada, mantém o hash já salvo.
-        if (usuario.getSenhaHash() == null || usuario.getSenhaHash().isBlank()) {
-            if (usuario.getId() == null) {
-                throw new IllegalArgumentException("Senha é obrigatória.");
-            }
-            String hashAtual = usuarioRepository.findById(usuario.getId())
-                    .map(Usuario::getSenhaHash)
-                    .orElseThrow(() -> new IllegalArgumentException("Senha é obrigatória."));
-            usuario.setSenhaHash(hashAtual);
-        } else if (!pareceHashBcrypt(usuario.getSenhaHash())) {
-            usuario.setSenhaHash(passwordEncoder.encode(usuario.getSenhaHash()));
+        if (deixariaSemAdminAtivo(usuario, usuario.getPerfil(), ativo)) {
+            throw new RegraDeAdminException("O sistema precisa de pelo menos um ADMIN ativo.");
         }
+        usuario.setAtivo(ativo);
         return usuarioRepository.save(usuario);
     }
 
-    // [Guigo710] Ponto 2: detecta hash BCrypt ($2a$, $2b$, $2y$ + 60 caracteres)
-    private boolean pareceHashBcrypt(String valor) {
-        return valor.length() == 60 && valor.matches("^\\$2[aby]\\$\\d{2}\\$.*");
+    // Redefinição feita pelo ADMIN ("Esqueci minha senha" → "Procure seu gestor").
+    public void redefinirSenha(String id, String novaSenha) {
+        Usuario usuario = buscar(id);
+        usuario.setSenhaHash(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
+
+    private Usuario buscar(String id) {
+        return usuarioRepository.findById(id).orElseThrow(UsuarioNaoEncontradoException::new);
+    }
+
+    // Verdadeiro se o usuário é hoje um ADMIN ativo, deixaria de ser, e é o único.
+    private boolean deixariaSemAdminAtivo(Usuario usuario, Perfil novoPerfil, Boolean novoAtivo) {
+        boolean eAdminAtivo = usuario.getPerfil() == Perfil.ADMIN && Boolean.TRUE.equals(usuario.getAtivo());
+        boolean continuaAdminAtivo = novoPerfil == Perfil.ADMIN && Boolean.TRUE.equals(novoAtivo);
+        return eAdminAtivo && !continuaAdminAtivo
+                && usuarioRepository.countByPerfilAndAtivo(Perfil.ADMIN, true) <= 1;
+    }
+
+    // O índice único de e-mail é a garantia final contra cadastros simultâneos.
+    private Usuario salvarComEmailUnico(Usuario usuario) {
+        try {
+            return usuarioRepository.save(usuario);
+        } catch (DuplicateKeyException e) {
+            throw new EmailJaCadastradoException();
+        }
+    }
+
+    private static String normalizarEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

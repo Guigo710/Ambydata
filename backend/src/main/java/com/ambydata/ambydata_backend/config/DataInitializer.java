@@ -4,7 +4,7 @@ package com.ambydata.ambydata_backend.config;
 // Só roda se ADMIN_EMAIL e ADMIN_SENHA estiverem definidos e o e-mail ainda não existir.
 
 import com.ambydata.ambydata_backend.usuario.Perfil;
-import com.ambydata.ambydata_backend.usuario.Usuario;
+import com.ambydata.ambydata_backend.usuario.CriarUsuarioRequest;
 import com.ambydata.ambydata_backend.usuario.UsuarioRepository;
 import com.ambydata.ambydata_backend.usuario.UsuarioService;
 import org.springframework.boot.CommandLineRunner;
@@ -28,7 +28,7 @@ public class DataInitializer {
                 return;
             }
             String nome = System.getenv().getOrDefault("ADMIN_NOME", "Administrador");
-            service.salvar(new Usuario(null, nome, email, senha, Perfil.ADMIN, true));
+            service.criar(new CriarUsuarioRequest(nome, email, senha, Perfil.ADMIN));
         };
     }
 }

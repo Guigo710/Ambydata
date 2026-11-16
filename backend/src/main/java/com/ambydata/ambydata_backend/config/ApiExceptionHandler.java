@@ -1,6 +1,9 @@
 package com.ambydata.ambydata_backend.config;
 
 import com.ambydata.ambydata_backend.auth.CredenciaisInvalidasException;
+import com.ambydata.ambydata_backend.usuario.EmailJaCadastradoException;
+import com.ambydata.ambydata_backend.usuario.RegraDeAdminException;
+import com.ambydata.ambydata_backend.usuario.UsuarioNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -33,6 +36,22 @@ public class ApiExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErroResponse> argumentoInvalido(IllegalArgumentException ex) {
         return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailJaCadastradoException.class)
+    public ResponseEntity<ErroResponse> emailDuplicado(EmailJaCadastradoException ex) {
+        return resposta(HttpStatus.BAD_REQUEST,
+                new ErroResponse(400, ex.getMessage(), Map.of("email", "já cadastrado")));
+    }
+
+    @ExceptionHandler(UsuarioNaoEncontradoException.class)
+    public ResponseEntity<ErroResponse> naoEncontrado(UsuarioNaoEncontradoException ex) {
+        return resposta(HttpStatus.NOT_FOUND, new ErroResponse(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(RegraDeAdminException.class)
+    public ResponseEntity<ErroResponse> regraDeAdmin(RegraDeAdminException ex) {
+        return resposta(HttpStatus.CONFLICT, new ErroResponse(409, ex.getMessage()));
     }
 
     @ExceptionHandler(CredenciaisInvalidasException.class)

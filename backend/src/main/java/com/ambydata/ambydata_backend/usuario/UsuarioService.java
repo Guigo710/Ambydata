@@ -1,8 +1,5 @@
-package com.ambydata.ambydata_backend.service;
+package com.ambydata.ambydata_backend.usuario;
 
-import com.ambydata.ambydata_backend.model.Cargo;
-import com.ambydata.ambydata_backend.model.Usuario;
-import com.ambydata.ambydata_backend.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -50,8 +47,9 @@ public class UsuarioService {
                     });
         }
 
-        // [Guigo710] Ponto 3: valida e normaliza o cargo contra o enum Cargo
-        usuario.setCargo(Cargo.de(usuario.getCargo()).name());
+        if (usuario.getPerfil() == null) {
+            throw new IllegalArgumentException("Perfil é obrigatório.");
+        }
 
         // [Guigo710] Ponto 5: ativo nunca fica null (padrão true)
         if (usuario.getAtivo() == null) {

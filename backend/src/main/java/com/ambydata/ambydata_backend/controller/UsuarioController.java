@@ -2,8 +2,8 @@ package com.ambydata.ambydata_backend.controller;
 
 import com.ambydata.ambydata_backend.dto.LoginRequest;
 import com.ambydata.ambydata_backend.dto.UsuarioResponse;
-import com.ambydata.ambydata_backend.model.Usuario;
-import com.ambydata.ambydata_backend.service.UsuarioService;
+import com.ambydata.ambydata_backend.usuario.Usuario;
+import com.ambydata.ambydata_backend.usuario.UsuarioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

@@ -1,10 +1,9 @@
-package com.ambydata.ambydata_backend.model;
+package com.ambydata.ambydata_backend.usuario;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -20,14 +19,14 @@ public class Usuario {
     private String id;
 
     private String nome;
-    // [Guigo710] Ponto 1: índice único em email (impede contas duplicadas)
+
+    // Único: impede contas duplicadas. A migração 001 também garante o índice.
     @Indexed(unique = true)
     private String email;
 
-    @ToString.Exclude
     private String senhaHash;
 
-    private String cargo;
-    // [Guigo710] Ponto 5: valor padrão true, para ativo não ficar null
+    private Perfil perfil;
+
     private Boolean ativo = true;
 }

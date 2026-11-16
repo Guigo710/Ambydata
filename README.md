@@ -93,8 +93,7 @@ Nunca versione credenciais: os arquivos `.env` são ignorados pelo Git.
 O workflow `.github/workflows/ci.yml` roda em todo Pull Request e em todo push na `main`:
 
 - **backend:** `./mvnw -B verify` com Java 21 e um MongoDB do Testcontainers, quando `backend/` muda;
-- **frontend:** `npm ci`, `npm run lint` (ainda não bloqueante) e `npm run build`, quando
-  `frontend/` muda;
+- **frontend:** `npm ci`, `npm run lint`, `npm test` e `npm run build`, quando `frontend/` muda;
 - **ci-ok:** resume o resultado dos dois. É o único check obrigatório na proteção da `main`.
 
 Uma mudança no próprio `ci.yml` dispara os dois lados.

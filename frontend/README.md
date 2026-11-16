@@ -109,7 +109,7 @@ Configurado via `vercel.json` para deploy no Vercel.
 - [x] Autenticação real de sessão (token JWT, alinhado com o backend)
 - [x] Testes automatizados (Vitest + Testing Library)
 - [ ] Dark mode
-- [x] CI (lint + build em pull requests) — `.github/workflows/ci.yml` na raiz; lint ainda não bloqueante
+- [x] CI (lint, testes e build em pull requests) — `.github/workflows/ci.yml` na raiz
 
 ## Licença
 

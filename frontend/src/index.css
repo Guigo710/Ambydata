@@ -384,10 +384,16 @@ body,
   transform: translateY(-1px);
 }
 
+.user-profile-box {
+  text-decoration: none;
+}
+
 .user-text-info {
   display: flex;
   flex-direction: column;
-  text-align: right;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   padding-left: 6px;
 }
 
@@ -399,8 +405,8 @@ body,
 }
 
 .user-role-badge {
-  font-size: 9px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   padding: 1px 6px;
   border-radius: 10px;
   text-transform: uppercase;
@@ -409,7 +415,7 @@ body,
   letter-spacing: 0.5px;
 }
 
-/* Cores dinâmicas para os Crachás baseados no cargo */
+/* Cor da etiqueta de cada perfil na barra superior */
 .tag-diretor {
   background-color: rgba(247, 37, 133, 0.12);
   color: var(--pink);
@@ -420,9 +426,14 @@ body,
   color: var(--blue);
 }
 
-.tag-suporte {
+.tag-engenheiro {
   background-color: rgba(82, 183, 136, 0.12);
   color: var(--green);
+}
+
+.tag-admin {
+  background-color: rgba(27, 37, 87, 0.1);
+  color: var(--text-primary);
 }
 
 .tag-padrao {

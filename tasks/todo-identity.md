@@ -3,7 +3,7 @@
 Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 
 ## Phase 1: Backend
-- [ ] Task 1: Testes com Testcontainers e banco configurável (M)
+- [x] Task 1: Testes com Testcontainers e banco configurável (M)
 - [ ] Task 2: Perfil, entidade Usuario e executor de migrações (M)
 - [ ] Task 3: Emissão e validação do JWT (S)
 - [ ] Task 4: Login, /me e segurança negar-por-padrão (M)

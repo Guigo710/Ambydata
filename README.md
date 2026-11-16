@@ -42,13 +42,13 @@ export JWT_SECRET="<segredo-local>"
 
 A API sobe em `http://localhost:8080`. No Windows, use `.\mvnw.cmd` no lugar de `./mvnw`.
 
-Os testes sobem o contexto do Spring e precisam de um MongoDB. Para não usar o Atlas, rode um
-MongoDB descartável, como o CI faz:
+Por padrão o backend usa o banco `ambydata_dev`; no deploy, defina `MONGODB_DATABASE=ambydata_prod`.
+
+Os testes sobem um MongoDB descartável sozinhos (Testcontainers). Só precisam do Docker rodando,
+sem `MONGODB_URI`:
 
 ```bash
-docker run --rm -d -p 27017:27017 --name mongo-teste mongo:7
-MONGODB_URI=mongodb://localhost:27017 ./mvnw verify
-docker stop mongo-teste
+./mvnw verify
 ```
 
 Para criar o primeiro usuário, defina também `ADMIN_EMAIL`, `ADMIN_SENHA` e, opcionalmente,
@@ -92,7 +92,7 @@ Nunca versione credenciais: os arquivos `.env` são ignorados pelo Git.
 
 O workflow `.github/workflows/ci.yml` roda em todo Pull Request e em todo push na `main`:
 
-- **backend:** `./mvnw -B verify` com Java 21 e um MongoDB temporário, quando `backend/` muda;
+- **backend:** `./mvnw -B verify` com Java 21 e um MongoDB do Testcontainers, quando `backend/` muda;
 - **frontend:** `npm ci`, `npm run lint` (ainda não bloqueante) e `npm run build`, quando
   `frontend/` muda;
 - **ci-ok:** resume o resultado dos dois. É o único check obrigatório na proteção da `main`.

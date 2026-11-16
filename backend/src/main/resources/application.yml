@@ -11,7 +11,8 @@ spring:
       auto-index-creation: true
   mongodb:
     uri: ${MONGODB_URI}
-    database: pi
+    # ambydata_dev para desenvolvimento local, ambydata_prod no deploy
+    database: ${MONGODB_DATABASE:ambydata_dev}
 
 app:
   jwt:

@@ -38,7 +38,7 @@ cd Ambydata/backend
 
 ### Configuração
 
-A aplicação lê a URI do MongoDB pela variável de ambiente `MONGODB_URI`. O banco configurado é `pi`, e a coleção de usuários é `usuario`.
+A aplicação lê a URI do MongoDB pela variável de ambiente `MONGODB_URI`. O banco vem de `MONGODB_DATABASE` (padrão `ambydata_dev`), e a coleção de usuários é `usuario`.
 
 O `application.yml` também define a propriedade `JWT_SECRET`. Embora as dependências JWT estejam no projeto, a autenticação por token ainda não foi implementada.
 
@@ -88,7 +88,7 @@ No Windows:
 .\mvnw.cmd test
 ```
 
-Configure as variáveis de ambiente antes de executar a aplicação ou os testes, caso sejam necessárias para carregar o contexto do Spring.
+Os testes sobem um MongoDB descartável com Testcontainers: basta ter o Docker rodando, sem `MONGODB_URI`.
 
 ### Executando com Docker
 
@@ -123,7 +123,7 @@ Não publique credenciais reais em comandos, capturas de tela ou arquivos versio
 O backend atual usa **MongoDB**, não MySQL nem JPA.
 
 - URI: variável de ambiente `MONGODB_URI`
-- Banco: `pi`
+- Banco: variável `MONGODB_DATABASE` (padrão `ambydata_dev`; no deploy, `ambydata_prod`)
 - Coleção de usuários: `usuario`
 
 ## Endpoints implementados

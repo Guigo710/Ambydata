@@ -1,18 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/contexto";
-
-const PERFIS = {
-  OPERARIO: { nome: "Operário", classe: "tag-operario" },
-  ENGENHEIRO: { nome: "Engenheiro", classe: "tag-engenheiro" },
-  DIRETOR: { nome: "Diretor", classe: "tag-diretor" },
-  ADMIN: { nome: "Admin", classe: "tag-admin" },
-};
+import { NOME_DO_PERFIL } from "../auth/permissoes";
 
 // Barra superior: quem está logado, atalho para "Meu perfil" e o botão Sair.
 export default function Topbar() {
   const { usuario, perfil, logout } = useAuth();
   const navigate = useNavigate();
-  const etiqueta = PERFIS[perfil] ?? { nome: "Sem perfil", classe: "tag-padrao" };
+  const etiqueta = NOME_DO_PERFIL[perfil]
+    ? { nome: NOME_DO_PERFIL[perfil], classe: `tag-${perfil.toLowerCase()}` }
+    : { nome: "Sem perfil", classe: "tag-padrao" };
 
   const sair = () => {
     logout();

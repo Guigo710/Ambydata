@@ -17,9 +17,9 @@ function LayoutDashboard() {
       <Sidebar />
       <div className="main">
         <Topbar />
-        <div className="page-content">
+        <main className="page-content">
           <Outlet />
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -3,6 +3,14 @@
 
 export const PERFIS = ["OPERARIO", "ENGENHEIRO", "DIRETOR", "ADMIN"];
 
+// Como cada perfil aparece na interface.
+export const NOME_DO_PERFIL = {
+  OPERARIO: "Operário",
+  ENGENHEIRO: "Engenheiro",
+  DIRETOR: "Diretor",
+  ADMIN: "Admin",
+};
+
 const PRODUCAO = ["OPERARIO", "ENGENHEIRO", "DIRETOR"];
 
 // Em ordem de exibição no menu.

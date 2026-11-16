@@ -1,6 +1,6 @@
 # Spec: identity — V1
 
-Status: proposto
+Status: aprovado
 Módulo: `identity` (Marco 1) — ver CAPABILITY-MAP.md
 Depende de: `monorepo` (concluído)
 Fonte: documento "AmbyData — Decisões do Projeto", seções "Perfis e matriz de telas", "Backend" e "Frontend"
@@ -33,10 +33,11 @@ que já existe (Painel e Status da Máquina continuam com dados estáticos até 
 
 - Backend: Java 21, Spring Boot 4.0.9, Spring Security, Spring Data MongoDB, JJWT 0.12.6
   (já no pom), Bean Validation, Lombok.
-- Novas dependências do backend (aprovar): `springdoc-openapi` (Swagger), Testcontainers
-  com módulo MongoDB (testes), Mongock (migrações) — ver Open Questions sobre compatibilidade.
+- Novas dependências do backend (aprovadas): `springdoc-openapi-starter-webmvc-ui` 3.0.3
+  (linha 3.x é a do Spring Boot 4; 3.1+ já exige Boot 4.1), `spring-boot-testcontainers` e
+  `testcontainers-mongodb` (versão 2.0.5, gerenciada pelo Boot 4.0.9).
 - Frontend: React 19, Vite 8, React Router 7, Axios.
-- Novas dependências do frontend (aprovar): `@tanstack/react-query` (busca de dados),
+- Novas dependências do frontend (aprovadas): `@tanstack/react-query` (busca de dados),
   `vitest`, `@testing-library/react`, `@testing-library/user-event`, `jsdom` (testes).
 
 ## Commands
@@ -73,7 +74,7 @@ backend/src/main/java/com/ambydata/ambydata_backend/
   auth/            login, /me, troca da própria senha, JWT (emissão e filtro)
   usuario/         entidade Usuario, enum Perfil, repositório, service, gestão pelo ADMIN
   config/          SecurityConfig, CORS, OpenAPI, tratamento global de erros
-  migracao/        migrações versionadas (perfil, índices, seed)
+  migracao/        executor próprio de migrações versionadas (coleção `migracao`)
 backend/src/test/java/com/ambydata/ambydata_backend/
   auth/  usuario/  testes de integração com Testcontainers + MockMvc
 
@@ -223,15 +224,12 @@ inglês; comentários só para explicar pasta/módulo ou bloco não óbvio; sem 
 - Campos `setor` e `turno` no usuário (documento do PI): chegam com `fabrica` e `chao-de-fabrica`.
 - Telas das demais rotas do menu: cada uma no seu módulo.
 
-## Open Questions
+## Decisões (antes perguntas em aberto)
 
-1. **Mongock com Spring Boot 4:** a compatibilidade precisa ser confirmada na documentação
-   antes do plano. Se não houver versão estável compatível, a recomendação é um executor
-   próprio e pequeno (um `ApplicationRunner` que grava as migrações aplicadas numa coleção
-   `migracao`), sem dependência nova.
-2. **Validade do token de 8 horas** (um turno): confirma, ou prefere outro valor?
-3. **Swagger público em produção:** recomendo deixar aberto, porque só documenta e ajuda na
-   banca. Se preferir, fica restrito ao perfil local.
-4. **Usuários de demonstração** (`DEMO_SENHA`): e-mails `operario@ambydata.demo`,
-   `engenheiro@ambydata.demo`, `diretor@ambydata.demo`, todos com a senha de `DEMO_SENHA`.
-   Ok ou prefere outro padrão?
+1. **Migrações:** executor próprio (`ApplicationRunner` que grava cada migração aplicada na
+   coleção `migracao`). O Mongock não tem versão para Spring Boot 4 (última: 5.5.1, mar/2025,
+   só `mongock-springboot-v3`).
+2. **Validade do token:** 8 horas.
+3. **Swagger:** público também em produção.
+4. **Usuários de demonstração:** `operario@ambydata.demo`, `engenheiro@ambydata.demo` e
+   `diretor@ambydata.demo`, com a senha de `DEMO_SENHA`.

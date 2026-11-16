@@ -30,7 +30,7 @@ Source spec: SPEC-identity.md — detalhes em tasks/plan-identity.md
 - [x] Login, menu e logout funcionam para os 4 perfis (Chromium contra o backend local)
 
 - [x] Task 12: Meu perfil (S)
-- [ ] Task 13: Tela de Usuários (ADMIN) (M)
+- [x] Task 13: Tela de Usuários (ADMIN) (M)
 
 ## Phase 3: Fechamento
 - [ ] Task 14: Verificação ponta a ponta, documentação e revisão (S)

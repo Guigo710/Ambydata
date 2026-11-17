@@ -63,7 +63,25 @@ class CalculadoraIndicadoresTests {
         }
         Collections.shuffle(leituras, new java.util.Random(7)); // a ordem de chegada não importa
 
+        // Não termina parada: depois da última parada vêm leituras fora do turno.
         assertThat(Totais.de(leituras)).isEqualTo(HORA);
+    }
+
+    @Test
+    void paradaQueAtravessaAViradaDaHoraContaUmaVezNaSoma() {
+        Instant t = Instant.parse("2026-11-10T13:59:40Z");
+        Leitura a = leitura(t, StatusMaquina.OPERANDO, 9, 9);
+        Leitura b = leitura(t.plusSeconds(10), StatusMaquina.PARADA, 0, 0);   // 13:59:50
+        Leitura c = leitura(t.plusSeconds(20), StatusMaquina.PARADA, 0, 0);   // 14:00:00
+        Leitura d = leitura(t.plusSeconds(30), StatusMaquina.OPERANDO, 9, 9);
+
+        Totais umaHora = Totais.de(List.of(a, b));
+        Totais outraHora = Totais.de(List.of(c, d));
+
+        assertThat(umaHora.paradas() + outraHora.paradas()).isEqualTo(2);
+        assertThat(umaHora.somar(outraHora)).isEqualTo(Totais.de(List.of(a, b, c, d)));
+        assertThat(umaHora.somar(outraHora).paradas()).isEqualTo(1);
+        assertThat(Totais.VAZIO.somar(umaHora)).isEqualTo(umaHora);
     }
 
     @Test

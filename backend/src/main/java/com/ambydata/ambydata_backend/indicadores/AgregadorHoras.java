@@ -116,7 +116,8 @@ public class AgregadorHoras {
         DoubleSummaryStatistics temperatura = leituras.stream().mapToDouble(Leitura::getTemperatura).summaryStatistics();
         return new IndicadorHora(IndicadorHora.idDe(maquina.getId(), inicio), maquina.getId(), inicio, fonte,
                 leituras.size(), t.segundosPlanejados(), t.segundosOperando(), t.segundosParado(), t.paradas(),
-                t.pecasProduzidas(), t.pecasBoas(), temperatura.getAverage(), temperatura.getMin(), temperatura.getMax());
+                t.pecasProduzidas(), t.pecasBoas(), t.comecaParada(), t.terminaParada(),
+                temperatura.getAverage(), temperatura.getMin(), temperatura.getMax());
     }
 
     // Horas (início) em que houve leitura de dispositivo; leituras só existem nas últimas 48 h.

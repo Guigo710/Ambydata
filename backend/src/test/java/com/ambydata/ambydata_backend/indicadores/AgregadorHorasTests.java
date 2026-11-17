@@ -83,7 +83,7 @@ class AgregadorHorasTests {
         IndicadorHora hora = agregador.agregar(forno, HORA);
 
         assertThat(hora.getFonte()).isEqualTo(FonteAgregado.LEITURAS);
-        assertThat(hora.totais()).isEqualTo(new Totais(20, 10, 10, 1, 5, 4));
+        assertThat(hora.totais()).isEqualTo(new Totais(20, 10, 10, 1, 5, 4, false, true));
         assertThat(hora.getLeituras()).isEqualTo(2);
     }
 

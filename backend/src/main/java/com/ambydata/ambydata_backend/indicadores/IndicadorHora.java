@@ -37,6 +37,8 @@ public class IndicadorHora {
     private int paradas;
     private int pecasProduzidas;
     private int pecasBoas;
+    private boolean comecaParada;         // a hora abre com a máquina parada
+    private boolean terminaParada;        // e fecha parada (a parada continua na hora seguinte)
     private double temperaturaMedia;
     private double temperaturaMinima;
     private double temperaturaMaxima;
@@ -46,6 +48,7 @@ public class IndicadorHora {
     }
 
     public Totais totais() {
-        return new Totais(segundosPlanejados, segundosOperando, segundosParado, paradas, pecasProduzidas, pecasBoas);
+        return new Totais(segundosPlanejados, segundosOperando, segundosParado, paradas, pecasProduzidas, pecasBoas,
+                comecaParada, terminaParada);
     }
 }

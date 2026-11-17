@@ -35,7 +35,7 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 ### Phase 1: Backend
 - [x] Task 1: `CalculadoraIndicadores` com testes de conta à mão (S)
 - [x] Task 2: Agregados por hora — coleção com TTL, job da hora fechada e preenchimento de 7 dias (M)
-- [ ] Task 3: API `resumo`, `maquinas/{id}/agora` e `leituras/{id}` (M)
+- [x] Task 3: API `resumo`, `maquinas/{id}/agora` e `leituras/{id}` (M)
 - [ ] Task 4: API `historico`, `comparativo` e `financeiro` (DIRETOR) com permissões (M)
 
 ### Checkpoint: Backend

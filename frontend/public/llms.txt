@@ -1,0 +1,9 @@
+# AmbyData – Painel de Gestão
+
+> Plataforma web para visualização de dados, acompanhamento de indicadores e gerenciamento de informações corporativas.
+
+O sistema AmbyData oferece uma interface centralizada para usuários autenticados acessarem relatórios e painéis analíticos.
+
+## Páginas Principais
+
+- [Página de Login](https://ambydata-azure.vercel.app/): Acesso seguro ao painel de gestão da AmbyData.

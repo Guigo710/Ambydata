@@ -1,0 +1,19 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "AmbyData"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:ambydata-azure.vercel.app:web:painel-login",
+      "displayName": "AmbyData – Painel de Gestão",
+      "description": "Interface de autenticação e acesso ao painel de visualização de dados da AmbyData.",
+      "type": "application/ai-catalog+json",
+      "url": "https://ambydata-azure.vercel.app/",
+      "representativeQueries": [
+        "Acessar painel AmbyData",
+        "Fazer login no sistema AmbyData"
+      ]
+    }
+  ]
+}

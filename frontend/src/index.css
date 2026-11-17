@@ -1051,3 +1051,76 @@ body,
   padding-left: 18px;
   line-height: 1.7;
 }
+
+/* Selos de status e de situação da temperatura */
+.selo {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.selo-status-operando { background: rgba(82, 183, 136, 0.15); color: #23704d; }
+.selo-status-parada { background: rgba(247, 37, 133, 0.12); color: #b0125c; }
+.selo-status-fora_do_turno, .selo-sem-dados { background: rgba(155, 168, 204, 0.2); color: var(--text-secondary); }
+.selo-situacao-normal { background: rgba(82, 183, 136, 0.15); color: #23704d; }
+.selo-situacao-alerta { background: rgba(251, 133, 0, 0.16); color: #9a4f00; }
+.selo-situacao-critico { background: #d00052; color: #fff; }
+
+/* Painel: resumo da fábrica e cards por linha */
+.resumo-fabrica {
+  margin: 0 0 20px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.grupo-linha { margin-bottom: 24px; }
+.grupo-linha-titulo {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+.grade-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.cartao-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-left: 4px solid transparent;
+}
+.cartao-resumo.borda-alerta { border-left-color: var(--orange); }
+.cartao-resumo.borda-critico { border-left-color: #d00052; }
+.cartao-resumo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.cartao-resumo-nome { margin: 0; font-size: 16px; color: var(--text-primary); }
+.cartao-resumo-setor { margin: 2px 0 0; font-size: 12px; color: var(--text-secondary); }
+.cartao-resumo-dados {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin: 0;
+}
+.cartao-resumo-dados dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.cartao-resumo-dados dd { margin: 4px 0 0; }
+.cartao-resumo-temperatura { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.cartao-resumo-faixa { font-size: 12px; color: var(--text-secondary); }
+.cartao-resumo-oee { font-size: 24px; font-weight: 800; color: var(--text-primary); text-align: right; }
+.cartao-resumo-ver { align-self: flex-start; padding: 0; }
+.stat-detalhe { font-size: 12px; color: var(--text-secondary); }
+
+@media (max-width: 900px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}

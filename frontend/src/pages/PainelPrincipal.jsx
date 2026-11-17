@@ -1,81 +1,105 @@
+import { Link } from "react-router-dom";
 import { useAuth } from "../auth/contexto";
 import CartaoMaquina from "../components/CartaoMaquina";
+import CartaoResumoMaquina from "../components/CartaoResumoMaquina";
+import { SeloSituacao, SeloStatus, Temperatura } from "../components/Selos";
 import SeletorMaquina from "../components/SeletorMaquina";
-import { useMaquinaSelecionada } from "../services/maquinas";
-import {
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-} from "recharts";
+import SobreEstesDados from "../components/SobreEstesDados";
+import { mensagemDeErro } from "../services/api";
+import { percentual, tempoDesde, useAgora, useResumo } from "../services/indicadores";
+import { porLinha, textoFaixa, useMaquinaSelecionada } from "../services/maquinas";
 
-// Dados de exemplo até o módulo "indicadores" ligar os gráficos à simulação.
-const metricasExemplo = [
-  { label: "Seg", oee: 72, custo: 1500, lucro: 3200 },
-  { label: "Ter", oee: 78, custo: 1420, lucro: 3550 },
-  { label: "Qua", oee: 69, custo: 1610, lucro: 2980 },
-  { label: "Qui", oee: 81, custo: 1380, lucro: 3720 },
-  { label: "Sex", oee: 76, custo: 1450, lucro: 3400 },
-];
+// "1 operando · 1 parada · 1 com temperatura crítica" (só o que existe na hora).
+function resumoDaFabrica(resumos) {
+  const contar = (filtro) => resumos.filter(filtro).length;
+  const operando = contar((r) => r.ultimaLeitura?.status === "OPERANDO");
+  const paradas = contar((r) => r.ultimaLeitura?.status === "PARADA");
+  const fora = contar((r) => r.ultimaLeitura?.status === "FORA_DO_TURNO");
+  const semLeitura = contar((r) => !r.ultimaLeitura);
+  const criticas = contar((r) => r.ultimaLeitura?.situacaoTemperatura === "CRITICO");
+  const partes = [`${operando} operando`, `${paradas} ${paradas === 1 ? "parada" : "paradas"}`];
+  if (fora) partes.push(`${fora} fora do turno`);
+  if (semLeitura) partes.push(`${semLeitura} sem leitura`);
+  if (criticas) partes.push(`${criticas} com temperatura crítica`);
+  return partes.join(" · ");
+}
 
-const radarData = [
-  { subject: "CoreID RAW", A: 80, B: 65, C: 70 },
-  { subject: "Sketch", A: 90, B: 75, C: 60 },
-  { subject: "XD", A: 70, B: 85, C: 80 },
-  { subject: "PS", A: 60, B: 70, C: 90 },
-  { subject: "AI", A: 85, B: 60, C: 75 },
-];
+// A leitura mais recente entre todas as máquinas, e a fonte (as duas, se misturadas).
+function leituraMaisRecente(resumos) {
+  const leituras = resumos.map((r) => r.ultimaLeitura).filter(Boolean);
+  if (leituras.length === 0) return null;
+  const maisRecente = leituras.reduce((a, b) => (new Date(a.instante) > new Date(b.instante) ? a : b));
+  const origens = new Set(leituras.map((l) => l.origem));
+  return { ...maisRecente, origem: origens.size > 1 ? "Simulador e dispositivo" : maisRecente.origem };
+}
 
-const manutencaoData = [
-  { name: "Jan", v2020: 30.02, v2021: 25.28, v2022: 15.14 },
-  { name: "Fev", v2020: 47.55, v2021: 13.55, v2022: 35.24 },
-  { name: "Mar", v2020: 88.45, v2021: 18.34, v2022: 64.68 },
-];
+function TodasAsMaquinas({ onVer }) {
+  const resumo = useResumo();
+  if (resumo.isPending) return <p className="tabela-vazia">Carregando máquinas...</p>;
+  if (resumo.isError) return <div className="error-message" role="alert">{mensagemDeErro(resumo.error)}</div>;
 
-const produtividadeData = [
-  { name: "Jan", A: 60, B: 40, C: 80 },
-  { name: "Fev", A: 75, B: 55, C: 65 },
-];
-
-const COLORS_2020 = "#4361EE";
-const COLORS_2021 = "#F72585";
-const COLORS_2022 = "#4CC9F0";
-
-function LegendRow() {
+  const resumos = resumo.data;
+  const porMaquina = new Map(resumos.map((r) => [r.maquina.id, r]));
   return (
-    <div className="chart-legend">
-      {[
-        ["2020", COLORS_2020],
-        ["2021", COLORS_2021],
-        ["2022", COLORS_2022],
-      ].map(([year, color]) => (
-        <div className="legend-item" key={year}>
-          <div className="legend-dot" style={{ background: color }} />
-          {year}
-        </div>
+    <>
+      <p className="resumo-fabrica" role="status">{resumoDaFabrica(resumos)}</p>
+      {porLinha(resumos.map((r) => r.maquina)).map(([linha, maquinas]) => (
+        <section key={linha} className="grupo-linha" aria-label={linha}>
+          <h2 className="grupo-linha-titulo">{linha}</h2>
+          <div className="grade-cartoes">
+            {maquinas.map((m) => <CartaoResumoMaquina key={m.id} resumo={porMaquina.get(m.id)} onVer={onVer} />)}
+          </div>
+        </section>
       ))}
-    </div>
+      <SobreEstesDados maquina={`Todas as máquinas (${resumos.length})`} ultimaLeitura={leituraMaisRecente(resumos)}
+        formulas={["oee", "disponibilidade", "performance", "qualidade"]} />
+    </>
   );
 }
 
-const tooltipStyle = {
-  borderRadius: 8,
-  border: "none",
-  boxShadow: "0 4px 16px rgba(27,37,87,0.12)",
-  fontSize: 12,
-};
+function ResumoDeUmaMaquina({ maquina }) {
+  const agora = useAgora(maquina.id);
+  return (
+    <>
+      <CartaoMaquina maquina={maquina} />
+      {agora.isPending && <p className="tabela-vazia">Carregando indicadores...</p>}
+      {agora.isError && <div className="error-message" role="alert">{mensagemDeErro(agora.error)}</div>}
+      {agora.isSuccess && (
+        <>
+          <section className="stats-row" aria-label={`Resumo de ${maquina.nome}`}>
+            <div className="stat-card">
+              <span className="stat-label">Status atual</span>
+              <span className="stat-value"><SeloStatus status={agora.data.ultimaLeitura?.status} /></span>
+              <span className="stat-detalhe">{tempoDesde(agora.data.ultimaLeitura?.instante)}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Temperatura</span>
+              <span className="stat-value"><Temperatura valor={agora.data.ultimaLeitura?.temperatura} /></span>
+              <span className="stat-detalhe">
+                <SeloSituacao situacao={agora.data.ultimaLeitura?.situacaoTemperatura} /> faixa {textoFaixa(maquina.faixaTemperatura)}
+              </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">OEE da última hora</span>
+              <span className="stat-value">{percentual(agora.data.ultimaHora.indicadores.oee)}</span>
+              <span className="stat-detalhe">turno: {percentual(agora.data.turno.indicadores.oee)}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Peças na última hora</span>
+              <span className="stat-value">{agora.data.ultimaHora.totais.pecasProduzidas.toLocaleString("pt-BR")}</span>
+              <span className="stat-detalhe">{agora.data.ultimaHora.totais.pecasBoas.toLocaleString("pt-BR")} boas</span>
+            </div>
+          </section>
+          <Link className="btn-link" to={`/status-maquina?maquina=${encodeURIComponent(maquina.id)}`}>Ver no Status da Máquina</Link>
+          <SobreEstesDados maquina={maquina.nome} ultimaLeitura={agora.data.ultimaLeitura}
+            frequenciaSegundos={agora.data.frequenciaSegundos} formulas={["oee", "disponibilidade", "performance", "qualidade"]} />
+        </>
+      )}
+    </>
+  );
+}
 
+// Visão geral da fábrica ("Todas as máquinas") ou o resumo da máquina escolhida no seletor.
 export default function PainelPrincipal() {
   const { usuario } = useAuth();
   const selecao = useMaquinaSelecionada({ permitirTodas: true });
@@ -89,100 +113,9 @@ export default function PainelPrincipal() {
         </div>
         <SeletorMaquina selecao={selecao} permitirTodas />
       </div>
-
-      <CartaoMaquina maquina={selecao.maquina} />
-
-      <div className="charts-grid">
-        {/* Status da Máquina (Estático) */}
-        <div className="card">
-          <p className="card-title">Status da Máquina</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke="#E8ECFB" />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10, fill: "#6B7BB6" }} />
-              <Radar name="2020" dataKey="A" stroke={COLORS_2020} fill={COLORS_2020} fillOpacity={0.15} />
-              <Radar name="2021" dataKey="B" stroke={COLORS_2021} fill={COLORS_2021} fillOpacity={0.15} />
-              <Radar name="2022" dataKey="C" stroke={COLORS_2022} fill={COLORS_2022} fillOpacity={0.15} />
-            </RadarChart>
-          </ResponsiveContainer>
-          <LegendRow />
-        </div>
-
-        {/* OEE em Tempo Real */}
-        <div className="card">
-          <p className="card-title">OEE em Tempo Real (%)</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={metricasExemplo}>
-              <defs>
-                <linearGradient id="oeeDinamic" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS_2020} stopOpacity={0.25} />
-                  <stop offset="95%" stopColor={COLORS_2020} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F2F8" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="oee" stroke={COLORS_2020} fill="url(#oeeDinamic)" strokeWidth={2} dot={{ r: 4 }} />
-            </AreaChart>
-          </ResponsiveContainer>
-          <div className="chart-legend">
-            <div className="legend-item">
-              <div className="legend-dot" style={{ background: COLORS_2020 }} />
-              OEE (dados de exemplo)
-            </div>
-          </div>
-        </div>
-
-        {/* Report de Manutenção */}
-        <div className="card">
-          <p className="card-title">Report de Manutenção</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={manutencaoData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F2F8" />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="v2020" stroke={COLORS_2020} strokeWidth={2} dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-          <LegendRow />
-        </div>
-
-        {/* Custos e Lucros) */}
-        <div className="card">
-          <p className="card-title">Custos e Lucros (R$)</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={metricasExemplo} barGap={4}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F2F8" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="custo" name="Custo" fill={COLORS_2021} radius={[4, 4, 0, 0]} />
-              <Bar dataKey="lucro" name="Lucro" fill={COLORS_2022} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="chart-legend">
-            <div className="legend-item"><div className="legend-dot" style={{ background: COLORS_2021 }} /> Custo</div>
-            <div className="legend-item"><div className="legend-dot" style={{ background: COLORS_2022 }} /> Lucro</div>
-          </div>
-        </div>
-
-        {/* Produtividade (Estático) */}
-        <div className="card">
-          <p className="card-title">Produtividade</p>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={produtividadeData} barGap={3}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F0F2F8" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#9BA8CC" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="A" fill={COLORS_2020} radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-          <LegendRow />
-        </div>
-      </div>
+      {selecao.maquina
+        ? <ResumoDeUmaMaquina key={selecao.maquina.id} maquina={selecao.maquina} />
+        : <TodasAsMaquinas onVer={selecao.escolher} />}
     </>
   );
 }

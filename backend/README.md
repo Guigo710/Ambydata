@@ -49,6 +49,14 @@ Usuários criados na subida (quem já existe, pelo e-mail, não é alterado):
 - `DEMO_SENHA`: se definida, cria `operario@ambydata.demo`, `engenheiro@ambydata.demo` e
   `diretor@ambydata.demo` com essa senha, para demonstração.
 
+Simulação e dispositivos:
+
+- `SIMULADOR_ATIVO` (padrão `true`): gera uma leitura a cada 10 s por máquina ativa e, ao subir,
+  preenche a última hora que faltar (o Render dorme sem tráfego). Use `false` para desligar.
+- `DEVICE_KEY` (opcional): chave que um dispositivo real (ESP32) manda no cabeçalho
+  `X-Device-Key` para `POST /api/leituras`. Sem ela, a rota recusa tudo (401). Gere com
+  `openssl rand -base64 32`.
+
 Configure as variáveis no terminal que iniciará o backend. Não coloque credenciais no GitHub.
 
 No PowerShell:
@@ -131,7 +139,8 @@ O backend atual usa **MongoDB**, não MySQL nem JPA.
 
 - URI: variável de ambiente `MONGODB_URI`
 - Banco: variável `MONGODB_DATABASE` (padrão `ambydata_dev`; no deploy, `ambydata_prod`)
-- Coleção de usuários: `usuario`
+- Coleções: `usuario`, `maquina` (6 máquinas iniciais em 2 linhas, criadas pela migração
+  `M002`), `leitura` (uma por máquina a cada 10 s, apagadas sozinhas após 48 h) e `migracao`
 
 ## Endpoints implementados
 
@@ -150,9 +159,21 @@ O contrato também está descrito em [`SPEC-identity.md`](../SPEC-identity.md#co
 | PUT | `/api/usuarios/{id}` | ADMIN | Edita `{ nome, email, perfil }` |
 | PATCH | `/api/usuarios/{id}/ativo` | ADMIN | Ativa ou desativa `{ ativo }` |
 | PUT | `/api/usuarios/{id}/senha` | ADMIN | Redefine a senha `{ novaSenha }`; 204 |
+| GET | `/api/maquinas` | OPERARIO, ENGENHEIRO, DIRETOR | Lista as máquinas por linha e nome; `?ativas=true` só as ativas |
+| GET | `/api/maquinas/{id}` | OPERARIO, ENGENHEIRO, DIRETOR | Uma máquina, com o `limiteCritico` calculado |
+| POST | `/api/maquinas` | ENGENHEIRO | Cria a máquina com parâmetros e alertas; 201 |
+| PUT | `/api/maquinas/{id}` | ENGENHEIRO | Edita a máquina |
+| PATCH | `/api/maquinas/{id}/ativa` | ENGENHEIRO | Ativa ou desativa `{ ativa }` |
+| POST | `/api/leituras` | dispositivo (`X-Device-Key`) | Leitura de um sensor real; 201 |
 
 Regras da gestão: e-mail único (400), o ADMIN não desativa a si mesmo e o sistema nunca fica
 sem um ADMIN ativo (409).
+
+Regras das máquinas: nome único sem diferenciar maiúsculas (400), temperatura mínima menor que
+a máxima e turno com início diferente do fim. O limite crítico é a faixa permitida aumentada em
+`alertas.percentualCritico`% da largura dela para os dois lados: faixa 0 a 10 °C com 50% vira
+crítico abaixo de -5 °C ou acima de 15 °C. O contrato está em [`SPEC-fabrica.md`](../SPEC-fabrica.md)
+e a simulação em [`SPEC-simulacao.md`](../SPEC-simulacao.md).
 
 Envie o token em toda requisição autenticada:
 
@@ -177,11 +198,18 @@ Erros saem sempre no mesmo formato:
 - CORS: só as origens de `CORS_ORIGINS` (padrão `http://localhost:5173`, separadas por vírgula).
 - Senhas guardadas com BCrypt; o hash nunca sai em nenhuma resposta.
 
+## Simulação
+
+Sem placas instaladas, o backend imita a fábrica: cada máquina tem um cenário (saudável,
+aquecimento, oscilação, paradas frequentes, defeitos altos) e o gerador é determinístico, ou
+seja, o mesmo instante gera sempre a mesma leitura. Por isso preencher uma lacuna depois de o
+servidor dormir dá o mesmo resultado que teria sido gravado na hora, sem duplicar. Uma máquina
+que recebeu leitura de dispositivo nos últimos 5 minutos não é simulada.
+
 ## Métricas
 
-Ainda não há endpoints de métricas: eles chegam com os módulos `fabrica`, `simulacao` e
-`indicadores` (ver [`CAPABILITY-MAP.md`](../CAPABILITY-MAP.md)). A rota antiga `/api/dados` e o
-modelo MySQL/JPA que a servia foram removidos.
+Os indicadores (OEE, produtividade, custos) chegam com o módulo `indicadores` (ver
+[`SPEC-indicadores.md`](../SPEC-indicadores.md)).
 
 ## Estrutura do projeto
 
@@ -191,6 +219,8 @@ src/
     java/com/ambydata/ambydata_backend/
       auth/         # Login, /me e JWT (emissão, validação e filtro)
       usuario/      # Usuario, Perfil, repositório e regras
+      maquina/      # Máquinas, faixa de temperatura, limites de alerta e turno
+      simulacao/    # Gerador de leituras, agendamento e ingestão de dispositivos
       config/       # Segurança, CORS, erros padrão, PasswordEncoder, usuários iniciais
       migracao/     # Migrações versionadas do banco (coleção migracao)
     resources/
@@ -209,6 +239,9 @@ mvnw.cmd
 - [x] Adicionar testes para cadastro e autenticação
 - [x] Documentar a API com OpenAPI/Swagger
 - [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
+- [x] Cadastro de máquinas e leituras simuladas
+- [ ] Indicadores: OEE, produtividade e custos por máquina
+- [ ] Chamados de manutenção em kanban, com abertura automática nos alertas críticos
 
 ## Licença
 

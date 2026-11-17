@@ -1,3 +1,6 @@
+import CartaoMaquina from "../components/CartaoMaquina";
+import SeletorMaquina from "../components/SeletorMaquina";
+import { useMaquinaSelecionada } from "../services/maquinas";
 import {
   RadarChart,
   Radar,
@@ -54,12 +57,18 @@ const tooltipStyle = {
 };
 
 export default function StatusMaquina() {
+  const selecao = useMaquinaSelecionada();
   return (
     <>
-      <div className="page-header">
-        <h1 className="page-title">Status da Máquina</h1>
-        <p className="page-greeting">Monitoramento em tempo real</p>
+      <div className="page-header cabecalho-com-seletor">
+        <div>
+          <h1 className="page-title">Status da Máquina</h1>
+          <p className="page-greeting">Monitoramento em tempo real</p>
+        </div>
+        <SeletorMaquina selecao={selecao} />
       </div>
+
+      <CartaoMaquina maquina={selecao.maquina} />
 
       <div className="stats-row">
         {stats.map((s) => (

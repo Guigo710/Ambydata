@@ -5,6 +5,7 @@ import RotaProtegida from "./auth/RotaProtegida";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import Login from "./pages/Login";
+import Maquinas from "./pages/Maquinas";
 import MeuPerfil from "./pages/MeuPerfil";
 import PainelPrincipal from "./pages/PainelPrincipal";
 import StatusMaquina from "./pages/StatusMaquina";
@@ -39,6 +40,7 @@ export function AppRoutes() {
       <Route element={<RotaProtegida><LayoutDashboard /></RotaProtegida>}>
         <Route path="/painel" element={<PainelPrincipal />} />
         <Route path="/status-maquina" element={<StatusMaquina />} />
+        <Route path="/maquinas" element={<Maquinas />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/meu-perfil" element={<MeuPerfil />} />
       </Route>

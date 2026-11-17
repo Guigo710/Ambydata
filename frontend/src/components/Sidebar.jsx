@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/contexto";
 import { telasDoMenu } from "../auth/permissoes";
 
@@ -16,6 +16,14 @@ const ICONES = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v4l3 3" />
+    </>
+  ),
+  "/maquinas": (
+    <>
+      <rect x="2" y="7" width="20" height="13" rx="2" />
+      <path d="M7 7V4h10v3" />
+      <circle cx="8" cy="13.5" r="2" />
+      <path d="M14 12h4M14 15h4" />
     </>
   ),
   "/usuarios": (
@@ -46,6 +54,8 @@ function Icone({ rota }) {
 // Menu lateral: mostra só as telas que o perfil logado pode abrir (auth/permissoes.js).
 export default function Sidebar() {
   const { perfil } = useAuth();
+  const [parametros] = useSearchParams();
+  const maquina = parametros.get("maquina");
 
   return (
     <aside className="sidebar">
@@ -68,7 +78,7 @@ export default function Sidebar() {
         {telasDoMenu(perfil).map((tela) => (
           <NavLink
             key={tela.rota}
-            to={tela.rota}
+            to={tela.comMaquina && maquina ? { pathname: tela.rota, search: `?maquina=${encodeURIComponent(maquina)}` } : tela.rota}
             className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
           >
             <Icone rota={tela.rota} />

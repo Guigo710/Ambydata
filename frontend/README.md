@@ -83,7 +83,7 @@ src/
   auth/          # sessão (AuthContext), rotas protegidas e permissões por perfil
   components/    # componentes React
   pages/         # telas/rotas
-  services/      # cliente único da API (axios)
+  services/      # cliente único da API (axios) e consultas por assunto (ex.: maquinas.js)
   test/          # apoio aos testes
 index.html
 vite.config.js
@@ -100,6 +100,15 @@ vite.config.js
 - Depois do login, o ADMIN vai para Usuários e os demais perfis para o Painel.
 - "Esqueci minha senha" orienta a procurar o gestor: quem redefine é o ADMIN.
 
+## Máquinas
+
+- As telas de produção (Painel e Status da Máquina) têm uma lista de máquinas ao lado do título.
+  A escolha fica na URL (`?maquina=<id>`), então continua valendo ao trocar de tela pelo menu e
+  ao recarregar. O Painel começa em "Todas as máquinas"; o Status, na primeira da lista.
+- A tela Máquinas lista setor, linha, faixa de temperatura e limite crítico de cada máquina.
+  O ENGENHEIRO cria, edita e desativa, vendo na hora o limite crítico que os números geram;
+  o DIRETOR só consulta.
+
 ## Deploy
 
 Configurado via `vercel.json` para deploy no Vercel.
@@ -108,6 +117,9 @@ Configurado via `vercel.json` para deploy no Vercel.
 
 - [x] Autenticação real de sessão (token JWT, alinhado com o backend)
 - [x] Testes automatizados (Vitest + Testing Library)
+- [x] Cadastro de máquinas e seletor de máquina nas telas de produção
+- [ ] Indicadores reais (OEE, produtividade, custos) no lugar dos números fixos
+- [ ] Report de manutenção em kanban
 - [ ] Dark mode
 - [x] CI (lint, testes e build em pull requests) — `.github/workflows/ci.yml` na raiz
 

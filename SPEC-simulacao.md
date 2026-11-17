@@ -44,8 +44,9 @@ muitos defeitos.
   `origem = DISPOSITIVO`. Uma máquina que recebe leitura de dispositivo deixa de ser simulada
   por 5 minutos. Regras da rota:
   - a chave é conferida antes de ler o corpo (sem chave: 401, nunca 400);
-  - `instante` opcional, aceito só entre 5 min atrás e 30 s à frente (senão 400): um instante
-    no futuro escaparia do TTL e desligaria o simulador; um no passado reescreveria o histórico;
+  - `instante` opcional, aceito só nos últimos 5 min e nunca no futuro (senão 400): um instante
+    no futuro escaparia do TTL, desligaria o simulador e ocuparia os blocos seguintes (a leitura
+    real receberia 409); um no passado reescreveria o histórico;
   - no máximo uma leitura por máquina a cada 10 s; a segunda do mesmo bloco recebe 409 e não
     sobrescreve a primeira;
   - máquina inativa não recebe leitura (400); temperatura entre −100 e 1000 °C.

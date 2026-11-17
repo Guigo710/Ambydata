@@ -35,6 +35,11 @@ app:
     admin-nome: ${ADMIN_NOME:}
     # Se definida, cria operario@, engenheiro@ e diretor@ambydata.demo com esta senha
     demo-senha: ${DEMO_SENHA:}
+  simulacao:
+    # Liga o gerador de dados fake (leitura a cada 10 s por máquina ativa)
+    ativo: ${SIMULADOR_ATIVO:true}
+    fuso: America/Sao_Paulo
+    preenchimento-minutos: 60
   cors:
     # Origens do frontend, separadas por vírgula (ex.: a URL da Vercel)
     origins: ${CORS_ORIGINS:http://localhost:5173}

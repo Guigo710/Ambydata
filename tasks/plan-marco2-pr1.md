@@ -28,7 +28,7 @@ ao lado do título das telas de produção.
 ### Phase 1: Backend
 - [x] Task 1: Máquina — entidade, migração 002 com as 6 máquinas, API com permissões e validação (M)
 - [x] Task 2: Gerador determinístico de leituras e cenários (M)
-- [ ] Task 3: Job de 10 s, preenchimento de lacunas e TTL de 48 h (S)
+- [x] Task 3: Job de 10 s, preenchimento de lacunas e TTL de 48 h (S)
 - [ ] Task 4: `POST /api/leituras` com `X-Device-Key` (S)
 
 ### Checkpoint: Backend

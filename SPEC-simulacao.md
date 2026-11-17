@@ -1,6 +1,6 @@
 # Spec: simulacao — V1
 
-Status: proposto
+Status: aprovado
 Módulo: `simulacao` (Marco 2, PR 1 de 3, junto com `fabrica`) — ver CAPABILITY-MAP.md
 Depende de: `fabrica`
 

@@ -1,6 +1,6 @@
 # Spec: indicadores — V1
 
-Status: proposto
+Status: aprovado
 Módulo: `indicadores` (Marco 2, PR 2 de 3) — ver CAPABILITY-MAP.md
 Depende de: `fabrica`, `simulacao`
 
@@ -19,9 +19,9 @@ fórmula usada. Atualizam sozinhas a cada 10 s.
 | Tela | O que mostra | Perfis |
 |---|---|---|
 | **Painel principal** | "Todas as máquinas": cards por máquina (status, OEE da hora, temperatura, alerta) agrupados por linha. Uma máquina: o resumo dela (os 4 números abaixo) | OPERARIO, ENGENHEIRO, DIRETOR |
-| **Status da Máquina** | status atual (Operando/Parada/Fora do turno), temperatura atual × faixa permitida, gráfico das últimas 2 h com a faixa e o limite crítico desenhados, peças na última hora, paradas do turno | OPERARIO, ENGENHEIRO, DIRETOR |
+| **Status da Máquina** | status atual (Operando/Parada/Fora do turno), temperatura atual × faixa permitida (aviso amarelo fora da faixa, vermelho acima do limite crítico), gráfico das últimas 2 h com a faixa e o limite crítico desenhados, peças na última hora, paradas do turno | OPERARIO, ENGENHEIRO, DIRETOR |
 | **OEE em tempo real** | OEE da última hora e do turno, decomposto em Disponibilidade, Performance e Qualidade, cada um com a fórmula e os números usados; gráfico das últimas 24 h. Para ENGENHEIRO e DIRETOR, também MTBF e downtime | OPERARIO, ENGENHEIRO, DIRETOR |
-| **Produtividade** | peças/h e peças boas × defeituosas por máquina; comparativo por setor e por linha nas últimas 24 h e 7 dias | ENGENHEIRO, DIRETOR |
+| **Produtividade** | peças/h e peças boas × defeituosas por máquina; comparativo por setor e por linha nas últimas 24 h e 7 dias | OPERARIO, ENGENHEIRO, DIRETOR |
 | **Custos e Lucros** | custo, receita e lucro por máquina e por linha (24 h, 7 dias) | DIRETOR |
 
 ## Fórmulas (mostradas na interface)
@@ -41,7 +41,7 @@ fórmula usada. Atualizam sozinhas a cada 10 s.
 | `GET /api/indicadores/maquinas/{id}/agora` | produção |
 | `GET /api/indicadores/maquinas/{id}/historico?horas=24` (agregados horários) | produção |
 | `GET /api/indicadores/leituras/{id}?minutos=120` (leituras brutas para o gráfico de temperatura) | produção |
-| `GET /api/indicadores/comparativo?periodo=24h\|7d&por=setor\|linha\|maquina` | ENGENHEIRO, DIRETOR |
+| `GET /api/indicadores/comparativo?periodo=24h\|7d&por=setor\|linha\|maquina` | produção |
 | `GET /api/indicadores/financeiro?periodo=24h\|7d` | DIRETOR |
 
 ## Success Criteria

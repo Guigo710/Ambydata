@@ -1,6 +1,6 @@
 # Spec: fabrica — V1
 
-Status: proposto
+Status: aprovado
 Módulo: `fabrica` (Marco 2, PR 1 de 3, junto com `simulacao`) — ver CAPABILITY-MAP.md
 Depende de: `identity`
 
@@ -11,7 +11,8 @@ Ao final deste módulo:
 
 - Existem as máquinas de uma fábrica alimentícia fictícia (2 linhas, 6 máquinas), cada uma com
   setor, linha e os parâmetros de referência que os indicadores e os alertas usam.
-- O ENGENHEIRO cadastra, edita e ativa/desativa máquinas numa tela "Máquinas". O DIRETOR vê a
+- O ENGENHEIRO cadastra, edita e ativa/desativa máquinas numa tela "Máquinas", e é ele quem
+  configura os parâmetros e os limites de alerta de cada máquina (ao criar ou editar). O DIRETOR vê a
   lista. ADMIN e OPERARIO não acessam essa tela.
 - Toda tela de produção (Painel, Status da Máquina, OEE, Produtividade, Report de Manutenção)
   tem uma lista suspensa de máquinas ao lado do título. A escolha fica na URL
@@ -26,8 +27,10 @@ Ao final deste módulo:
 | `setor` | Envase | filtros, cards de chamado |
 | `linha` | Linha B | filtros |
 | `cadenciaIdeal` | 60 peças/min | Performance do OEE |
-| `faixaTemperatura` | `{ min: 2, max: 8 }` °C | alerta (fora da faixa) |
-| `limitesCriticos` | `{ temperaturaMax: 10, minutosParadoMax: 15, taxaDefeitosMax: 0.08 }` | chamado automático |
+| `faixaTemperatura` | `{ min: 0, max: 10 }` °C | faixa permitida: fora dela é alerta |
+| `alertas.percentualCritico` | 50 (%) | crítico quando a temperatura sai da faixa em mais que esse % da largura dela (ex.: faixa 0–10 °C e 50% → crítico acima de 15 °C ou abaixo de −5 °C) |
+| `alertas.minutosParadoMax` | 15 min | parada sem justificativa, em turno, além disso é crítica |
+| `alertas.taxaDefeitosMax` | 8 (%) | defeitos na última hora além disso é crítico |
 | `custoHora` | 120,00 R$ | custos |
 | `valorPorPeca` | 2,50 R$ | lucro |
 | `turnoPlanejado` | `{ inicio: "06:00", fim: "22:00" }` | Disponibilidade do OEE |
@@ -46,7 +49,7 @@ resfriador a 2–8 °C).
 |---|---|---|
 | `GET /api/maquinas?ativas=true` | OPERARIO, ENGENHEIRO, DIRETOR | lista ordenada por linha e nome |
 | `GET /api/maquinas/{id}` | OPERARIO, ENGENHEIRO, DIRETOR | máquina |
-| `POST /api/maquinas` | ENGENHEIRO | 201 máquina; 400 nome duplicado ou faixa inválida (min ≥ max) |
+| `POST /api/maquinas` | ENGENHEIRO | 201 máquina; 400 nome duplicado, faixa inválida (min ≥ max) ou percentual crítico fora de 1–500% |
 | `PUT /api/maquinas/{id}` | ENGENHEIRO | 200 máquina |
 | `PATCH /api/maquinas/{id}/ativa` | ENGENHEIRO | 200 máquina |
 

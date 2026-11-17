@@ -1,6 +1,6 @@
 # Spec: chamados — V1 (com alertas automáticos e notificações mínimas)
 
-Status: proposto
+Status: aprovado
 Módulos: `chamados`, `alertas`, `notificacoes` (Marco 3, PR 3 de 3) — ver CAPABILITY-MAP.md
 Depende de: `fabrica`, `simulacao`, `indicadores`
 
@@ -21,8 +21,9 @@ Operário abre ──► ABERTO ──(Engenheiro clica "Assumir")──► EM A
 - O card muda de coluna sozinho: as colunas são o status, e a tela se atualiza a cada 10 s.
 - "Assumir" grava o engenheiro como responsável.
 - **Chamado automático:** quando uma leitura passa do limite crítico da máquina (temperatura
-  acima de `temperaturaMax`, parada sem justificativa por mais de `minutosParadoMax` em turno,
-  taxa de defeitos da última hora acima de `taxaDefeitosMax`), abre um chamado com
+  fora da faixa em mais que `percentualCritico` da largura dela — ex.: faixa 0–10 °C com 50%
+  → acima de 15 °C —, parada sem justificativa por mais de `minutosParadoMax` em turno, taxa
+  de defeitos da última hora acima de `taxaDefeitosMax`), abre um chamado com
   "Aberto por: Sistema (máquina)", prioridade CRÍTICA e a nota com o valor medido e o limite.
   Se já houver chamado aberto ou em andamento para a mesma máquina e causa, só acrescenta um
   evento ao histórico.

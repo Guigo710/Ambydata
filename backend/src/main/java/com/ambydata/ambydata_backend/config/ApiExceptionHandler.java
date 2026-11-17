@@ -2,6 +2,7 @@ package com.ambydata.ambydata_backend.config;
 
 import com.ambydata.ambydata_backend.auth.CredenciaisInvalidasException;
 import com.ambydata.ambydata_backend.maquina.MaquinaNaoEncontradaException;
+import com.ambydata.ambydata_backend.simulacao.DispositivoNaoAutorizadoException;
 import com.ambydata.ambydata_backend.usuario.EmailJaCadastradoException;
 import com.ambydata.ambydata_backend.usuario.RegraDeAdminException;
 import com.ambydata.ambydata_backend.usuario.SenhaInvalidaException;
@@ -56,6 +57,11 @@ public class ApiExceptionHandler {
     public ResponseEntity<ErroResponse> campoInvalido(CampoInvalidoException ex) {
         return resposta(HttpStatus.BAD_REQUEST,
                 new ErroResponse(400, ex.getMessage(), Map.of(ex.getCampo(), ex.getMessage())));
+    }
+
+    @ExceptionHandler(DispositivoNaoAutorizadoException.class)
+    public ResponseEntity<ErroResponse> dispositivoNaoAutorizado(DispositivoNaoAutorizadoException ex) {
+        return resposta(HttpStatus.UNAUTHORIZED, new ErroResponse(401, ex.getMessage()));
     }
 
     @ExceptionHandler(MaquinaNaoEncontradaException.class)

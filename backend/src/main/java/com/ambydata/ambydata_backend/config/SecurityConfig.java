@@ -45,6 +45,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**",
                         "/swagger-ui.html", "/swagger-ui/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                // Dispositivos (ESP32) se autenticam pela chave X-Device-Key no próprio controller.
+                .requestMatchers(HttpMethod.POST, "/api/leituras").permitAll()
                 .requestMatchers("/api/auth/**").authenticated()
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/maquinas", "/api/maquinas/**").hasAnyRole(PRODUCAO)

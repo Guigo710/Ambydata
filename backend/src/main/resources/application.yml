@@ -40,6 +40,9 @@ app:
     ativo: ${SIMULADOR_ATIVO:true}
     fuso: America/Sao_Paulo
     preenchimento-minutos: 60
+  dispositivo:
+    # Chave que os dispositivos (ESP32) enviam em X-Device-Key; vazia desliga a ingestão
+    chave: ${DEVICE_KEY:}
   cors:
     # Origens do frontend, separadas por vírgula (ex.: a URL da Vercel)
     origins: ${CORS_ORIGINS:http://localhost:5173}

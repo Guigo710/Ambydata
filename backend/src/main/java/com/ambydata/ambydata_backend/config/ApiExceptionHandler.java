@@ -1,6 +1,7 @@
 package com.ambydata.ambydata_backend.config;
 
 import com.ambydata.ambydata_backend.auth.CredenciaisInvalidasException;
+import com.ambydata.ambydata_backend.maquina.MaquinaNaoEncontradaException;
 import com.ambydata.ambydata_backend.usuario.EmailJaCadastradoException;
 import com.ambydata.ambydata_backend.usuario.RegraDeAdminException;
 import com.ambydata.ambydata_backend.usuario.SenhaInvalidaException;
@@ -49,6 +50,17 @@ public class ApiExceptionHandler {
     public ResponseEntity<ErroResponse> emailDuplicado(EmailJaCadastradoException ex) {
         return resposta(HttpStatus.BAD_REQUEST,
                 new ErroResponse(400, ex.getMessage(), Map.of("email", "já cadastrado")));
+    }
+
+    @ExceptionHandler(CampoInvalidoException.class)
+    public ResponseEntity<ErroResponse> campoInvalido(CampoInvalidoException ex) {
+        return resposta(HttpStatus.BAD_REQUEST,
+                new ErroResponse(400, ex.getMessage(), Map.of(ex.getCampo(), ex.getMessage())));
+    }
+
+    @ExceptionHandler(MaquinaNaoEncontradaException.class)
+    public ResponseEntity<ErroResponse> maquinaNaoEncontrada(MaquinaNaoEncontradaException ex) {
+        return resposta(HttpStatus.NOT_FOUND, new ErroResponse(404, ex.getMessage()));
     }
 
     @ExceptionHandler(UsuarioNaoEncontradoException.class)

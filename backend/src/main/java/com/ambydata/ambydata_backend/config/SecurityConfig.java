@@ -22,6 +22,9 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
+    // Perfis que veem as telas de produção (o ADMIN cuida só de usuários).
+    private static final String[] PRODUCAO = {"OPERARIO", "ENGENHEIRO", "DIRETOR"};
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) throws Exception {
@@ -44,6 +47,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/**").authenticated()
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/maquinas", "/api/maquinas/**").hasAnyRole(PRODUCAO)
+                .requestMatchers("/api/maquinas", "/api/maquinas/**").hasRole("ENGENHEIRO")
                 .anyRequest().denyAll());
         return http.build();
     }

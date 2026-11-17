@@ -56,6 +56,6 @@ public class M002MaquinasIniciais implements Migracao {
     private static Maquina maquina(String nome, TipoMaquina tipo, String setor, String linha, int cadencia,
             double tempMin, double tempMax, double custoHora, double valorPorPeca, CenarioSimulacao cenario) {
         return new Maquina(null, nome, tipo, setor, linha, cadencia, new FaixaTemperatura(tempMin, tempMax),
-                ALERTAS_PADRAO, custoHora, valorPorPeca, TURNO_PADRAO, true, cenario);
+                ALERTAS_PADRAO, custoHora, valorPorPeca, TURNO_PADRAO, true, cenario, null);
     }
 }

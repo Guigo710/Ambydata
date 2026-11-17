@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 // Cadastro de máquinas (o ENGENHEIRO configura parâmetros e limites de alerta).
@@ -36,6 +37,7 @@ public class MaquinaService {
     public Maquina criar(MaquinaRequest dados) {
         Maquina maquina = new Maquina();
         aplicar(maquina, dados);
+        maquina.setEmOperacaoDesde(Instant.now());
         try {
             return repositorio.insert(maquina);
         } catch (DuplicateKeyException e) {

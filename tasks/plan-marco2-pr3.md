@@ -47,7 +47,7 @@ chamado sozinha. O OEE ganha o MTTR para ENGENHEIRO e DIRETOR.
 - [x] Task 4: MTTR por máquina (S)
 
 ### Checkpoint: Backend
-- [ ] Testes verdes; com o simulador rodando local, o Forno 02 abre um chamado automático CRÍTICO e não duplica
+- [x] Testes verdes; com o simulador rodando local, o Forno 02 abre um chamado automático CRÍTICO e não duplica
 
 ### Phase 2: Frontend
 - [ ] Task 5: Serviço de chamados, rota e menu "Report de Manutenção", kanban com os cards (M)

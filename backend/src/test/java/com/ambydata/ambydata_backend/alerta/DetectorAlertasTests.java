@@ -227,6 +227,28 @@ class DetectorAlertasTests {
         assertThat(mongoTemplate.count(new Query(), Notificacao.class)).isEqualTo(1);
     }
 
+    @Test
+    void cicloSimuladoDoFornoAbreUmChamadoCriticoSoEmDuasHoras() {
+        // Critério 4 da SPEC-chamados: o Forno 02 (cenário de aquecimento) passa do limite crítico
+        // uma vez a cada ciclo de 2 h; com o detector rodando a cada 30 s, abre um chamado só.
+        var gerador = new com.ambydata.ambydata_backend.simulacao.GeradorLeituras(java.time.ZoneId.of("America/Sao_Paulo"));
+        Instant inicio = Instant.parse("2026-11-10T12:00:00Z"); // 09:00 em SP, dentro do turno
+        for (Instant t = inicio; t.isBefore(inicio.plus(Duration.ofHours(2))); t = t.plusSeconds(10)) {
+            mongoTemplate.save(gerador.gerar(forno, t));
+            if (t.getEpochSecond() % 30 == 0) {
+                detector.verificar(t);
+            }
+        }
+
+        List<Chamado> todos = mongoTemplate.findAll(Chamado.class);
+        assertThat(todos).filteredOn(c -> c.getCausaAutomatica() == CausaAlerta.TEMPERATURA_CRITICA).singleElement()
+                .satisfies(c -> {
+                    assertThat(c.getMaquinaNome()).isEqualTo("Forno 02");
+                    assertThat(c.getPrioridade()).isEqualTo(Prioridade.CRITICA);
+                    assertThat(c.getStatus()).isEqualTo(StatusChamado.ABERTO);
+                });
+    }
+
     private Chamado unico() {
         List<Chamado> todos = mongoTemplate.findAll(Chamado.class);
         assertThat(todos).hasSize(1);

@@ -14,7 +14,7 @@ import java.util.SplittableRandom;
 // backend esteve parado pode ser preenchido depois, de forma coerente.
 public class GeradorLeituras {
 
-    static final int SEGUNDOS_POR_BLOCO = 10;
+    public static final int SEGUNDOS_POR_BLOCO = 10;
     private static final int BLOCOS_POR_JANELA_DE_PARADA = 30;   // 5 min
     private static final int BLOCOS_CICLO_AQUECIMENTO = 720;     // 2 h
     private static final int BLOCOS_CICLO_OSCILACAO = 360;       // 1 h

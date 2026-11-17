@@ -32,6 +32,13 @@ chamado sozinha. O OEE ganha o MTTR para ENGENHEIRO e DIRETOR.
   chamado no segundo seguinte à finalização.
 - **Notificações:** coleção `notificacao` com TTL de 30 dias. Geradas ao finalizar (para quem
   abriu, se foi uma pessoa) e ao abrir chamado automático (para todos os engenheiros ativos).
+- **Ajustes das revisões (code-reviewer e security-auditor):** só o responsável finaliza ou
+  cancela o chamado que assumiu (aberto: qualquer engenheiro cancela); no máximo 10 chamados
+  abertos por pessoa em 10 min (429); o kanban traz abertos e em andamento sem corte e os 200
+  finalizados mais recentes, sem o histórico (que fica com os 200 eventos mais recentes);
+  cancelar também avisa quem abriu; leitura de dispositivo não aceita instante no futuro;
+  temperatura fora do turno não abre chamado; cobertura da parada medida pelo tempo, não pela
+  quantidade de leituras.
 - **MTTR** = média de (finalização − abertura) dos chamados finalizados da máquina nos últimos
   7 dias, em `GET /api/chamados/mttr` (ENGENHEIRO e DIRETOR).
 - **Frontend:** rota `/manutencao` ("Report de Manutenção", logo abaixo de Status da Máquina),
@@ -56,7 +63,7 @@ chamado sozinha. O OEE ganha o MTTR para ENGENHEIRO e DIRETOR.
 - [x] Task 8: MTTR na tela de OEE para ENGENHEIRO e DIRETOR (S)
 
 ### Phase 3: Fechamento
-- [ ] Task 9: Navegador ponta a ponta (operário abre → engenheiro assume e finaliza → operário vê o aviso), READMEs, revisões (code-reviewer, security-auditor) e PR (S)
+- [x] Task 9: Navegador ponta a ponta (operário abre → engenheiro assume e finaliza → operário vê o aviso), READMEs, revisões (code-reviewer, security-auditor) e PR (S)
 
 ## Risks and Mitigations
 

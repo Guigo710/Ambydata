@@ -141,6 +141,16 @@ class CalculadoraIndicadoresTests {
     }
 
     @Test
+    void horaSoForaDoTurnoSeparaAsParadasDaNoite() {
+        // Turno acaba parado, a noite é toda fora do turno e o turno seguinte começa parado: 2 paradas.
+        Totais fimDoTurno = new Totais(3600, 3000, 600, 1, 2700, 2430, false, true);
+        Totais madrugada = new Totais(0, 0, 0, 0, 0, 0, false, false);
+        Totais inicioDoTurno = new Totais(3600, 3000, 600, 1, 2700, 2430, true, false);
+
+        assertThat(fimDoTurno.somar(madrugada).somar(inicioDoTurno).paradas()).isEqualTo(2);
+    }
+
+    @Test
     void semParadasNaoHaMtbf() {
         Indicadores i = CalculadoraIndicadores.calcular(new Totais(600, 600, 0, 0, 540, 540), 60);
 

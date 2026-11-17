@@ -2,6 +2,7 @@ package com.ambydata.ambydata_backend.config;
 
 import com.ambydata.ambydata_backend.auth.CredenciaisInvalidasException;
 import com.ambydata.ambydata_backend.chamado.ChamadoNaoEncontradoException;
+import com.ambydata.ambydata_backend.chamado.MuitosChamadosException;
 import com.ambydata.ambydata_backend.chamado.TransicaoInvalidaException;
 import com.ambydata.ambydata_backend.notificacao.NotificacaoNaoEncontradaException;
 import com.ambydata.ambydata_backend.maquina.MaquinaNaoEncontradaException;
@@ -89,6 +90,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotificacaoNaoEncontradaException.class)
     public ResponseEntity<ErroResponse> notificacaoNaoEncontrada(NotificacaoNaoEncontradaException ex) {
         return resposta(HttpStatus.NOT_FOUND, new ErroResponse(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(MuitosChamadosException.class)
+    public ResponseEntity<ErroResponse> muitosChamados(MuitosChamadosException ex) {
+        return resposta(HttpStatus.TOO_MANY_REQUESTS, new ErroResponse(429, ex.getMessage()));
     }
 
     @ExceptionHandler(TransicaoInvalidaException.class)

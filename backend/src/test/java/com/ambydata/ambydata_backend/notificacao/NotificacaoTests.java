@@ -92,13 +92,24 @@ class NotificacaoTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.naoLidas").value(1))
                 .andExpect(jsonPath("$.itens", hasSize(1)))
-                .andExpect(jsonPath("$.itens[0].texto", containsString("Forno 02")))
+                .andExpect(jsonPath("$.itens[0].texto").value("Seu chamado da máquina Forno 02 foi finalizado por U ENGENHEIRO."))
                 .andExpect(jsonPath("$.itens[0].texto", containsString("U ENGENHEIRO")))
                 .andExpect(jsonPath("$.itens[0].link").value("/manutencao?chamado=" + c.getId()))
                 .andExpect(jsonPath("$.itens[0].lida").value(false))
                 .andExpect(jsonPath("$.itens[0].usuarioId").doesNotExist());
 
         mvc.perform(como(Perfil.ENGENHEIRO, get("/api/notificacoes"))).andExpect(jsonPath("$.naoLidas").value(0));
+    }
+
+    @Test
+    void cancelarTambemAvisaQuemAbriuComOMotivo() throws Exception {
+        Chamado c = chamados.abrir(new AbrirChamadoRequest(TipoChamado.MECANICO, forno.getId(), "Vazamento.", Prioridade.ALTA),
+                pessoas.get(Perfil.OPERARIO));
+        chamados.cancelar(c.getId(), "Aberto em duplicidade.", pessoas.get(Perfil.ENGENHEIRO));
+
+        mvc.perform(como(Perfil.OPERARIO, get("/api/notificacoes")))
+                .andExpect(jsonPath("$.naoLidas").value(1))
+                .andExpect(jsonPath("$.itens[0].texto").value("Seu chamado da máquina Forno 02 foi cancelado por U ENGENHEIRO: Aberto em duplicidade."));
     }
 
     @Test

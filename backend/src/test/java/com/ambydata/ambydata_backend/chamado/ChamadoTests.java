@@ -202,6 +202,56 @@ class ChamadoTests {
     }
 
     @Test
+    void soOResponsavelFinalizaOuCancelaOQueAssumiu() throws Exception {
+        String id = abrirERetornarId();
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/chamados/" + id + "/assumir"))).andExpect(status().isOk());
+        Usuario outro = usuarios.save(new Usuario(null, "Outro Eng", "outro@x.com", "hash", Perfil.ENGENHEIRO, true));
+        String tokenOutro = jwtService.emitir(outro).token();
+
+        mvc.perform(post("/api/chamados/" + id + "/finalizar").header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenOutro)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"solucao\":\"x\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.erro").value(org.hamcrest.Matchers.containsString("U ENGENHEIRO")));
+        mvc.perform(post("/api/chamados/" + id + "/cancelar").header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenOutro)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"motivo\":\"x\"}"))
+                .andExpect(status().isConflict());
+        assertThat(mongoTemplate.findById(id, Chamado.class).getStatus()).isEqualTo(StatusChamado.EM_ANDAMENTO);
+    }
+
+    @Test
+    void respostaNaoExpoeOIdDosUsuarios() throws Exception {
+        String id = abrirERetornarId();
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/chamados/" + id + "/assumir")))
+                .andExpect(jsonPath("$.abertoPor.nome").value("U OPERARIO"))
+                .andExpect(jsonPath("$.abertoPor.usuarioId").doesNotExist())
+                .andExpect(jsonPath("$.responsavel.usuarioId").doesNotExist());
+    }
+
+    @Test
+    void quemAbreChamadosDemaisEmPoucoTempoEBarrado() throws Exception {
+        for (int i = 0; i < ChamadoService.MAXIMO_POR_JANELA; i++) {
+            mvc.perform(abrir(Perfil.OPERARIO, forno.getId(), "Chamado " + i)).andExpect(status().isCreated());
+        }
+        mvc.perform(abrir(Perfil.OPERARIO, forno.getId(), "Mais um"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.erro").isNotEmpty());
+        mvc.perform(abrir(Perfil.ENGENHEIRO, forno.getId(), "Outra pessoa pode")).andExpect(status().isCreated());
+    }
+
+    @Test
+    void finalizadosEmMassaNaoEscondemOsAbertos() throws Exception {
+        for (int i = 0; i < ChamadoService.LIMITE_FINALIZADOS + 50; i++) {
+            inserir(StatusChamado.FINALIZADO, forno, Instant.now().minus(Duration.ofHours(1)));
+        }
+        inserir(StatusChamado.ABERTO, forno, null);
+
+        mvc.perform(como(Perfil.ENGENHEIRO, get("/api/chamados")))
+                .andExpect(jsonPath("$.length()").value(ChamadoService.LIMITE_FINALIZADOS + 1))
+                .andExpect(jsonPath("$[?(@.status == 'ABERTO')]", hasSize(1)))
+                .andExpect(jsonPath("$[0].historico").doesNotExist());
+    }
+
+    @Test
     void doisEngenheirosAssumindoJuntosSoUmConsegue() throws Exception {
         String id = abrirERetornarId();
         Usuario outro = usuarios.save(new Usuario(null, "Outro Engenheiro", "outro@x.com", "hash", Perfil.ENGENHEIRO, true));

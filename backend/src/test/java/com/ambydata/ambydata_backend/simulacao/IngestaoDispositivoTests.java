@@ -104,6 +104,15 @@ class IngestaoDispositivoTests {
     }
 
     @Test
+    void leituraComInstanteNoFuturoERecusada() throws Exception {
+        // Com futuro permitido, quem tem a chave ocupava os próximos blocos e o sensor real levava 409.
+        String daquiA20s = Instant.now().plusSeconds(20).toString();
+        mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "185.5", "\"instante\":\"" + daquiA20s + "\",")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.instante").isNotEmpty());
+    }
+
+    @Test
     void segundaLeituraDoMesmoBlocoDevolve409SemSobrescrever() throws Exception {
         String instante = Instant.now().minusSeconds(30).toString();
         mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "185.5", "\"instante\":\"" + instante + "\",")))

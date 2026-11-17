@@ -93,7 +93,9 @@ public class DetectorAlertas {
     }
 
     private static void temperatura(Maquina m, List<Leitura> leituras, Instant agora, List<Deteccao> saida) {
+        // Fora do turno não é falha (ex.: forno desligado à noite fica "abaixo do crítico").
         leituras.stream().filter(l -> l.getInstante().isAfter(agora.minus(LEITURA_RECENTE)))
+                .filter(l -> l.getStatus() != StatusMaquina.FORA_DO_TURNO)
                 .max(Comparator.comparing(Leitura::getInstante))
                 .filter(l -> SituacaoTemperatura.de(l.getTemperatura(), m.getFaixaTemperatura(),
                         m.getAlertas().percentualCritico()) == SituacaoTemperatura.CRITICO)
@@ -111,10 +113,16 @@ public class DetectorAlertas {
     }
 
     private static void parada(Maquina m, List<Leitura> leituras, Instant agora, int minutos, List<Deteccao> saida) {
-        List<Leitura> janela = leituras.stream().filter(l -> l.getInstante().isAfter(agora.minus(Duration.ofMinutes(minutos)))).toList();
-        long esperadas = minutos * 60L / GeradorLeituras.SEGUNDOS_POR_BLOCO;
-        boolean todasParadas = !janela.isEmpty() && janela.stream().allMatch(l -> l.getStatus() == StatusMaquina.PARADA);
-        if (todasParadas && janela.size() >= COBERTURA_MINIMA * esperadas) {
+        List<Leitura> janela = leituras.stream().filter(l -> l.getInstante().isAfter(agora.minus(Duration.ofMinutes(minutos))))
+                .sorted(Comparator.comparing(Leitura::getInstante)).toList();
+        if (janela.isEmpty() || !janela.stream().allMatch(l -> l.getStatus() == StatusMaquina.PARADA)) {
+            return;
+        }
+        // Cobertura pelo tempo entre a primeira e a última leitura (um dispositivo pode mandar a
+        // cada minuto), não pela quantidade de leituras.
+        long coberto = Duration.between(janela.getFirst().getInstante(), janela.getLast().getInstante()).toSeconds()
+                + GeradorLeituras.SEGUNDOS_POR_BLOCO;
+        if (coberto >= COBERTURA_MINIMA * minutos * 60) {
             saida.add(new Deteccao(CausaAlerta.PARADA_PROLONGADA,
                     "Máquina parada há pelo menos " + minutos + " min dentro do turno (limite: " + minutos + " min).",
                     "parada há " + minutos + " min"));
@@ -151,8 +159,12 @@ public class DetectorAlertas {
         } catch (DuplicateKeyException e) {
             return; // outro verificador abriu primeiro: o chamado já existe
         }
-        notificacoes.criarParaPerfil(Perfil.ENGENHEIRO,
-                "Chamado automático: " + m.getNome() + " — " + d.resumo() + ".", ChamadoService.link(c));
+        try {
+            notificacoes.criarParaPerfil(Perfil.ENGENHEIRO,
+                    "Chamado automático: " + m.getNome() + " — " + d.resumo() + ".", ChamadoService.link(c));
+        } catch (RuntimeException e) {
+            log.warn("Alertas: chamado {} aberto, mas os engenheiros não foram avisados: {}", c.getId(), e.getMessage());
+        }
     }
 
     // Evento no histórico do chamado que já existe, no máximo um por hora.
@@ -160,9 +172,9 @@ public class DetectorAlertas {
         Criteria podeRegistrar = new Criteria().orOperator(
                 Criteria.where("ultimoEventoAutomaticoEm").exists(false),
                 Criteria.where("ultimoEventoAutomaticoEm").lte(agora.minus(INTERVALO_ENTRE_EVENTOS)));
-        mongoTemplate.updateFirst(Query.query(new Criteria().andOperator(aberto, podeRegistrar)), new Update()
-                .set("ultimoEventoAutomaticoEm", agora)
-                .push("historico", new EventoChamado(agora, TipoEvento.NOVA_DETECCAO, "Detectado de novo: " + d.descricao(), "Sistema")),
+        mongoTemplate.updateFirst(Query.query(new Criteria().andOperator(aberto, podeRegistrar)),
+                ChamadoService.registrarEvento(new Update().set("ultimoEventoAutomaticoEm", agora),
+                        new EventoChamado(agora, TipoEvento.NOVA_DETECCAO, "Detectado de novo: " + d.descricao(), "Sistema")),
                 Chamado.class);
     }
 

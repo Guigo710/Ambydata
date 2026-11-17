@@ -14,7 +14,9 @@ import java.time.Instant;
 
 // Aviso no sino de um usuário (SPEC-chamados, "Notificações"). Apagado sozinho após 30 dias.
 @Document(collection = "notificacao")
-@CompoundIndex(name = "usuario_criacao", def = "{'usuarioId': 1, 'criadaEm': -1}")
+// Cobrem a lista do sino (ordem por data e _id) e a contagem de não lidas.
+@CompoundIndex(name = "usuario_criacao_id", def = "{'usuarioId': 1, 'criadaEm': -1, '_id': -1}")
+@CompoundIndex(name = "usuario_lida", def = "{'usuarioId': 1, 'lida': 1}")
 @Getter
 @Setter
 @NoArgsConstructor

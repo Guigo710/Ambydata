@@ -110,6 +110,41 @@ class DetectorAlertasTests {
     }
 
     @Test
+    void temperaturaForaDoTurnoNaoAbreChamado() {
+        // Forno desligado à noite com dispositivo: 25 °C está "abaixo do crítico", mas não é falha.
+        Instant noite = Instant.parse("2026-11-11T05:00:00Z"); // 02:00 em SP
+        leitura(forno, noite.minusSeconds(10), StatusMaquina.FORA_DO_TURNO, 25.0, 0, 0);
+
+        detector.verificar(noite);
+
+        assertThat(mongoTemplate.count(new Query(), Chamado.class)).isZero();
+    }
+
+    @Test
+    void depoisDeCancelarTambemEsperaUmaHora() {
+        leitura(forno, AGORA.minusSeconds(10), StatusMaquina.OPERANDO, 230.5, 5, 5);
+        detector.verificar(AGORA);
+        chamados.cancelar(unico().getId(), "Sensor em calibração.", engenheiro);
+
+        Instant logo = Instant.now().plus(Duration.ofMinutes(10));
+        leitura(forno, logo.minusSeconds(10), StatusMaquina.OPERANDO, 232.0, 5, 5);
+        detector.verificar(logo);
+
+        assertThat(mongoTemplate.count(new Query(), Chamado.class)).isEqualTo(1);
+    }
+
+    @Test
+    void paradaDeDispositivoQueMandaUmaLeituraPorMinutoTambemConta() {
+        for (Instant t = AGORA.minus(Duration.ofMinutes(15)).plusSeconds(30); !t.isAfter(AGORA); t = t.plusSeconds(60)) {
+            leitura(envasadora, t, StatusMaquina.PARADA, 24.0, 0, 0);
+        }
+
+        detector.verificar(AGORA);
+
+        assertThat(unico().getCausaAutomatica()).isEqualTo(CausaAlerta.PARADA_PROLONGADA);
+    }
+
+    @Test
     void naoDuplicaEAcrescentaNoHistoricoNoMaximoUmaVezPorHora() {
         leitura(forno, AGORA.minusSeconds(10), StatusMaquina.OPERANDO, 230.5, 5, 5);
         detector.verificar(AGORA);
@@ -126,6 +161,22 @@ class DetectorAlertasTests {
         assertThat(c.getHistorico().get(1).tipo()).isEqualTo(TipoEvento.NOVA_DETECCAO);
         assertThat(c.getHistorico().get(1).texto()).contains("228 °C");
         assertThat(mongoTemplate.count(new Query(), Notificacao.class)).isEqualTo(1);
+    }
+
+    @Test
+    void historicoGuardaNoMaximoOsUltimos200Eventos() {
+        leitura(forno, AGORA.minusSeconds(10), StatusMaquina.OPERANDO, 230.5, 5, 5);
+        detector.verificar(AGORA);
+        for (int h = 1; h <= 210; h++) {
+            Instant t = AGORA.plus(Duration.ofHours(h)).plusSeconds(60);
+            leitura(forno, t.minusSeconds(10), StatusMaquina.OPERANDO, 230.5, 5, 5);
+            detector.verificar(t);
+        }
+        assertThat(unico().getHistorico()).hasSize(limiteDoHistorico());
+    }
+
+    private static int limiteDoHistorico() {
+        return com.ambydata.ambydata_backend.chamado.ChamadoService.LIMITE_HISTORICO;
     }
 
     @Test

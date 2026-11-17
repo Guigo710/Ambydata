@@ -5,6 +5,8 @@ import com.ambydata.ambydata_backend.maquina.Maquina;
 import com.ambydata.ambydata_backend.maquina.MaquinaService;
 import com.ambydata.ambydata_backend.notificacao.NotificacaoService;
 import com.ambydata.ambydata_backend.usuario.Usuario;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -24,8 +26,14 @@ import java.util.Map;
 @Service
 public class ChamadoService {
 
+    private static final Logger log = LoggerFactory.getLogger(ChamadoService.class);
+
     public static final Duration FINALIZADOS_VISIVEIS = Duration.ofDays(7);
-    private static final int LIMITE_LISTA = 500;
+    public static final int LIMITE_FINALIZADOS = 200;      // finalizados na tela (os mais recentes)
+    public static final int LIMITE_ATIVOS = 1000;          // abertos e em andamento: todos, com teto de segurança
+    public static final int LIMITE_HISTORICO = 200;        // eventos guardados por chamado (os mais recentes)
+    public static final int MAXIMO_POR_JANELA = 10;        // chamados que uma pessoa abre em 10 min
+    static final Duration JANELA_ABERTURA = Duration.ofMinutes(10);
     private static final Map<StatusChamado, String> NOME = Map.of(
             StatusChamado.ABERTO, "aberto", StatusChamado.EM_ANDAMENTO, "em andamento",
             StatusChamado.FINALIZADO, "finalizado", StatusChamado.CANCELADO, "cancelado");
@@ -46,6 +54,11 @@ public class ChamadoService {
             throw new CampoInvalidoException("maquinaId", "Máquina inativa não recebe chamados.");
         }
         Instant agora = Instant.now();
+        long recentes = mongoTemplate.count(Query.query(Criteria.where("abertoPor.usuarioId").is(usuario.getId())
+                .and("abertoEm").gte(agora.minus(JANELA_ABERTURA))), Chamado.class);
+        if (recentes >= MAXIMO_POR_JANELA) {
+            throw new MuitosChamadosException();
+        }
         Chamado c = new Chamado();
         c.setTipo(dados.tipo());
         c.setMaquinaId(maquina.getId());
@@ -62,25 +75,42 @@ public class ChamadoService {
         return mongoTemplate.insert(c);
     }
 
-    // Sem status: abertos, em andamento e finalizados dos últimos 7 dias (o kanban).
+    // Sem status: abertos e em andamento (todos) e os finalizados dos últimos 7 dias (os 200
+    // mais recentes) — finalizados em massa não empurram os abertos para fora da lista. Sem o
+    // histórico, que só o detalhe usa.
     public List<Chamado> listar(String status, String maquinaId, Instant agora) {
-        Criteria criterio;
+        List<StatusChamado> ativos = List.of(StatusChamado.ABERTO, StatusChamado.EM_ANDAMENTO);
+        List<Chamado> resultado = new ArrayList<>();
         if (status == null || status.isBlank()) {
-            criterio = new Criteria().orOperator(
-                    Criteria.where("status").in(StatusChamado.ABERTO, StatusChamado.EM_ANDAMENTO),
-                    Criteria.where("status").is(StatusChamado.FINALIZADO).and("finalizadoEm").gte(agora.minus(FINALIZADOS_VISIVEIS)));
-        } else {
-            StatusChamado filtro = statusDe(status);
-            criterio = Criteria.where("status").is(filtro);
-            if (filtro == StatusChamado.FINALIZADO) {
-                criterio = criterio.and("finalizadoEm").gte(agora.minus(FINALIZADOS_VISIVEIS));
-            }
+            resultado.addAll(buscarLista(Criteria.where("status").in(ativos), maquinaId, "abertoEm", LIMITE_ATIVOS));
+            resultado.addAll(buscarLista(finalizadosRecentes(agora), maquinaId, "finalizadoEm", LIMITE_FINALIZADOS));
+            return resultado;
         }
-        Query query = Query.query(criterio).with(Sort.by(Sort.Direction.DESC, "abertoEm")).limit(LIMITE_LISTA);
+        StatusChamado filtro = statusDe(status);
+        return switch (filtro) {
+            case FINALIZADO -> buscarLista(finalizadosRecentes(agora), maquinaId, "finalizadoEm", LIMITE_FINALIZADOS);
+            case CANCELADO -> buscarLista(Criteria.where("status").is(filtro), maquinaId, "canceladoEm", LIMITE_FINALIZADOS);
+            default -> buscarLista(Criteria.where("status").is(filtro), maquinaId, "abertoEm", LIMITE_ATIVOS);
+        };
+    }
+
+    private static Criteria finalizadosRecentes(Instant agora) {
+        return Criteria.where("status").is(StatusChamado.FINALIZADO).and("finalizadoEm").gte(agora.minus(FINALIZADOS_VISIVEIS));
+    }
+
+    private List<Chamado> buscarLista(Criteria criterio, String maquinaId, String ordem, int limite) {
+        Query query = Query.query(criterio).with(Sort.by(Sort.Direction.DESC, ordem)).limit(limite);
         if (maquinaId != null && !maquinaId.isBlank()) {
             query.addCriteria(Criteria.where("maquinaId").is(maquinaId));
         }
+        query.fields().exclude("historico");
         return mongoTemplate.find(query, Chamado.class);
+    }
+
+    // Acrescenta um evento guardando só os LIMITE_HISTORICO mais recentes.
+    public static Update registrarEvento(Update update, EventoChamado evento) {
+        update.push("historico").slice(-LIMITE_HISTORICO).each(evento);
+        return update;
     }
 
     public MttrResponse mttr(String maquinaId, int dias, Instant agora) {
@@ -110,68 +140,87 @@ public class ChamadoService {
 
     public Chamado assumir(String id, Usuario engenheiro) {
         Instant agora = Instant.now();
-        return transicao(id, StatusChamado.ABERTO, new Update()
+        Update update = new Update()
                 .set("status", StatusChamado.EM_ANDAMENTO)
                 .set("responsavel", pessoa(engenheiro))
-                .set("assumidoEm", agora)
-                .push("historico", new EventoChamado(agora, TipoEvento.ASSUMIDO, "Assumido.", engenheiro.getNome())),
-                "Só um chamado aberto pode ser assumido");
+                .set("assumidoEm", agora);
+        return transicao(Criteria.where("_id").is(id).and("status").is(StatusChamado.ABERTO),
+                registrarEvento(update, new EventoChamado(agora, TipoEvento.ASSUMIDO, "Assumido.", engenheiro.getNome())),
+                id, "Só um chamado aberto pode ser assumido", engenheiro);
     }
 
     // Avisa quem abriu (se foi uma pessoa, e não quem está finalizando).
     public Chamado finalizar(String id, String solucao, Usuario engenheiro) {
         Chamado finalizado = finalizarSemAviso(id, solucao, engenheiro);
-        PessoaChamado abriu = finalizado.getAbertoPor();
-        if (!abriu.sistema() && abriu.usuarioId() != null && !abriu.usuarioId().equals(engenheiro.getId())) {
-            notificacoes.criar(abriu.usuarioId(),
-                    "Seu chamado do " + finalizado.getMaquinaNome() + " foi finalizado por " + engenheiro.getNome() + ".",
-                    link(finalizado));
-        }
+        avisarQuemAbriu(finalizado, engenheiro, "foi finalizado por " + engenheiro.getNome() + ".");
         return finalizado;
+    }
+
+    // O aviso é consequência: se falhar, a transição (já feita) não vira erro para o cliente.
+    private void avisarQuemAbriu(Chamado c, Usuario quem, String oQueAconteceu) {
+        PessoaChamado abriu = c.getAbertoPor();
+        if (abriu.sistema() || abriu.usuarioId() == null || abriu.usuarioId().equals(quem.getId())) {
+            return;
+        }
+        try {
+            notificacoes.criar(abriu.usuarioId(), "Seu chamado da máquina " + c.getMaquinaNome() + " " + oQueAconteceu, link(c));
+        } catch (RuntimeException e) {
+            log.warn("Chamados: {} sem aviso para quem abriu: {}", c.getId(), e.getMessage());
+        }
     }
 
     public static String link(Chamado c) {
         return "/manutencao?chamado=" + c.getId();
     }
 
+    // Só o responsável finaliza o que assumiu (quem resolveu é quem fica no histórico e no MTTR).
     private Chamado finalizarSemAviso(String id, String solucao, Usuario engenheiro) {
         Instant agora = Instant.now();
-        return transicao(id, StatusChamado.EM_ANDAMENTO, new Update()
+        Update update = new Update()
                 .set("status", StatusChamado.FINALIZADO)
                 .set("finalizadoEm", agora)
                 .set("solucao", solucao.trim())
-                .unset("ativoAutomatico")
-                .push("historico", new EventoChamado(agora, TipoEvento.FINALIZADO, "Finalizado: " + solucao.trim(), engenheiro.getNome())),
-                "Só um chamado em andamento pode ser finalizado");
+                .unset("ativoAutomatico");
+        return transicao(Criteria.where("_id").is(id).and("status").is(StatusChamado.EM_ANDAMENTO)
+                        .and("responsavel.usuarioId").is(engenheiro.getId()),
+                registrarEvento(update, new EventoChamado(agora, TipoEvento.FINALIZADO, "Finalizado: " + solucao.trim(), engenheiro.getNome())),
+                id, "Só um chamado em andamento pode ser finalizado", engenheiro);
     }
 
+    // Aberto: qualquer engenheiro cancela. Em andamento: só o responsável.
     public Chamado cancelar(String id, String motivo, Usuario engenheiro) {
         Instant agora = Instant.now();
-        Query query = Query.query(Criteria.where("_id").is(id).and("status").in(StatusChamado.ABERTO, StatusChamado.EM_ANDAMENTO));
-        Chamado c = mongoTemplate.findAndModify(query, new Update()
+        Update update = new Update()
                 .set("status", StatusChamado.CANCELADO)
                 .set("canceladoEm", agora)
                 .set("motivoCancelamento", motivo.trim())
-                .unset("ativoAutomatico")
-                .push("historico", new EventoChamado(agora, TipoEvento.CANCELADO, "Cancelado: " + motivo.trim(), engenheiro.getNome())),
+                .unset("ativoAutomatico");
+        Criteria podeCancelar = new Criteria().orOperator(
+                Criteria.where("status").is(StatusChamado.ABERTO),
+                Criteria.where("status").is(StatusChamado.EM_ANDAMENTO).and("responsavel.usuarioId").is(engenheiro.getId()));
+        Chamado cancelado = transicao(new Criteria().andOperator(Criteria.where("_id").is(id), podeCancelar),
+                registrarEvento(update, new EventoChamado(agora, TipoEvento.CANCELADO, "Cancelado: " + motivo.trim(), engenheiro.getNome())),
+                id, "Só um chamado aberto ou em andamento pode ser cancelado", engenheiro);
+        avisarQuemAbriu(cancelado, engenheiro, "foi cancelado por " + engenheiro.getNome() + ": " + motivo.trim());
+        return cancelado;
+    }
+
+    private Chamado transicao(Criteria condicao, Update update, String id, String regra, Usuario quem) {
+        Chamado c = mongoTemplate.findAndModify(Query.query(condicao), update,
                 FindAndModifyOptions.options().returnNew(true), Chamado.class);
         if (c == null) {
-            throw recusa(id, "Só um chamado aberto ou em andamento pode ser cancelado");
+            throw recusa(id, regra, quem);
         }
         return c;
     }
 
-    private Chamado transicao(String id, StatusChamado esperado, Update update, String regra) {
-        Chamado c = mongoTemplate.findAndModify(Query.query(Criteria.where("_id").is(id).and("status").is(esperado)),
-                update, FindAndModifyOptions.options().returnNew(true), Chamado.class);
-        if (c == null) {
-            throw recusa(id, regra);
-        }
-        return c;
-    }
-
-    private RuntimeException recusa(String id, String regra) {
+    private RuntimeException recusa(String id, String regra, Usuario quem) {
         Chamado atual = buscar(id); // 404 se não existe
+        PessoaChamado responsavel = atual.getResponsavel();
+        if (atual.getStatus() == StatusChamado.EM_ANDAMENTO && responsavel != null
+                && !quem.getId().equals(responsavel.usuarioId())) {
+            return new TransicaoInvalidaException("Só o responsável (" + responsavel.nome() + ") pode encerrar este chamado.");
+        }
         return new TransicaoInvalidaException(regra + "; este está " + NOME.get(atual.getStatus()) + ".");
     }
 

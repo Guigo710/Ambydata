@@ -111,7 +111,7 @@ public class HistoricoService {
     }
 
     // Máquinas ativas (na ordem linha, nome) com a soma das suas horas no período, em ordem de hora.
-    private Map<Maquina, Totais> totaisPorMaquina(Instant inicio, Instant fim) {
+    Map<Maquina, Totais> totaisPorMaquina(Instant inicio, Instant fim) {
         List<Maquina> ativas = maquinas.listar(true);
         Map<String, List<IndicadorHora>> porMaquina = agregados(ativas.stream().map(Maquina::getId).toList(), inicio, fim)
                 .stream().collect(Collectors.groupingBy(IndicadorHora::getMaquinaId));
@@ -131,7 +131,7 @@ public class HistoricoService {
                 .with(Sort.by("hora")), IndicadorHora.class);
     }
 
-    private static int horasDo(String periodo) {
+    static int horasDo(String periodo) {
         Integer horas = PERIODOS.get(periodo);
         if (horas == null) {
             throw new CampoInvalidoException("periodo", "Use 24h ou 7d.");

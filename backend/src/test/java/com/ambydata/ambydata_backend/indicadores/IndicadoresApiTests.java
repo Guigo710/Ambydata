@@ -52,6 +52,9 @@ class IndicadoresApiTests {
     private M002MaquinasIniciais m002;
 
     @Autowired
+    private com.ambydata.ambydata_backend.migracao.M003Energia m003;
+
+    @Autowired
     private SimuladorLeituras simulador;
 
     @Autowired
@@ -67,6 +70,7 @@ class IndicadoresApiTests {
     void preparar() {
         mongoTemplate.dropCollection(Maquina.class);
         m002.aplicar(mongoTemplate);
+        m003.aplicar(mongoTemplate);
         mongoTemplate.remove(new Query(), Leitura.class);
         simulador.preencherLacunas(Instant.now()); // a última hora de leituras, como na subida
         forno = mongoTemplate.findOne(Query.query(Criteria.where("nome").is("Forno 02")), Maquina.class);
@@ -170,6 +174,22 @@ class IndicadoresApiTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.maquinas", hasSize(6)))
                 .andExpect(jsonPath("$.total.lucro").isNumber());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Perfil.class, names = {"ENGENHEIRO", "DIRETOR"})
+    void energiaParaEngenheiroEDiretor(Perfil perfil) throws Exception {
+        mvc.perform(como(perfil, get("/api/indicadores/energia?periodo=24h")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.maquinas", hasSize(6)))
+                .andExpect(jsonPath("$.total.encargosDemanda").isNumber())
+                .andExpect(jsonPath("$.tarifas.tarifaCheia").isNumber());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Perfil.class, names = {"OPERARIO", "ADMIN"})
+    void energiaNaoEParaOperarioNemAdmin(Perfil perfil) throws Exception {
+        mvc.perform(como(perfil, get("/api/indicadores/energia?periodo=24h"))).andExpect(status().isForbidden());
     }
 
     private MockHttpServletRequestBuilder como(Perfil perfil, MockHttpServletRequestBuilder requisicao) {

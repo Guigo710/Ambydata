@@ -50,7 +50,7 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 
 ### Phase 2b: Custo de energia (adendo, SPEC-indicadores "Custo de energia")
 - [x] Task 9a: Energia na máquina (potência, regeneração; migração 003 para as 6 máquinas) e tarifas da fábrica (`GET/PUT /api/energia/tarifas`) (M)
-- [ ] Task 9b: `CalculadoraEnergia` com contas à mão e `GET /api/indicadores/energia` por máquina, linha e total com encargos (M)
+- [x] Task 9b: `CalculadoraEnergia` com contas à mão e `GET /api/indicadores/energia` por máquina, linha e total com encargos (M)
 - [ ] Task 9c: Campos de energia no formulário de máquina e painel Energia (ENGENHEIRO e DIRETOR; tarifas editáveis pelo ENGENHEIRO) (M)
 
 ### Phase 3: Fechamento

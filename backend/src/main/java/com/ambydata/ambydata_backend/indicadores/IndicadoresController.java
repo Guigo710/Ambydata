@@ -16,10 +16,12 @@ public class IndicadoresController {
 
     private final IndicadoresService servico;
     private final HistoricoService historico;
+    private final EnergiaService energia;
 
-    public IndicadoresController(IndicadoresService servico, HistoricoService historico) {
+    public IndicadoresController(IndicadoresService servico, HistoricoService historico, EnergiaService energia) {
         this.servico = servico;
         this.historico = historico;
+        this.energia = energia;
     }
 
     @GetMapping("/resumo")
@@ -47,6 +49,12 @@ public class IndicadoresController {
     @GetMapping("/financeiro")
     public RelatorioFinanceiro financeiro(@RequestParam(defaultValue = "24h") String periodo) {
         return historico.financeiro(periodo, Instant.now());
+    }
+
+    // Só ENGENHEIRO e DIRETOR (SecurityConfig).
+    @GetMapping("/energia")
+    public RelatorioEnergia energia(@RequestParam(defaultValue = "24h") String periodo) {
+        return energia.relatorio(periodo, Instant.now());
     }
 
     @GetMapping("/leituras/{id}")

@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class IndicadoresService {
         return ativas.stream().map(m -> {
             List<Leitura> daHora = porMaquina.getOrDefault(m.getId(), List.of());
             Leitura ultima = daHora.stream().max(Comparator.comparing(Leitura::getInstante)).orElse(null);
-            return new ResumoMaquina(MaquinaResponse.de(m), ultimaLeitura(m, ultima),
+            return new ResumoMaquina(MaquinaResponse.publica(m), ultimaLeitura(m, ultima),
                     periodo(m, agora.minus(HORA), agora, true, Totais.de(daHora)));
         }).toList();
     }
@@ -61,7 +62,7 @@ public class IndicadoresService {
         Leitura ultima = mongoTemplate.findOne(Query.query(Criteria.where("maquinaId").is(m.getId())
                 .and("instante").lte(agora)).with(Sort.by(Sort.Direction.DESC, "instante")), Leitura.class);
         JanelaTurno turno = JanelaTurno.atualOuUltimo(m.getTurnoPlanejado(), agora, fuso);
-        return new AgoraMaquina(MaquinaResponse.de(m), ultimaLeitura(m, ultima),
+        return new AgoraMaquina(MaquinaResponse.publica(m), ultimaLeitura(m, ultima),
                 periodo(m, agora.minus(HORA), agora, true, Totais.de(daHora)),
                 periodo(m, turno.inicio(), turno.fim(), turno.emAndamento(), totaisDoTurno(m, turno, agora)),
                 GeradorLeituras.SEGUNDOS_POR_BLOCO);
@@ -86,18 +87,24 @@ public class IndicadoresService {
         Map<Instant, IndicadorHora> agregados = mongoTemplate.find(Query.query(Criteria.where("maquinaId").is(m.getId())
                         .and("hora").gte(primeira).lt(turno.fim())), IndicadorHora.class)
                 .stream().collect(Collectors.toMap(IndicadorHora::getHora, Function.identity()));
-        Totais soma = Totais.VAZIO;
+
+        List<Instant> horas = new ArrayList<>();
         for (Instant hora = primeira; hora.isBefore(turno.fim()); hora = hora.plus(HORA)) {
-            Totais daHora;
-            if (!hora.isBefore(horaCorrente)) {
-                daHora = Totais.de(mongoTemplate.find(Query.query(Criteria.where("maquinaId").is(m.getId())
-                        .and("instante").gte(hora).lte(agora)), Leitura.class));
-            } else if (agregados.containsKey(hora)) {
-                daHora = agregados.get(hora).totais();
-            } else {
-                daHora = Totais.de(mongoTemplate.find(Query.query(Criteria.where("maquinaId").is(m.getId())
-                        .and("instante").gte(hora).lt(hora.plus(HORA))), Leitura.class));
-            }
+            horas.add(hora);
+        }
+        // Horas sem agregado (a corrente e as que o job ainda não gravou) numa consulta só.
+        List<Instant> semAgregado = horas.stream()
+                .filter(h -> !h.isBefore(horaCorrente) || !agregados.containsKey(h)).toList();
+        Map<Instant, List<Leitura>> brutasPorHora = semAgregado.isEmpty() ? Map.of()
+                : mongoTemplate.find(Query.query(Criteria.where("maquinaId").is(m.getId())
+                                .and("instante").gte(semAgregado.getFirst()).lte(agora)), Leitura.class)
+                        .stream().collect(Collectors.groupingBy(l -> l.getInstante().truncatedTo(ChronoUnit.HOURS)));
+
+        Totais soma = Totais.VAZIO;
+        for (Instant hora : horas) {
+            Totais daHora = semAgregado.contains(hora)
+                    ? Totais.de(brutasPorHora.getOrDefault(hora, List.of()))
+                    : agregados.get(hora).totais();
             soma = soma.somar(daHora);
         }
         return soma;

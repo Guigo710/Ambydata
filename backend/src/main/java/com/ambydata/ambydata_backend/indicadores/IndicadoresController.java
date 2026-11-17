@@ -17,21 +17,24 @@ public class IndicadoresController {
     private final IndicadoresService servico;
     private final HistoricoService historico;
     private final EnergiaService energia;
+    private final CacheCurto cache;
 
-    public IndicadoresController(IndicadoresService servico, HistoricoService historico, EnergiaService energia) {
+    public IndicadoresController(IndicadoresService servico, HistoricoService historico, EnergiaService energia,
+            CacheCurto cache) {
         this.servico = servico;
         this.historico = historico;
         this.energia = energia;
+        this.cache = cache;
     }
 
     @GetMapping("/resumo")
     public List<ResumoMaquina> resumo() {
-        return servico.resumo(Instant.now());
+        return cache.obter("resumo", () -> servico.resumo(Instant.now()));
     }
 
     @GetMapping("/maquinas/{id}/agora")
     public AgoraMaquina agora(@PathVariable String id) {
-        return servico.agora(id, Instant.now());
+        return cache.obter("agora:" + id, () -> servico.agora(id, Instant.now()));
     }
 
     @GetMapping("/maquinas/{id}/historico")

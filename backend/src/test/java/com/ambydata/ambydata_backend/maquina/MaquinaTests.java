@@ -173,6 +173,29 @@ class MaquinaTests {
     }
 
     @Test
+    void operarioNaoRecebeCustoValorNemEnergia() throws Exception {
+        mvc.perform(como(Perfil.OPERARIO, get("/api/maquinas")))
+                .andExpect(jsonPath("$[0].nome").value("Forno 02"))
+                .andExpect(jsonPath("$[0].faixaTemperatura.max").value(200.0))
+                .andExpect(jsonPath("$[0].custoHora").doesNotExist())
+                .andExpect(jsonPath("$[0].valorPorPeca").doesNotExist())
+                .andExpect(jsonPath("$[0].energia").doesNotExist());
+        mvc.perform(como(Perfil.OPERARIO, get("/api/maquinas/" + idDe("Forno 02"))))
+                .andExpect(jsonPath("$.custoHora").doesNotExist());
+        mvc.perform(como(Perfil.DIRETOR, get("/api/maquinas")))
+                .andExpect(jsonPath("$[0].custoHora").value(150.0));
+    }
+
+    @Test
+    void energiaComNaNOuInfinitoDevolve400() throws Exception {
+        for (String valor : new String[] {"\"NaN\"", "\"Infinity\"", "1e999", "-0.01"}) {
+            String corpo = maquina("Nova 20", 10, 30, 50).replace("\"potenciaKw\":11", "\"potenciaKw\":" + valor);
+            mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON).content(corpo))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
     void faixaInvalidaDevolve400NoCampo() throws Exception {
         mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
                         .content(maquina("Nova 07", 30, 30, 50)))

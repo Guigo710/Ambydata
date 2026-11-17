@@ -62,7 +62,7 @@ public class HistoricoService {
                     h.getTemperaturaMedia(), h.getTemperaturaMinima(), h.getTemperaturaMaxima()));
             total = total.somar(h.totais());
         }
-        return new Historico(MaquinaResponse.de(m), pontos,
+        return new Historico(MaquinaResponse.publica(m), pontos,
                 new Periodo(inicio, fim, false, total, CalculadoraIndicadores.calcular(total, m.getCadenciaIdeal())));
     }
 

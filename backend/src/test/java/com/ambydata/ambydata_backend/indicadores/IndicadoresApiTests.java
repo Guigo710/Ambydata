@@ -192,6 +192,33 @@ class IndicadoresApiTests {
         mvc.perform(como(perfil, get("/api/indicadores/energia?periodo=24h"))).andExpect(status().isForbidden());
     }
 
+    @ParameterizedTest
+    @EnumSource(value = Perfil.class, names = {"OPERARIO", "ENGENHEIRO", "DIRETOR"})
+    void indicadoresNaoLevamCustoValorNemEnergiaDaMaquina(Perfil perfil) throws Exception {
+        // Com custoHora, valorPorPeca e as horas, qualquer perfil refaria o financeiro (só DIRETOR).
+        mvc.perform(como(perfil, get("/api/indicadores/resumo")))
+                .andExpect(jsonPath("$[0].maquina.nome").value("Forno 02"))
+                .andExpect(jsonPath("$[0].maquina.custoHora").doesNotExist())
+                .andExpect(jsonPath("$[0].maquina.valorPorPeca").doesNotExist())
+                .andExpect(jsonPath("$[0].maquina.energia").doesNotExist());
+        mvc.perform(como(perfil, get("/api/indicadores/maquinas/" + forno.getId() + "/agora")))
+                .andExpect(jsonPath("$.maquina.limiteCritico.max").value(220.0))
+                .andExpect(jsonPath("$.maquina.custoHora").doesNotExist());
+        mvc.perform(como(perfil, get("/api/indicadores/maquinas/" + forno.getId() + "/historico?horas=24")))
+                .andExpect(jsonPath("$.maquina.valorPorPeca").doesNotExist());
+    }
+
+    @Test
+    void parametroComTipoErradoDevolve400NoFormatoPadrao() throws Exception {
+        mvc.perform(como(Perfil.OPERARIO, get("/api/indicadores/leituras/" + forno.getId() + "?minutos=abc")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erro").value("Dados inválidos."))
+                .andExpect(jsonPath("$.campos.minutos").isNotEmpty());
+        mvc.perform(como(Perfil.OPERARIO, get("/api/indicadores/maquinas/" + forno.getId() + "/historico?horas=99999999999")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.horas").isNotEmpty());
+    }
+
     private MockHttpServletRequestBuilder como(Perfil perfil, MockHttpServletRequestBuilder requisicao) {
         return requisicao.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(perfil));
     }

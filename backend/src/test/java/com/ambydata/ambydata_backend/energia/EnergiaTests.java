@@ -29,7 +29,9 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -144,6 +146,23 @@ class EnergiaTests {
                         .content(tarifas(0.85, 0.55, -1, 40)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.demandaContratadaKw").isNotEmpty());
+    }
+
+    @Test
+    void tarifasComNaNOuInfinitoDevolvem400() throws Exception {
+        for (String valor : new String[] {"\"NaN\"", "\"Infinity\"", "1e999"}) {
+            mvc.perform(como(Perfil.ENGENHEIRO, put("/api/energia/tarifas")).contentType(MediaType.APPLICATION_JSON)
+                            .content(tarifas(0.85, 0.55, 150, 40).replace("\"tarifaCheia\":0.85", "\"tarifaCheia\":" + valor)))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Test
+    void soOPutDasTarifasEAbertoAoEngenheiro() throws Exception {
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/energia/tarifas")).contentType(MediaType.APPLICATION_JSON)
+                        .content(tarifas(0.85, 0.55, 150, 40)))
+                .andExpect(status().isForbidden());
+        mvc.perform(como(Perfil.ENGENHEIRO, delete("/api/energia/tarifas"))).andExpect(status().isForbidden());
     }
 
     private static String tarifas(double cheia, double compensavel, double demanda, double tarifaDemanda) {

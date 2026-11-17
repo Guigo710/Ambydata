@@ -5,15 +5,36 @@ server:
   port: 8080
 
 spring:
+  # Mensagens de validação (Bean Validation) em português, para qualquer cliente
+  web:
+    locale: pt_BR
+    locale-resolver: fixed
   # [Guigo710] Ponto 1: cria automaticamente os índices declarados com @Indexed
   data:
     mongodb:
       auto-index-creation: true
   mongodb:
     uri: ${MONGODB_URI}
-    database: pi
+    # ambydata_dev para desenvolvimento local, ambydata_prod no deploy
+    database: ${MONGODB_DATABASE:ambydata_dev}
+
+springdoc:
+  swagger-ui:
+    # Endereço curto da documentação (o mesmo da spec e dos READMEs)
+    path: /swagger-ui
 
 app:
   jwt:
+    # Obrigatório, 32+ caracteres. Sem ele a aplicação não sobe.
     secret: ${JWT_SECRET}
-    expiration-ms: 3600000
+    expiracao-horas: ${JWT_EXPIRACAO_HORAS:8}
+  seed:
+    # Primeiro ADMIN (criado só se o e-mail ainda não existir)
+    admin-email: ${ADMIN_EMAIL:}
+    admin-senha: ${ADMIN_SENHA:}
+    admin-nome: ${ADMIN_NOME:}
+    # Se definida, cria operario@, engenheiro@ e diretor@ambydata.demo com esta senha
+    demo-senha: ${DEMO_SENHA:}
+  cors:
+    # Origens do frontend, separadas por vírgula (ex.: a URL da Vercel)
+    origins: ${CORS_ORIGINS:http://localhost:5173}

@@ -64,6 +64,13 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
+		<!-- Swagger em /swagger-ui. A linha 3.x é a do Spring Boot 4; a 3.0.3 foi publicada
+		     sobre o Boot 4.0.x (a 3.1+ já exige o Boot 4.1). -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.0.3</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -78,6 +85,22 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- MongoDB descartável em Docker para os testes de integração -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-mongodb</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -43,20 +43,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
-    services:
-      mongo:
-        image: mongo:7
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      MONGODB_URI: mongodb://localhost:27017
-      # 32+ caracteres: o JJWT rejeita chaves HMAC-SHA256 menores que 256 bits.
-      JWT_SECRET: segredo-apenas-para-o-ci-nao-usar-em-producao
+    # O MongoDB dos testes vem do Testcontainers (Docker já existe no runner) e o
+    # segredo do JWT de teste, de backend/src/test/resources/application.properties.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -82,9 +70,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
-      # Não bloqueante até o módulo identity reescrever Login, Sidebar e Painel.
       - run: npm run lint
-        continue-on-error: true
+      - run: npm test
       - run: npm run build
 
   # Único check obrigatório na proteção da main. Falha se qualquer job anterior

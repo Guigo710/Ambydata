@@ -52,6 +52,39 @@ fórmula usada. Atualizam sozinhas a cada 10 s.
 4. Trocar a máquina no seletor atualiza a tela sem recarregar; a tela se atualiza sozinha.
 5. O Forno 02 aparece fora da faixa no Status da Máquina em algum momento do ciclo simulado.
 
+## Custo de energia (adendo aprovado durante o PR 2)
+
+Painel **Energia**, só para ENGENHEIRO e DIRETOR, com o balanço de cada máquina, de cada linha e
+da fábrica em 24 h ou 7 dias. Fórmula pedida (custo líquido = entrada − injetado + encargos):
+
+- Consumo (kWh) = potência ativa (kW) × tempo operando (h)
+- Custo de entrada (R$) = consumo (kWh) × tarifa cheia (TE + TUSD, R$/kWh)
+- Energia injetada (kWh) = potência regenerada (kW) × tempo de regeneração (h), com
+  tempo de regeneração = tempo operando × percentual de regeneração da máquina
+- Valor injetado (R$) = energia injetada (kWh) × tarifa compensável (R$/kWh)
+- Encargos/demanda (R$) = demanda contratada (kW) × tarifa de demanda (R$/kW·mês) × horas do
+  período ÷ 720 (proporcional ao mês); entram só no total da fábrica, que é quem contrata
+- Custo líquido (R$) = custo de entrada − valor injetado (+ encargos/demanda no total)
+
+Exemplo (Envasadora 04, 15 h operando, tarifa cheia R$ 0,85, compensável R$ 0,55): 11 kW × 15 h =
+165 kWh → R$ 140,25; 3 kW × (15 h × 15%) = 6,75 kWh → R$ 3,71; líquido R$ 136,54.
+
+Parâmetros: potência e regeneração ficam na máquina (`fabrica`); as tarifas e a demanda são uma
+configuração única da fábrica, que o ENGENHEIRO ajusta no próprio painel e o DIRETOR só vê.
+O custo de energia é **informativo**: o lucro continua com a fórmula de Custos e Lucros.
+
+| Método e rota | Quem |
+|---|---|
+| `GET /api/indicadores/energia?periodo=24h\|7d` | ENGENHEIRO, DIRETOR |
+| `GET /api/energia/tarifas` | ENGENHEIRO, DIRETOR |
+| `PUT /api/energia/tarifas` (`tarifaCheia`, `tarifaCompensavel`, `demandaContratadaKw`, `tarifaDemanda`) | ENGENHEIRO |
+
+Critérios: as contas batem com valores calculados à mão em testes; OPERARIO e ADMIN recebem 403
+e não veem o painel; o DIRETOR vê as tarifas mas não edita.
+
+Fora do escopo agora: horário de ponta e fora de ponta (Grupo A) e energia medida pelo
+dispositivo (Marco 6: o ESP32 poderá mandar kWh medido no lugar de potência × tempo).
+
 ## Out of Scope (Deferred)
 
 - Relatórios exportáveis e layout dos setores → `relatorios`.

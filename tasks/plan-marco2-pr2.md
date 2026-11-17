@@ -27,8 +27,8 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 - **Frontend:** hooks em `services/indicadores.js` com `refetchInterval` de 10 s (pausa com a aba
   escondida, padrão do TanStack Query); componente `SobreEstesDados`; gráficos com o Recharts que
   já está no projeto.
-- **Menu (ordem):** Painel, Status da Máquina, OEE, Produtividade, Custos (DIRETOR), Máquinas,
-  Meu perfil. "Report de Manutenção" entra no PR 3, logo abaixo de Status da Máquina.
+- **Menu (ordem):** Painel, Status da Máquina, OEE, Produtividade, Energia (ENGENHEIRO e
+  DIRETOR), Custos (DIRETOR), Máquinas, Meu perfil. "Report de Manutenção" entra no PR 3, logo abaixo de Status da Máquina.
 
 ## Task List
 
@@ -48,8 +48,16 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 - [x] Task 8: OEE — hora e turno, D × P × Q com fórmula e números, 24 h; MTBF e downtime para ENGENHEIRO e DIRETOR (M)
 - [x] Task 9: Produtividade (peças/h, boas × defeituosas, por setor/linha, 24 h e 7 dias) e Custos e Lucros (DIRETOR) (M)
 
+### Phase 2b: Custo de energia (adendo, SPEC-indicadores "Custo de energia")
+- [ ] Task 9a: Energia na máquina (potência, regeneração; migração 003 para as 6 máquinas) e tarifas da fábrica (`GET/PUT /api/energia/tarifas`) (M)
+- [ ] Task 9b: `CalculadoraEnergia` com contas à mão e `GET /api/indicadores/energia` por máquina, linha e total com encargos (M)
+- [ ] Task 9c: Campos de energia no formulário de máquina e painel Energia (ENGENHEIRO e DIRETOR; tarifas editáveis pelo ENGENHEIRO) (M)
+
 ### Phase 3: Fechamento
 - [ ] Task 10: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)
+
+- **Energia calculada, não medida:** consumo = potência × tempo operando dos agregados por hora,
+  sem mudar leituras nem o gerador. Quando o ESP32 medir kWh, a leitura ganha esse campo (Marco 6).
 
 ## Risks and Mitigations
 

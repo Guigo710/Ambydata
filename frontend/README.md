@@ -115,12 +115,17 @@ vite.config.js
 |---|---|---|
 | Painel principal | "Todas as máquinas": um card por máquina, por linha (status, temperatura, OEE da hora); uma máquina: o resumo dela | Operário, Engenheiro, Diretor |
 | Status da Máquina | Status, temperatura × faixa com aviso, peças, paradas e gráfico de 2 h com faixa e limite crítico | Operário, Engenheiro, Diretor |
+| Report de Manutenção | Kanban (Abertos, Em andamento, Finalizados dos últimos 7 dias) filtrado pela máquina; abrir chamado (Operário, Engenheiro); assumir, finalizar e cancelar (Engenheiro); detalhe com histórico | Operário, Engenheiro, Diretor |
 | OEE | Última hora ou turno, D × P × Q com a conta; MTBF e tempo parado para Engenheiro e Diretor; 24 h hora a hora | Operário, Engenheiro, Diretor |
 | Produtividade | Peças por hora, boas × defeituosas, 24 h, e comparativo por linha, setor ou máquina | Operário, Engenheiro, Diretor |
 | Energia | Consumo, energia injetada, encargos e custo líquido por máquina, linha e fábrica; tarifas (Engenheiro edita) | Engenheiro, Diretor |
 | Custos e Lucros | Custo, receita e lucro por máquina, linha e fábrica | Diretor |
 
-Todas têm o bloco "Sobre estes dados" (máquina, fonte, frequência, última leitura ou período e as
+O sino da barra superior (Operário, Engenheiro, Diretor) mostra as notificações: chamado
+finalizado (para quem abriu) e chamado automático (para os engenheiros). Clicar abre o chamado
+(`/manutencao?chamado=<id>`). O kanban busca a cada 10 s e o sino a cada 15 s.
+
+As telas de indicadores têm o bloco "Sobre estes dados" (máquina, fonte, frequência, última leitura ou período e as
 fórmulas). As telas ao vivo buscam os dados de novo a cada 10 s; histórico, comparativos, custos e
 energia, a cada minuto. As consultas ficam em `services/indicadores.js`.
 
@@ -134,7 +139,7 @@ Configurado via `vercel.json` para deploy no Vercel.
 - [x] Testes automatizados (Vitest + Testing Library)
 - [x] Cadastro de máquinas e seletor de máquina nas telas de produção
 - [x] Indicadores reais (OEE, produtividade, custos e energia) no lugar dos números fixos
-- [ ] Report de manutenção em kanban
+- [x] Report de manutenção em kanban, com sino de notificações
 - [ ] Dark mode
 - [x] CI (lint, testes e build em pull requests) — `.github/workflows/ci.yml` na raiz
 

@@ -169,6 +169,6 @@ class GeradorLeiturasTests {
     private static Maquina maquina(String id, CenarioSimulacao cenario) {
         return new Maquina(id, "Máquina " + id, TipoMaquina.OUTRA, "Setor", "Linha A", 60,
                 new FaixaTemperatura(10.0, 30.0), new LimitesAlerta(50, 15, 8.0), 100, 2,
-                new Turno("06:00", "22:00"), true, cenario, null);
+                new Turno("06:00", "22:00"), true, cenario, null, null);
     }
 }

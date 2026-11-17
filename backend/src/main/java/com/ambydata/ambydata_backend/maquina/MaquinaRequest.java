@@ -20,5 +20,6 @@ public record MaquinaRequest(
         @NotNull @Valid LimitesAlerta alertas,
         @NotNull @DecimalMin("0") @DecimalMax("1000000") Double custoHora,
         @NotNull @DecimalMin("0") @DecimalMax("1000000") Double valorPorPeca,
-        @NotNull @Valid Turno turnoPlanejado) {
+        @NotNull @Valid Turno turnoPlanejado,
+        @NotNull @Valid ParametrosEnergia energia) {
 }

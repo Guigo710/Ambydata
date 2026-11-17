@@ -36,4 +36,5 @@ public class Maquina {
     // Desde quando a máquina existe na fábrica: os indicadores não inventam histórico antes
     // disso. Nulo nas máquinas da M002, que representam uma fábrica que já operava.
     private Instant emOperacaoDesde;
+    private ParametrosEnergia energia;
 }

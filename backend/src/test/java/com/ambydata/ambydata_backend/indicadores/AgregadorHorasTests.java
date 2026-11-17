@@ -136,7 +136,7 @@ class AgregadorHorasTests {
         Instant antes = Instant.now();
         Maquina nova = maquinas.criar(new com.ambydata.ambydata_backend.maquina.MaquinaRequest("Nova 09",
                 forno.getTipo(), "Setor", "Linha C", 30, forno.getFaixaTemperatura(), forno.getAlertas(), 10.0, 1.0,
-                forno.getTurnoPlanejado()));
+                forno.getTurnoPlanejado(), new com.ambydata.ambydata_backend.maquina.ParametrosEnergia(10.0, 0.0, 0)));
 
         assertThat(nova.getEmOperacaoDesde()).isBetween(antes, Instant.now());
     }

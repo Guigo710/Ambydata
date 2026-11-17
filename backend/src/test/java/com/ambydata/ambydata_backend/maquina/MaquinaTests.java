@@ -141,6 +141,38 @@ class MaquinaTests {
     }
 
     @Test
+    void maquinaGuardaOsParametrosDeEnergia() throws Exception {
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
+                        .content(maquina("Nova 12", 10, 30, 50)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.energia.potenciaKw").value(11.0))
+                .andExpect(jsonPath("$.energia.potenciaRegeneradaKw").value(3.0))
+                .andExpect(jsonPath("$.energia.percentualRegeneracao").value(15));
+    }
+
+    @Test
+    void energiaInvalidaDevolve400NoCampo() throws Exception {
+        String regeneraMaisQueConsome = maquina("Nova 13", 10, 30, 50).replace("\"potenciaRegeneradaKw\":3", "\"potenciaRegeneradaKw\":12");
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON).content(regeneraMaisQueConsome))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['energia.potenciaRegeneradaKw']").isNotEmpty());
+
+        String semPotencia = maquina("Nova 14", 10, 30, 50).replace("\"potenciaKw\":11", "\"potenciaKw\":0");
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON).content(semPotencia))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['energia.potenciaKw']").isNotEmpty());
+
+        String percentualDemais = maquina("Nova 15", 10, 30, 50).replace("\"percentualRegeneracao\":15", "\"percentualRegeneracao\":101");
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON).content(percentualDemais))
+                .andExpect(status().isBadRequest());
+
+        String semEnergia = maquina("Nova 16", 10, 30, 50).replaceAll(",\\s*\"energia\":\\{[^}]*}", "");
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON).content(semEnergia))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.energia").isNotEmpty());
+    }
+
+    @Test
     void faixaInvalidaDevolve400NoCampo() throws Exception {
         mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
                         .content(maquina("Nova 07", 30, 30, 50)))
@@ -215,7 +247,8 @@ class MaquinaTests {
                  "faixaTemperatura":{"min":%s,"max":%s},
                  "alertas":{"percentualCritico":%d,"minutosParadoMax":15,"taxaDefeitosMax":8},
                  "custoHora":100,"valorPorPeca":2,
-                 "turnoPlanejado":{"inicio":"06:00","fim":"22:00"}}
+                 "turnoPlanejado":{"inicio":"06:00","fim":"22:00"},
+                 "energia":{"potenciaKw":11,"potenciaRegeneradaKw":3,"percentualRegeneracao":15}}
                 """.formatted(nome, min, max, percentual);
     }
 }

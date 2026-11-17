@@ -56,7 +56,7 @@ public class MaquinaService {
                 .set("cadenciaIdeal", maquina.getCadenciaIdeal())
                 .set("faixaTemperatura", maquina.getFaixaTemperatura()).set("alertas", maquina.getAlertas())
                 .set("custoHora", maquina.getCustoHora()).set("valorPorPeca", maquina.getValorPorPeca())
-                .set("turnoPlanejado", maquina.getTurnoPlanejado());
+                .set("turnoPlanejado", maquina.getTurnoPlanejado()).set("energia", maquina.getEnergia());
         try {
             mongoTemplate.updateFirst(porId(id), update, Maquina.class);
         } catch (DuplicateKeyException e) {
@@ -90,6 +90,10 @@ public class MaquinaService {
         if (dados.turnoPlanejado().inicio().equals(dados.turnoPlanejado().fim())) {
             throw new CampoInvalidoException("turnoPlanejado", "O início e o fim do turno precisam ser diferentes.");
         }
+        if (dados.energia().potenciaRegeneradaKw() > dados.energia().potenciaKw()) {
+            throw new CampoInvalidoException("energia.potenciaRegeneradaKw",
+                    "A potência regenerada não pode passar da potência ativa.");
+        }
         maquina.setNome(nome);
         maquina.setTipo(dados.tipo());
         maquina.setSetor(dados.setor().trim());
@@ -100,5 +104,6 @@ public class MaquinaService {
         maquina.setCustoHora(dados.custoHora());
         maquina.setValorPorPeca(dados.valorPorPeca());
         maquina.setTurnoPlanejado(dados.turnoPlanejado());
+        maquina.setEnergia(dados.energia());
     }
 }

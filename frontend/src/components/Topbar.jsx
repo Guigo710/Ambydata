@@ -1,8 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/contexto";
 import { NOME_DO_PERFIL } from "../auth/permissoes";
+import SinoNotificacoes from "./SinoNotificacoes";
 
-// Barra superior: quem está logado, atalho para "Meu perfil" e o botão Sair.
+// Barra superior: sino de notificações (produção), quem está logado, "Meu perfil" e Sair.
 export default function Topbar() {
   const { usuario, perfil, logout } = useAuth();
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Topbar() {
       <div className="topbar-left" />
 
       <div className="topbar-right">
+        {["OPERARIO", "ENGENHEIRO", "DIRETOR"].includes(perfil) && <SinoNotificacoes />}
         <Link to="/meu-perfil" className="user-profile-box" title="Meu perfil">
           <div className="user-text-info">
             <span className="user-name">{usuario?.nome}</span>

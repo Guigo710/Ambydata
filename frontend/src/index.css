@@ -1272,3 +1272,42 @@ body,
 @media (max-width: 1000px) {
   .kanban { grid-template-columns: 1fr; }
 }
+
+/* Chamados: ações, formulário e detalhe */
+.cabecalho-acoes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cartao-chamado-rodape { display: flex; justify-content: flex-end; }
+.cartao-chamado-rodape .btn-link { padding: 0; font-size: 12px; }
+.acoes-chamado { border-top: 1px solid #eef1f8; padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.acoes-chamado-botoes { display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
+.acoes-chamado-texto { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.acoes-chamado-texto textarea, .input-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--text-muted);
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-primary);
+  resize: vertical;
+}
+.btn-pequeno { padding: 6px 14px; font-size: 13px; }
+.erro-campo { margin: 0; color: #b0125c; font-size: 12px; }
+.fundo-dialogo {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 37, 87, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow-y: auto;
+  z-index: 50;
+}
+.dialogo { width: min(640px, 100%); display: flex; flex-direction: column; gap: 8px; }
+.dialogo-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dialogo-topo .card-title:focus { outline: none; }
+.detalhe-dados { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 0; }
+.historico-chamado { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--text-primary); }
+.historico-chamado li { display: flex; flex-direction: column; gap: 2px; }
+.historico-quando { font-size: 11px; color: var(--text-muted); }
+.dialogo { animation: none; }

@@ -230,6 +230,12 @@ beforeEach(() => {
     if (url.startsWith("/api/maquinas")) {
       return { data: structuredClone(MAQUINAS_DE_TESTE) };
     }
+    const chamado = url.match(/^\/api\/chamados\/([^/?]+)$/);
+    if (chamado) {
+      const encontrado = CHAMADOS_DE_TESTE.find((c) => c.id === chamado[1]);
+      if (!encontrado) throw { response: { status: 404, data: { status: 404, erro: "Chamado não encontrado." } } };
+      return { data: structuredClone(encontrado) };
+    }
     const chamados = url.match(/^\/api\/chamados(?:\?maquinaId=([^&]+))?$/);
     if (chamados) {
       const lista = CHAMADOS_DE_TESTE.filter((c) => !chamados[1] || c.maquinaId === chamados[1]);

@@ -13,6 +13,16 @@ export function useChamados(maquinaId) {
   });
 }
 
+export function useChamado(id) {
+  return useQuery({
+    queryKey: [...CHAVE_CHAMADOS, "detalhe", id],
+    queryFn: () => api.get(`/api/chamados/${encodeURIComponent(id)}`).then((r) => r.data),
+    enabled: Boolean(id),
+  });
+}
+
+export const NOME_DO_STATUS = { ABERTO: "Aberto", EM_ANDAMENTO: "Em andamento", FINALIZADO: "Finalizado", CANCELADO: "Cancelado" };
+
 export const NOME_DO_TIPO = {
   MECANICO: "Mecânico", ELETRICO: "Elétrico", TEMPERATURA: "Temperatura",
   QUALIDADE: "Qualidade", PARADA: "Parada", OUTRO: "Outro",

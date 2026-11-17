@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logoAmbydata from "../assets/ambydata-logo.png";
 import { useAuth } from "../auth/contexto";
 import { rotaInicial } from "../auth/permissoes";
 import { mensagemDeErro } from "../services/api";
@@ -31,7 +30,7 @@ export default function Login() {
     <div className="login-container">
       <div className="login-box">
         <div className="login-logo">
-          <img src={logoAmbydata} alt="Logo Ambydata Technology" className="login-logo-img" />
+          <img src="/ambydata-logo.webp" alt="Logo Ambydata Technology" className="login-logo-img" fetchPriority="high"/>
         </div>
 
         <form onSubmit={entrar} className="login-form">

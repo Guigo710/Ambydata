@@ -3,6 +3,7 @@ package com.ambydata.ambydata_backend.chamado;
 import com.ambydata.ambydata_backend.config.CampoInvalidoException;
 import com.ambydata.ambydata_backend.maquina.Maquina;
 import com.ambydata.ambydata_backend.maquina.MaquinaService;
+import com.ambydata.ambydata_backend.notificacao.NotificacaoService;
 import com.ambydata.ambydata_backend.usuario.Usuario;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -31,10 +32,12 @@ public class ChamadoService {
 
     private final MongoTemplate mongoTemplate;
     private final MaquinaService maquinas;
+    private final NotificacaoService notificacoes;
 
-    public ChamadoService(MongoTemplate mongoTemplate, MaquinaService maquinas) {
+    public ChamadoService(MongoTemplate mongoTemplate, MaquinaService maquinas, NotificacaoService notificacoes) {
         this.mongoTemplate = mongoTemplate;
         this.maquinas = maquinas;
+        this.notificacoes = notificacoes;
     }
 
     public Chamado abrir(AbrirChamadoRequest dados, Usuario usuario) {
@@ -98,7 +101,23 @@ public class ChamadoService {
                 "Só um chamado aberto pode ser assumido");
     }
 
+    // Avisa quem abriu (se foi uma pessoa, e não quem está finalizando).
     public Chamado finalizar(String id, String solucao, Usuario engenheiro) {
+        Chamado finalizado = finalizarSemAviso(id, solucao, engenheiro);
+        PessoaChamado abriu = finalizado.getAbertoPor();
+        if (!abriu.sistema() && abriu.usuarioId() != null && !abriu.usuarioId().equals(engenheiro.getId())) {
+            notificacoes.criar(abriu.usuarioId(),
+                    "Seu chamado do " + finalizado.getMaquinaNome() + " foi finalizado por " + engenheiro.getNome() + ".",
+                    link(finalizado));
+        }
+        return finalizado;
+    }
+
+    public static String link(Chamado c) {
+        return "/manutencao?chamado=" + c.getId();
+    }
+
+    private Chamado finalizarSemAviso(String id, String solucao, Usuario engenheiro) {
         Instant agora = Instant.now();
         return transicao(id, StatusChamado.EM_ANDAMENTO, new Update()
                 .set("status", StatusChamado.FINALIZADO)

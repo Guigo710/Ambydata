@@ -42,7 +42,7 @@ chamado sozinha. O OEE ganha o MTTR para ENGENHEIRO e DIRETOR.
 
 ### Phase 1: Backend
 - [x] Task 1: Chamado — modelo, abrir, listar (filtros e 7 dias de finalizados), detalhe com histórico, assumir/finalizar/cancelar atômicos com 409 e permissões (M)
-- [ ] Task 2: Notificações — coleção com TTL, API das suas notificações, aviso ao finalizar (S)
+- [x] Task 2: Notificações — coleção com TTL, API das suas notificações, aviso ao finalizar (S)
 - [ ] Task 3: Detector de alertas críticos (temperatura, parada, defeitos), sem duplicar, com carência e aviso aos engenheiros (M)
 - [ ] Task 4: MTTR por máquina (S)
 

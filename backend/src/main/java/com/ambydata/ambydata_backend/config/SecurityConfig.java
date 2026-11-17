@@ -59,6 +59,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/chamados").hasAnyRole("OPERARIO", "ENGENHEIRO")
                 .requestMatchers(HttpMethod.POST, "/api/chamados/*/assumir", "/api/chamados/*/finalizar",
                         "/api/chamados/*/cancelar").hasRole("ENGENHEIRO")
+                .requestMatchers(HttpMethod.GET, "/api/notificacoes").hasAnyRole(PRODUCAO)
+                .requestMatchers(HttpMethod.POST, "/api/notificacoes/lidas", "/api/notificacoes/*/lida").hasAnyRole(PRODUCAO)
                 .requestMatchers("/api/maquinas", "/api/maquinas/**").hasRole("ENGENHEIRO")
                 .anyRequest().denyAll());
         return http.build();

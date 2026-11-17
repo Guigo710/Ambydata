@@ -18,6 +18,23 @@ const ICONES = {
       <path d="M12 8v4l3 3" />
     </>
   ),
+  "/oee": (
+    <>
+      <path d="M4 18a8 8 0 1 1 16 0" />
+      <path d="M12 18l4-6" />
+    </>
+  ),
+  "/produtividade": (
+    <>
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </>
+  ),
+  "/custos": (
+    <>
+      <path d="M12 2v20" />
+      <path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </>
+  ),
   "/maquinas": (
     <>
       <rect x="2" y="7" width="20" height="13" rx="2" />

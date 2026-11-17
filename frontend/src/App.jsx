@@ -4,10 +4,13 @@ import { rotaInicial } from "./auth/permissoes";
 import RotaProtegida from "./auth/RotaProtegida";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
+import Custos from "./pages/Custos";
 import Login from "./pages/Login";
 import Maquinas from "./pages/Maquinas";
 import MeuPerfil from "./pages/MeuPerfil";
+import OEE from "./pages/OEE";
 import PainelPrincipal from "./pages/PainelPrincipal";
+import Produtividade from "./pages/Produtividade";
 import StatusMaquina from "./pages/StatusMaquina";
 import Usuarios from "./pages/Usuarios";
 
@@ -40,6 +43,9 @@ export function AppRoutes() {
       <Route element={<RotaProtegida><LayoutDashboard /></RotaProtegida>}>
         <Route path="/painel" element={<PainelPrincipal />} />
         <Route path="/status-maquina" element={<StatusMaquina />} />
+        <Route path="/oee" element={<OEE />} />
+        <Route path="/produtividade" element={<Produtividade />} />
+        <Route path="/custos" element={<Custos />} />
         <Route path="/maquinas" element={<Maquinas />} />
         <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/meu-perfil" element={<MeuPerfil />} />

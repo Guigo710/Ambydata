@@ -999,3 +999,55 @@ body,
   margin: 0;
   padding-left: 18px;
 }
+
+/* Bloco "Sobre estes dados" das telas de indicadores */
+.sobre-dados {
+  margin-top: 24px;
+}
+
+.sobre-dados-titulo {
+  margin: 0 0 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sobre-dados-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 0;
+}
+
+.sobre-dados-lista dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.sobre-dados-lista dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sobre-dados-formulas {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.sobre-dados-formulas summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.sobre-dados-formulas ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  line-height: 1.7;
+}

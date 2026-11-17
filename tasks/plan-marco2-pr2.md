@@ -46,7 +46,7 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 - [x] Task 6: Painel principal — cards por máquina agrupados por linha, ou o resumo de uma (M)
 - [x] Task 7: Status da Máquina — status, temperatura × faixa (amarelo/vermelho), gráfico de 2 h com faixa e limite crítico, peças e paradas (M)
 - [x] Task 8: OEE — hora e turno, D × P × Q com fórmula e números, 24 h; MTBF e downtime para ENGENHEIRO e DIRETOR (M)
-- [ ] Task 9: Produtividade (peças/h, boas × defeituosas, por setor/linha, 24 h e 7 dias) e Custos e Lucros (DIRETOR) (M)
+- [x] Task 9: Produtividade (peças/h, boas × defeituosas, por setor/linha, 24 h e 7 dias) e Custos e Lucros (DIRETOR) (M)
 
 ### Phase 3: Fechamento
 - [ ] Task 10: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)

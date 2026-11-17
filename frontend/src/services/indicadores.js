@@ -93,6 +93,17 @@ export function tempoDesde(instante, agora = Date.now()) {
   return `há ${Math.floor(segundos / 3600)} h`;
 }
 
+// "R$ 51.926,80".
+export function dinheiro(valor) {
+  return `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// "16/11 15:00 a 17/11 15:00", no fuso do navegador.
+export function textoPeriodo(inicio, fim) {
+  const f = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return `${f(inicio)} a ${f(fim)}`.replaceAll(",", "");
+}
+
 export function formatarMinutos(minutos) {
   if (minutos === null || minutos === undefined) return "—";
   const total = Math.round(minutos);

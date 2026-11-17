@@ -58,7 +58,10 @@ export function agoraDeTeste(id) {
     maquina, ultimaLeitura: ULTIMA_LEITURA[id], ultimaHora: ULTIMA_HORA[id], frequenciaSegundos: 10,
     turno: {
       inicio: "2026-11-17T09:00:00Z", fim: "2026-11-17T15:00:00Z", emAndamento: true,
-      totais: { ...ULTIMA_HORA[id].totais, segundosPlanejados: 21600, paradas: 7 },
+      totais: {
+        ...ULTIMA_HORA[id].totais, segundosPlanejados: 21600, paradas: 7,
+        pecasProduzidas: ULTIMA_HORA[id].totais.pecasProduzidas * 6, pecasBoas: ULTIMA_HORA[id].totais.pecasBoas * 6,
+      },
       indicadores: ULTIMA_HORA[id].indicadores,
     },
   };
@@ -108,6 +111,45 @@ export function historicoDeTeste(id) {
   };
 }
 
+// Comparativo: Forno (Linha A, Cozimento) e Envasadora (Linha B, Envase), cada um sozinho no grupo.
+const GRUPOS = {
+  linha: ["Linha A", "Linha B"], setor: ["Cozimento", "Envase"], maquina: ["Forno 02", "Envasadora 04"],
+};
+export function comparativoDeTeste(periodo, por) {
+  const fator = periodo === "7d" ? 7 : 1;
+  return {
+    periodo, por, inicio: "2026-11-16T15:00:00Z", fim: "2026-11-17T15:00:00Z",
+    grupos: GRUPOS[por].map((grupo, i) => ({
+      grupo, maquinas: [MAQUINAS_DE_TESTE[i].nome],
+      totais: {
+        segundosPlanejados: 57600 * fator, segundosOperando: 54000 * fator, segundosParado: 3600 * fator, paradas: 9 * fator,
+        pecasProduzidas: (i === 0 ? 24000 : 36000) * fator, pecasBoas: (i === 0 ? 23400 : 34200) * fator,
+      },
+      indicadores: {
+        disponibilidade: 0.9375, performance: 0.9, qualidade: i === 0 ? 0.975 : 0.95, oee: i === 0 ? 0.8227 : 0.8016,
+        mtbfMinutos: 100, downtimeMinutos: 60 * fator, pecasPorHora: i === 0 ? 1500 : 2250,
+      },
+    })),
+  };
+}
+
+export function financeiroDeTeste(periodo) {
+  const fator = periodo === "7d" ? 7 : 1;
+  const maquinas = [
+    { id: "m1", nome: "Forno 02", setor: "Cozimento", linha: "Linha A", custoHora: 150, valorPorPeca: 2.2,
+      horasPlanejadas: 16 * fator, pecasBoas: 24694 * fator,
+      financeiro: { custo: 2400 * fator, receita: 54326.8 * fator, lucro: 51926.8 * fator } },
+    { id: "m2", nome: "Envasadora 04", setor: "Envase", linha: "Linha B", custoHora: 120, valorPorPeca: 2.5,
+      horasPlanejadas: 16 * fator, pecasBoas: 27605 * fator,
+      financeiro: { custo: 1920 * fator, receita: 69012.5 * fator, lucro: 67092.5 * fator } },
+  ];
+  return {
+    periodo, inicio: "2026-11-16T15:00:00Z", fim: "2026-11-17T15:00:00Z", maquinas,
+    linhas: maquinas.map((m) => ({ linha: m.linha, financeiro: m.financeiro })),
+    total: { custo: 4320 * fator, receita: 123339.3 * fator, lucro: 119019.3 * fator },
+  };
+}
+
 beforeEach(() => {
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
@@ -126,6 +168,14 @@ beforeEach(() => {
     const historico = url.match(/^\/api\/indicadores\/maquinas\/([^/]+)\/historico\?horas=\d+$/);
     if (historico) {
       return { data: historicoDeTeste(historico[1]) };
+    }
+    const comparativo = url.match(/^\/api\/indicadores\/comparativo\?periodo=(24h|7d)&por=(setor|linha|maquina)$/);
+    if (comparativo) {
+      return { data: comparativoDeTeste(comparativo[1], comparativo[2]) };
+    }
+    const financeiro = url.match(/^\/api\/indicadores\/financeiro\?periodo=(24h|7d)$/);
+    if (financeiro) {
+      return { data: financeiroDeTeste(financeiro[1]) };
     }
     const agora = url.match(/^\/api\/indicadores\/maquinas\/([^/]+)\/agora$/);
     if (agora) {

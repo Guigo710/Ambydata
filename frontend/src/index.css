@@ -1177,3 +1177,34 @@ body,
 .stat-formula { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
 .stat-destaque .stat-value { color: var(--blue); font-size: 30px; }
 .stats-row-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* Produtividade e Custos */
+.comparativo { margin-top: 24px; }
+.comparativo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.comparativo-topo .card-title { margin: 0; }
+.comparativo-filtros { display: flex; flex-wrap: wrap; gap: 12px; }
+.comparativo-filtros .seletor-periodo { margin: 0; }
+.tabela-rolagem { overflow-x: auto; }
+.tabela th[scope="row"] {
+  padding: 12px 10px;
+  border-bottom: 1px solid #f0f2f8;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
+}
+.tabela tr:last-child th[scope="row"] { border-bottom: none; }
+.tabela th[scope="row"] .tabela-detalhe { font-weight: 400; }
+.linha-destacada { background: rgba(67, 97, 238, 0.06); }
+.stats-row-3 { grid-template-columns: repeat(3, 1fr); }
+.valor-positivo { color: #23704d; font-weight: 700; }
+.valor-negativo { color: #b0125c; font-weight: 700; }
+.espaco-acima { margin-top: 20px; }

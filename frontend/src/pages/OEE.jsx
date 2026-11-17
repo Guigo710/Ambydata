@@ -3,6 +3,7 @@ import { useAuth } from "../auth/contexto";
 import CartaoMaquina from "../components/CartaoMaquina";
 import GraficoOeeHoras from "../components/GraficoOeeHoras";
 import SeletorMaquina from "../components/SeletorMaquina";
+import SeletorOpcoes from "../components/SeletorOpcoes";
 import SobreEstesDados from "../components/SobreEstesDados";
 import { mensagemDeErro } from "../services/api";
 import { FORMULAS, formatarMinutos, percentual, useAgora, useHistorico } from "../services/indicadores";
@@ -58,15 +59,8 @@ function OeeDaMaquina({ maquina }) {
 
   return (
     <>
-      <fieldset className="seletor-periodo">
-        <legend className="sr-only">Período</legend>
-        {[["ultimaHora", "Última hora"], ["turno", "Turno"]].map(([valor, rotulo]) => (
-          <label key={valor} className={periodo === valor ? "ativo" : ""}>
-            <input type="radio" name="periodo-oee" value={valor} checked={periodo === valor} onChange={() => setPeriodo(valor)} />
-            {rotulo}
-          </label>
-        ))}
-      </fieldset>
+      <SeletorOpcoes legenda="Período" nome="periodo-oee" opcoes={[["ultimaHora", "Última hora"], ["turno", "Turno"]]}
+        valor={periodo} onChange={setPeriodo} />
       {periodo === "turno" && !agora.data.turno.emAndamento && (
         <p className="stat-detalhe">Fora do turno agora: os números são do último turno completo.</p>
       )}

@@ -1,6 +1,8 @@
 package com.ambydata.ambydata_backend.config;
 
 import com.ambydata.ambydata_backend.auth.CredenciaisInvalidasException;
+import com.ambydata.ambydata_backend.chamado.ChamadoNaoEncontradoException;
+import com.ambydata.ambydata_backend.chamado.TransicaoInvalidaException;
 import com.ambydata.ambydata_backend.maquina.MaquinaNaoEncontradaException;
 import com.ambydata.ambydata_backend.simulacao.DispositivoNaoAutorizadoException;
 import com.ambydata.ambydata_backend.simulacao.LeituraDuplicadaException;
@@ -76,6 +78,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(DispositivoNaoAutorizadoException.class)
     public ResponseEntity<ErroResponse> dispositivoNaoAutorizado(DispositivoNaoAutorizadoException ex) {
         return resposta(HttpStatus.UNAUTHORIZED, new ErroResponse(401, ex.getMessage()));
+    }
+
+    @ExceptionHandler(ChamadoNaoEncontradoException.class)
+    public ResponseEntity<ErroResponse> chamadoNaoEncontrado(ChamadoNaoEncontradoException ex) {
+        return resposta(HttpStatus.NOT_FOUND, new ErroResponse(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(TransicaoInvalidaException.class)
+    public ResponseEntity<ErroResponse> transicaoInvalida(TransicaoInvalidaException ex) {
+        return resposta(HttpStatus.CONFLICT, new ErroResponse(409, ex.getMessage()));
     }
 
     @ExceptionHandler(LeituraDuplicadaException.class)

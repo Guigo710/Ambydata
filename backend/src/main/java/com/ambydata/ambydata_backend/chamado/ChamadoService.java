@@ -123,6 +123,7 @@ public class ChamadoService {
                 .set("status", StatusChamado.FINALIZADO)
                 .set("finalizadoEm", agora)
                 .set("solucao", solucao.trim())
+                .unset("ativoAutomatico")
                 .push("historico", new EventoChamado(agora, TipoEvento.FINALIZADO, "Finalizado: " + solucao.trim(), engenheiro.getNome())),
                 "Só um chamado em andamento pode ser finalizado");
     }
@@ -134,6 +135,7 @@ public class ChamadoService {
                 .set("status", StatusChamado.CANCELADO)
                 .set("canceladoEm", agora)
                 .set("motivoCancelamento", motivo.trim())
+                .unset("ativoAutomatico")
                 .push("historico", new EventoChamado(agora, TipoEvento.CANCELADO, "Cancelado: " + motivo.trim(), engenheiro.getNome())),
                 FindAndModifyOptions.options().returnNew(true), Chamado.class);
         if (c == null) {

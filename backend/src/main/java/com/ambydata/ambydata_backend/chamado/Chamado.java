@@ -1,5 +1,7 @@
 package com.ambydata.ambydata_backend.chamado;
 
+import com.ambydata.ambydata_backend.alerta.CausaAlerta;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +17,10 @@ import java.util.List;
 @Document(collection = "chamado")
 @CompoundIndex(name = "status_abertura", def = "{'status': 1, 'abertoEm': -1}")
 @CompoundIndex(name = "maquina_status", def = "{'maquinaId': 1, 'status': 1}")
+// Um chamado automático aberto por máquina e causa: uma segunda detecção (mesmo em paralelo)
+// esbarra aqui e vira evento no histórico do que já existe.
+@CompoundIndex(name = "automatico_unico", def = "{'maquinaId': 1, 'causaAutomatica': 1}", unique = true,
+        partialFilter = "{'ativoAutomatico': true}")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -39,4 +45,9 @@ public class Chamado {
     private String solucao;
     private String motivoCancelamento;
     private List<EventoChamado> historico;
+    private CausaAlerta causaAutomatica;          // nulo nos chamados abertos por pessoas
+    @JsonIgnore
+    private Boolean ativoAutomatico;              // true enquanto automático e não encerrado
+    @JsonIgnore
+    private Instant ultimoEventoAutomaticoEm;     // limita o histórico a um evento por hora
 }

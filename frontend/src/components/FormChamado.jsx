@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, mensagemDeErro } from "../services/api";
 import { CHAVE_CHAMADOS, NOME_DA_PRIORIDADE, NOME_DO_TIPO } from "../services/chamados";
 import { porLinha } from "../services/maquinas";
@@ -20,6 +20,8 @@ export default function FormChamado({ maquinas, maquinaInicial, onFechar, onAber
     },
   });
   const alterar = (nome) => (e) => setCampos({ ...campos, [nome]: e.target.value });
+  const primeiroCampo = useRef(null);
+  useEffect(() => primeiroCampo.current?.focus(), []);
 
   const enviar = (evento) => {
     evento.preventDefault();
@@ -34,7 +36,7 @@ export default function FormChamado({ maquinas, maquinaInicial, onFechar, onAber
 
   const mensagens = problemas.length > 0 ? problemas : abrir.isError ? [mensagemDeErro(abrir.error)] : [];
   return (
-    <section className="card painel-form" aria-labelledby="titulo-novo-chamado">
+    <section id="form-chamado" className="card painel-form" aria-labelledby="titulo-novo-chamado">
       <h2 id="titulo-novo-chamado" className="card-title">Abrir chamado</h2>
       <form onSubmit={enviar} noValidate>
         {mensagens.length > 0 && (
@@ -45,7 +47,7 @@ export default function FormChamado({ maquinas, maquinaInicial, onFechar, onAber
         <div className="form-colunas">
           <div className="input-group">
             <label htmlFor="chamado-maquina">Máquina do chamado</label>
-            <select id="chamado-maquina" value={maquinaId} onChange={alterar("maquinaId")}>
+            <select id="chamado-maquina" ref={primeiroCampo} value={maquinaId} onChange={alterar("maquinaId")}>
               <option value="">Escolha a máquina</option>
               {porLinha(maquinas).map(([linha, daLinha]) => (
                 <optgroup key={linha} label={linha}>

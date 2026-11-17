@@ -55,7 +55,7 @@ describe("sino de notificações", () => {
     renderizarApp("/painel");
 
     await userEvent.click(await sino());
-    await userEvent.click(screen.getByRole("link", { name: /Seu chamado do Envasadora 04 foi finalizado/ }));
+    await userEvent.click(screen.getByRole("link", { name: /Seu chamado da máquina Envasadora 04 foi finalizado/ }));
 
     expect(post).toHaveBeenCalledWith("/api/notificacoes/n1/lida");
     expect(await screen.findByRole("dialog", { name: "Elétrico — Envasadora 04" })).toBeTruthy();

@@ -1,27 +1,42 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { mensagemDeErro } from "../services/api";
 import { NOME_DA_PRIORIDADE, NOME_DO_STATUS, dataHora, tituloDoChamado, useChamado } from "../services/chamados";
 
-// Detalhe do chamado com o histórico (abre pelo card ou pelo link da notificação).
-// Diálogo acessível: foco no título ao abrir, Esc ou "Fechar" para sair.
+// Detalhe do chamado com o histórico (abre pelo card ou pelo link da notificação). Diálogo
+// modal acessível: fica fora do layout (portal) e o layout vira `inert` enquanto ele está aberto
+// (o foco não escapa para o menu ou o sino); Esc ou "Fechar" saem e o foco volta para onde estava.
 export default function DetalheChamado({ id, onFechar }) {
   const chamado = useChamado(id);
+  const dialogo = useRef(null);
   const titulo = useRef(null);
 
   useEffect(() => {
-    const aoTeclar = (e) => e.key === "Escape" && onFechar();
-    document.addEventListener("keydown", aoTeclar);
-    return () => document.removeEventListener("keydown", aoTeclar);
-  }, [onFechar]);
+    const antes = document.activeElement;
+    const layout = document.querySelector(".layout");
+    layout?.setAttribute("inert", "");
+    dialogo.current?.focus();
+    return () => {
+      layout?.removeAttribute("inert");
+      if (antes instanceof HTMLElement && document.contains(antes)) antes.focus();
+    };
+  }, []);
 
   useEffect(() => {
     if (chamado.isSuccess) titulo.current?.focus();
   }, [chamado.isSuccess]);
 
+  const aoTeclar = (e) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      onFechar();
+    }
+  };
+
   const c = chamado.data;
-  return (
-    <div className="fundo-dialogo" onClick={(e) => e.target === e.currentTarget && onFechar()}>
-      <div className="card dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-detalhe-chamado">
+  return createPortal(
+    <div className="fundo-dialogo" onKeyDown={aoTeclar} onClick={(e) => e.target === e.currentTarget && onFechar()}>
+      <div className="card dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-detalhe-chamado" tabIndex={-1} ref={dialogo}>
         {chamado.isPending && <p className="tabela-vazia" id="titulo-detalhe-chamado">Carregando chamado...</p>}
         {chamado.isError && <div className="error-message" role="alert" id="titulo-detalhe-chamado">{mensagemDeErro(chamado.error)}</div>}
         {chamado.isSuccess && (
@@ -56,6 +71,7 @@ export default function DetalheChamado({ id, onFechar }) {
           <button type="button" className="btn-secundario" onClick={onFechar}>Fechar</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

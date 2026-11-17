@@ -226,7 +226,7 @@ export const CHAMADOS_DE_TESTE = [
 export const NOTIFICACOES_DE_TESTE = {
   naoLidas: 2,
   itens: [
-    { id: "n1", texto: "Seu chamado do Envasadora 04 foi finalizado por Eng Beltrano.", link: "/manutencao?chamado=c4", lida: false, criadaEm: "2026-11-17T14:50:00Z" },
+    { id: "n1", texto: "Seu chamado da máquina Envasadora 04 foi finalizado por Eng Beltrano.", link: "/manutencao?chamado=c4", lida: false, criadaEm: "2026-11-17T14:50:00Z" },
     { id: "n2", texto: "Chamado automático: Forno 02 — temperatura crítica (230,5 °C).", link: "/manutencao?chamado=c2", lida: false, criadaEm: "2026-11-17T14:05:00Z" },
     { id: "n3", texto: "Aviso antigo.", link: "/manutencao", lida: true, criadaEm: "2026-11-16T09:00:00Z" },
   ],

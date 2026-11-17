@@ -14,7 +14,9 @@ export function useNotificacoes(habilitado) {
   });
 }
 
-// O link vem do servidor; mesmo assim, só segue rotas internas do app.
+// O link vem do servidor; mesmo assim, só segue o que as notificações de fato geram (lista
+// permitida): "/\\evil.com" e afins viram o Report de Manutenção.
+const LINK_PERMITIDO = /^\/manutencao(\?chamado=[A-Za-z0-9]{1,64})?$/;
 export function linkSeguro(link) {
-  return typeof link === "string" && link.startsWith("/") && !link.startsWith("//") ? link : "/manutencao";
+  return typeof link === "string" && LINK_PERMITIDO.test(link) ? link : "/manutencao";
 }

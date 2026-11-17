@@ -73,16 +73,27 @@ describe("Report de Manutenção — ações", () => {
     expect(post).toHaveBeenCalledWith("/api/chamados/c1/assumir");
   });
 
-  it("se outro engenheiro assumiu antes, mostra o motivo", async () => {
+  it("se outro engenheiro assumiu antes, o aviso fica na tela mesmo com o card mudando de coluna", async () => {
     salvarSessao("ENGENHEIRO");
-    vi.spyOn(api, "post").mockRejectedValue({
-      response: { status: 409, data: { status: 409, erro: "Só um chamado aberto pode ser assumido; este está em andamento." } },
+    let outroAssumiu = false;
+    vi.spyOn(api, "post").mockImplementation(async () => {
+      outroAssumiu = true;
+      throw { response: { status: 409, data: { status: 409, erro: "Só um chamado aberto pode ser assumido; este está em andamento." } } };
+    });
+    const original = api.get.getMockImplementation();
+    vi.spyOn(api, "get").mockImplementation(async (url) => {
+      const resposta = await original(url);
+      if (outroAssumiu && url === "/api/chamados") {
+        resposta.data = resposta.data.map((c) => (c.id === "c1" ? { ...c, status: "EM_ANDAMENTO", responsavel: { nome: "Outro Eng" } } : c));
+      }
+      return resposta;
     });
     renderizarApp("/manutencao");
 
     await userEvent.click(within(await card("Abertos", "Mecânico — Forno 02")).getByRole("button", { name: "Assumir" }));
 
-    expect(await screen.findByText("Só um chamado aberto pode ser assumido; este está em andamento.")).toBeTruthy();
+    expect(await card("Em andamento", "Mecânico — Forno 02")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain("Só um chamado aberto pode ser assumido; este está em andamento.");
   });
 
   it("finalizar pede a solução", async () => {
@@ -129,6 +140,34 @@ describe("Report de Manutenção — ações", () => {
 
     await userEvent.click(within(detalhe).getByRole("button", { name: "Fechar" }));
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("o detalhe isola o resto da tela e devolve o foco ao fechar", async () => {
+    salvarSessao("OPERARIO");
+    renderizarApp("/manutencao");
+    const botao = within(await card("Em andamento", "Parada — Envasadora 04")).getByRole("button", { name: "Ver detalhes" });
+
+    await userEvent.click(botao);
+    await screen.findByRole("dialog", { name: "Parada — Envasadora 04" });
+    expect(document.querySelector(".layout").hasAttribute("inert")).toBe(true);
+
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.querySelector(".layout").hasAttribute("inert")).toBe(false);
+    expect(document.activeElement).toBe(botao);
+  });
+
+  it("o formulário recebe o foco ao abrir e devolve ao botão ao fechar", async () => {
+    salvarSessao("OPERARIO");
+    renderizarApp("/manutencao");
+    const abrir = await screen.findByRole("button", { name: "Abrir chamado" });
+
+    await userEvent.click(abrir);
+    expect(document.activeElement).toBe(screen.getByLabelText("Máquina do chamado"));
+    expect(abrir.getAttribute("aria-expanded")).toBe("true");
+
+    await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(document.activeElement).toBe(abrir);
   });
 
   it("o link da notificação abre o chamado direto", async () => {

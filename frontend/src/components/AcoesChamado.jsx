@@ -5,8 +5,9 @@ import { CHAVE_CHAMADOS } from "../services/chamados";
 
 // Botões do ENGENHEIRO no card: assumir (aberto), finalizar com a solução (em andamento) e
 // cancelar com o motivo (aberto ou em andamento). O backend recusa ações fora de ordem (409),
-// por exemplo se outro engenheiro assumiu antes: a mensagem aparece no card.
-export default function AcoesChamado({ chamado }) {
+// por exemplo se outro engenheiro assumiu antes. A mensagem vai para a tela (onErro), porque o
+// card pode mudar de coluna (e ser remontado) quando a lista é atualizada.
+export default function AcoesChamado({ chamado, onErro }) {
   const queryClient = useQueryClient();
   const id = useId();
   const [modo, setModo] = useState(null); // null | "finalizar" | "cancelar"
@@ -16,7 +17,11 @@ export default function AcoesChamado({ chamado }) {
     mutationFn: ({ caminho, corpo }) => (corpo
       ? api.post(`/api/chamados/${chamado.id}/${caminho}`, corpo)
       : api.post(`/api/chamados/${chamado.id}/${caminho}`)),
-    onSuccess: () => setModo(null),
+    onSuccess: () => {
+      setModo(null);
+      onErro(null);
+    },
+    onError: (erro) => onErro(mensagemDeErro(erro)),
     onSettled: () => queryClient.invalidateQueries({ queryKey: CHAVE_CHAMADOS }),
   });
 
@@ -42,7 +47,6 @@ export default function AcoesChamado({ chamado }) {
 
   return (
     <div className="acoes-chamado">
-      {acao.isError && <div className="error-message" role="alert">{mensagemDeErro(acao.error)}</div>}
       {modo ? (
         <div className="acoes-chamado-texto">
           <label htmlFor={`${id}-texto`}>{modo === "finalizar" ? "Solução" : "Motivo do cancelamento"}</label>

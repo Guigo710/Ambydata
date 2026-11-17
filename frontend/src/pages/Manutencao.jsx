@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/contexto";
 import AcoesChamado from "../components/AcoesChamado";
@@ -16,7 +16,7 @@ const COLUNAS = [
   ["finalizados", "Finalizados"],
 ];
 
-function Coluna({ titulo, chamados, podeAgir, onVer }) {
+function Coluna({ titulo, chamados, podeAgir, onVer, onErro }) {
   return (
     <section className="coluna-kanban" aria-label={titulo}>
       <h2 className="coluna-kanban-titulo">
@@ -29,7 +29,7 @@ function Coluna({ titulo, chamados, podeAgir, onVer }) {
             <div className="cartao-chamado-rodape">
               <button type="button" className="btn-link" onClick={() => onVer(c.id)}>Ver detalhes</button>
             </div>
-            {podeAgir && <AcoesChamado chamado={c} />}
+            {podeAgir && <AcoesChamado chamado={c} onErro={onErro} />}
           </CartaoChamado>
         ))}
     </section>
@@ -46,16 +46,24 @@ export default function Manutencao() {
   const [parametros, setParametros] = useSearchParams();
   const [formAberto, setFormAberto] = useState(false);
   const [aviso, setAviso] = useState(null);
+  const [erroAcao, setErroAcao] = useState(null);
+  const botaoAbrir = useRef(null);
+  const colunas = useMemo(() => (chamados.data ? colunasDoKanban(chamados.data) : null), [chamados.data]);
   const podeAbrir = perfil === "OPERARIO" || perfil === "ENGENHEIRO";
   const podeAgir = perfil === "ENGENHEIRO";
   const detalhe = parametros.get("chamado");
 
+  // Abrir entra no histórico do navegador; fechar substitui (o Voltar não reabre o detalhe).
   const verDetalhe = useCallback((id) => setParametros((atuais) => {
     const novos = new URLSearchParams(atuais);
     if (id) novos.set("chamado", id);
     else novos.delete("chamado");
     return novos;
-  }), [setParametros]);
+  }, { replace: !id }), [setParametros]);
+  const fecharForm = () => {
+    setFormAberto(false);
+    botaoAbrir.current?.focus();
+  };
   const fecharDetalhe = useCallback(() => verDetalhe(null), [verDetalhe]);
 
   return (
@@ -66,25 +74,27 @@ export default function Manutencao() {
           <p className="page-greeting">Chamados abertos, em andamento e finalizados nos últimos 7 dias</p>
         </div>
         <div className="cabecalho-acoes">
-          {podeAbrir && !formAberto && (
-            <button type="button" className="btn-primario" onClick={() => { setAviso(null); setFormAberto(true); }}>Abrir chamado</button>
+          {podeAbrir && (
+            <button type="button" ref={botaoAbrir} className="btn-primario" aria-expanded={formAberto} aria-controls="form-chamado"
+              onClick={() => { setAviso(null); setFormAberto(true); }}>Abrir chamado</button>
           )}
           <SeletorMaquina selecao={selecao} permitirTodas />
         </div>
       </div>
 
       {aviso && <div className="success-message" role="status">{aviso}</div>}
+      {erroAcao && <div className="error-message" role="alert">{erroAcao}</div>}
       {formAberto && (
-        <FormChamado maquinas={selecao.maquinas} maquinaInicial={selecao.maquina?.id} onFechar={() => setFormAberto(false)}
-          onAberto={() => { setFormAberto(false); setAviso("Chamado aberto."); }} />
+        <FormChamado maquinas={selecao.maquinas} maquinaInicial={selecao.maquina?.id} onFechar={fecharForm}
+          onAberto={() => { fecharForm(); setAviso("Chamado aberto."); }} />
       )}
 
       {chamados.isPending && <p className="tabela-vazia">Carregando chamados...</p>}
       {chamados.isError && <div className="error-message" role="alert">{mensagemDeErro(chamados.error)}</div>}
-      {chamados.isSuccess && (
+      {colunas && (
         <div className="kanban">
           {COLUNAS.map(([chave, titulo]) => (
-            <Coluna key={chave} titulo={titulo} chamados={colunasDoKanban(chamados.data)[chave]} podeAgir={podeAgir} onVer={verDetalhe} />
+            <Coluna key={chave} titulo={titulo} chamados={colunas[chave]} podeAgir={podeAgir} onVer={verDetalhe} onErro={setErroAcao} />
           ))}
         </div>
       )}

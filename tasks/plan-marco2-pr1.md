@@ -32,11 +32,11 @@ ao lado do título das telas de produção.
 - [x] Task 4: `POST /api/leituras` com `X-Device-Key` (S)
 
 ### Checkpoint: Backend
-- [ ] `./mvnw verify` verde; leituras aparecendo no Mongo local a cada 10 s
+- [x] `./mvnw verify` verde; leituras aparecendo no Mongo local a cada 10 s
 
 ### Phase 2: Frontend
-- [ ] Task 5: Serviço de máquinas, `SeletorMaquina` e rotas/menu das telas de produção (M)
-- [ ] Task 6: Tela Máquinas (lista e formulário com parâmetros e alertas) (M)
+- [x] Task 5: Serviço de máquinas, `SeletorMaquina` e rotas/menu das telas de produção (M)
+- [x] Task 6: Tela Máquinas (lista e formulário com parâmetros e alertas) (M)
 
 ### Phase 3: Fechamento
 - [ ] Task 7: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)

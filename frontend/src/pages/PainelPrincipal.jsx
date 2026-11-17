@@ -1,4 +1,7 @@
 import { useAuth } from "../auth/contexto";
+import CartaoMaquina from "../components/CartaoMaquina";
+import SeletorMaquina from "../components/SeletorMaquina";
+import { useMaquinaSelecionada } from "../services/maquinas";
 import {
   RadarChart,
   Radar,
@@ -75,13 +78,19 @@ const tooltipStyle = {
 
 export default function PainelPrincipal() {
   const { usuario } = useAuth();
+  const selecao = useMaquinaSelecionada({ permitirTodas: true });
 
   return (
     <>
-      <div className="page-header">
-        <h1 className="page-title">Painel Principal</h1>
-        <p className="page-greeting">Olá {usuario?.nome || "Usuário"}</p>
+      <div className="page-header cabecalho-com-seletor">
+        <div>
+          <h1 className="page-title">Painel Principal</h1>
+          <p className="page-greeting">Olá {usuario?.nome || "Usuário"}</p>
+        </div>
+        <SeletorMaquina selecao={selecao} permitirTodas />
       </div>
+
+      <CartaoMaquina maquina={selecao.maquina} />
 
       <div className="charts-grid">
         {/* Status da Máquina (Estático) */}

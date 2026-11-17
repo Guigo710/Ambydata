@@ -15,8 +15,10 @@ const PRODUCAO = ["OPERARIO", "ENGENHEIRO", "DIRETOR"];
 
 // Em ordem de exibição no menu.
 export const TELAS = [
-  { rota: "/painel", titulo: "Painel principal", perfis: PRODUCAO },
-  { rota: "/status-maquina", titulo: "Status da Máquina", perfis: PRODUCAO },
+  // comMaquina: a tela tem o seletor de máquina, e o menu leva a escolha (?maquina=) junto.
+  { rota: "/painel", titulo: "Painel principal", perfis: PRODUCAO, comMaquina: true },
+  { rota: "/status-maquina", titulo: "Status da Máquina", perfis: PRODUCAO, comMaquina: true },
+  { rota: "/maquinas", titulo: "Máquinas", perfis: ["ENGENHEIRO", "DIRETOR"] },
   { rota: "/usuarios", titulo: "Usuários", perfis: ["ADMIN"] },
   { rota: "/meu-perfil", titulo: "Meu perfil", perfis: PERFIS },
 ];

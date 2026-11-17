@@ -109,6 +109,21 @@ vite.config.js
   O ENGENHEIRO cria, edita e desativa, vendo na hora o limite crítico que os números geram;
   o DIRETOR só consulta.
 
+## Indicadores
+
+| Tela | O que mostra | Perfis |
+|---|---|---|
+| Painel principal | "Todas as máquinas": um card por máquina, por linha (status, temperatura, OEE da hora); uma máquina: o resumo dela | Operário, Engenheiro, Diretor |
+| Status da Máquina | Status, temperatura × faixa com aviso, peças, paradas e gráfico de 2 h com faixa e limite crítico | Operário, Engenheiro, Diretor |
+| OEE | Última hora ou turno, D × P × Q com a conta; MTBF e tempo parado para Engenheiro e Diretor; 24 h hora a hora | Operário, Engenheiro, Diretor |
+| Produtividade | Peças por hora, boas × defeituosas, 24 h, e comparativo por linha, setor ou máquina | Operário, Engenheiro, Diretor |
+| Energia | Consumo, energia injetada, encargos e custo líquido por máquina, linha e fábrica; tarifas (Engenheiro edita) | Engenheiro, Diretor |
+| Custos e Lucros | Custo, receita e lucro por máquina, linha e fábrica | Diretor |
+
+Todas têm o bloco "Sobre estes dados" (máquina, fonte, frequência, última leitura ou período e as
+fórmulas). As telas ao vivo buscam os dados de novo a cada 10 s; histórico, comparativos, custos e
+energia, a cada minuto. As consultas ficam em `services/indicadores.js`.
+
 ## Deploy
 
 Configurado via `vercel.json` para deploy no Vercel.
@@ -118,7 +133,7 @@ Configurado via `vercel.json` para deploy no Vercel.
 - [x] Autenticação real de sessão (token JWT, alinhado com o backend)
 - [x] Testes automatizados (Vitest + Testing Library)
 - [x] Cadastro de máquinas e seletor de máquina nas telas de produção
-- [ ] Indicadores reais (OEE, produtividade, custos) no lugar dos números fixos
+- [x] Indicadores reais (OEE, produtividade, custos e energia) no lugar dos números fixos
 - [ ] Report de manutenção em kanban
 - [ ] Dark mode
 - [x] CI (lint, testes e build em pull requests) — `.github/workflows/ci.yml` na raiz

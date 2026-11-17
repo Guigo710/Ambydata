@@ -140,7 +140,8 @@ O backend atual usa **MongoDB**, não MySQL nem JPA.
 - URI: variável de ambiente `MONGODB_URI`
 - Banco: variável `MONGODB_DATABASE` (padrão `ambydata_dev`; no deploy, `ambydata_prod`)
 - Coleções: `usuario`, `maquina` (6 máquinas iniciais em 2 linhas, criadas pela migração
-  `M002`), `leitura` (uma por máquina a cada 10 s, apagadas sozinhas após 48 h) e `migracao`
+  `M002`), `leitura` (uma por máquina a cada 10 s, apagadas sozinhas após 48 h),
+  `indicador_hora` (totais por máquina e hora, 90 dias), `configuracao_energia` e `migracao`
 
 ## Endpoints implementados
 
@@ -165,6 +166,15 @@ O contrato também está descrito em [`SPEC-identity.md`](../SPEC-identity.md#co
 | PUT | `/api/maquinas/{id}` | ENGENHEIRO | Edita a máquina |
 | PATCH | `/api/maquinas/{id}/ativa` | ENGENHEIRO | Ativa ou desativa `{ ativa }` |
 | POST | `/api/leituras` | dispositivo (`X-Device-Key`) | Leitura de um sensor real; 201 |
+| GET | `/api/indicadores/resumo` | OPERARIO, ENGENHEIRO, DIRETOR | Cada máquina ativa: última leitura (status, temperatura, situação NORMAL/ALERTA/CRITICO) e indicadores dos últimos 60 min |
+| GET | `/api/indicadores/maquinas/{id}/agora` | OPERARIO, ENGENHEIRO, DIRETOR | Última leitura, última hora e turno atual (ou o último) |
+| GET | `/api/indicadores/leituras/{id}?minutos=120` | OPERARIO, ENGENHEIRO, DIRETOR | Pontos do gráfico de temperatura (1 a 360 min) |
+| GET | `/api/indicadores/maquinas/{id}/historico?horas=24` | OPERARIO, ENGENHEIRO, DIRETOR | Horas fechadas (1 a 168), lacunas como `semDados`, e o total |
+| GET | `/api/indicadores/comparativo?periodo=24h\|7d&por=setor\|linha\|maquina` | OPERARIO, ENGENHEIRO, DIRETOR | Totais e indicadores por grupo |
+| GET | `/api/indicadores/financeiro?periodo=24h\|7d` | DIRETOR | Custo, receita e lucro por máquina, linha e total |
+| GET | `/api/indicadores/energia?periodo=24h\|7d` | ENGENHEIRO, DIRETOR | Consumo, energia injetada e custo líquido por máquina, linha e fábrica |
+| GET | `/api/energia/tarifas` | ENGENHEIRO, DIRETOR | Tarifas de energia da fábrica |
+| PUT | `/api/energia/tarifas` | ENGENHEIRO | Altera `{ tarifaCheia, tarifaCompensavel, demandaContratadaKw, tarifaDemanda }` |
 
 Regras da gestão: e-mail único (400), o ADMIN não desativa a si mesmo e o sistema nunca fica
 sem um ADMIN ativo (409).
@@ -206,10 +216,25 @@ seja, o mesmo instante gera sempre a mesma leitura. Por isso preencher uma lacun
 servidor dormir dá o mesmo resultado que teria sido gravado na hora, sem duplicar. Uma máquina
 que recebeu leitura de dispositivo nos últimos 5 minutos não é simulada.
 
-## Métricas
+## Indicadores
 
-Os indicadores (OEE, produtividade, custos) chegam com o módulo `indicadores` (ver
-[`SPEC-indicadores.md`](../SPEC-indicadores.md)).
+Fórmulas e telas em [`SPEC-indicadores.md`](../SPEC-indicadores.md). Como funcionam:
+
+- **Agregados por hora** (`indicador_hora`, apagados após 90 dias): a cada hora fechada o backend
+  grava os totais de cada máquina (tempo planejado, operando e parado, paradas, peças, temperatura).
+  Na subida, preenche os últimos 7 dias que faltarem: hora com leitura de dispositivo usa as leituras
+  gravadas; sem dispositivo, o gerador recalcula a hora (dá o mesmo que teria sido gravado, mesmo com
+  o Render dormindo); com o simulador desligado, a hora fica como lacuna.
+- **Agora** (última hora e turno): última hora sai das leituras brutas; o turno soma os agregados das
+  horas fechadas com as leituras da hora corrente. Fora do turno, vale o último turno completo.
+- Só conta tempo dentro do turno planejado. Uma parada que atravessa a virada da hora conta uma vez.
+- **Energia** (informativa, não entra no lucro): consumo = potência × tempo operando; energia injetada
+  = potência regenerada × tempo operando × % de regeneração; custo líquido = entrada − injetado +
+  encargos de demanda (só no total da fábrica). Tarifas em `configuracao_energia`, ajustadas pelo
+  ENGENHEIRO.
+
+Migrações: `001` perfis e índices, `002` as 6 máquinas iniciais, `003` energia das máquinas iniciais e
+tarifas padrão (não sobrescreve o que já foi ajustado).
 
 ## Estrutura do projeto
 
@@ -221,6 +246,8 @@ src/
       usuario/      # Usuario, Perfil, repositório e regras
       maquina/      # Máquinas, faixa de temperatura, limites de alerta e turno
       simulacao/    # Gerador de leituras, agendamento e ingestão de dispositivos
+      indicadores/  # Cálculos, agregados por hora e a API /api/indicadores
+      energia/      # Custo de energia e tarifas da fábrica
       config/       # Segurança, CORS, erros padrão, PasswordEncoder, usuários iniciais
       migracao/     # Migrações versionadas do banco (coleção migracao)
     resources/
@@ -240,7 +267,7 @@ mvnw.cmd
 - [x] Documentar a API com OpenAPI/Swagger
 - [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
 - [x] Cadastro de máquinas e leituras simuladas
-- [ ] Indicadores: OEE, produtividade e custos por máquina
+- [x] Indicadores: OEE, produtividade, custos e energia por máquina
 - [ ] Chamados de manutenção em kanban, com abertura automática nos alertas críticos
 
 ## Licença

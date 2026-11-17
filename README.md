@@ -86,6 +86,8 @@ Directory `frontend`); os dois publicam a partir da `main`.
 | Render | `ADMIN_EMAIL`, `ADMIN_SENHA`, `ADMIN_NOME` | primeiro ADMIN; remova `ADMIN_SENHA` depois da primeira subida |
 | Render | `DEMO_SENHA` | opcional: usuários de demonstração; use uma senha forte |
 | Render | `JWT_EXPIRACAO_HORAS` | opcional, padrão 8 |
+| Render | `SIMULADOR_ATIVO` | opcional, padrão `true`: gera leituras simuladas das máquinas |
+| Render | `DEVICE_KEY` | opcional: chave do ESP32 para `POST /api/leituras` (`openssl rand -base64 32`) |
 | Vercel | `VITE_API_URL` | URL do backend no Render, sem barra no final |
 
 ## Como trabalhamos

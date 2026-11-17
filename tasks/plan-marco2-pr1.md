@@ -39,7 +39,7 @@ ao lado do título das telas de produção.
 - [x] Task 6: Tela Máquinas (lista e formulário com parâmetros e alertas) (M)
 
 ### Phase 3: Fechamento
-- [ ] Task 7: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)
+- [x] Task 7: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)
 
 ## Risks and Mitigations
 

@@ -20,6 +20,7 @@ export const TELAS = [
   { rota: "/status-maquina", titulo: "Status da Máquina", perfis: PRODUCAO, comMaquina: true },
   { rota: "/oee", titulo: "OEE", perfis: PRODUCAO, comMaquina: true },
   { rota: "/produtividade", titulo: "Produtividade", perfis: PRODUCAO, comMaquina: true },
+  { rota: "/energia", titulo: "Energia", perfis: ["ENGENHEIRO", "DIRETOR"] },
   { rota: "/custos", titulo: "Custos e Lucros", perfis: ["DIRETOR"] },
   { rota: "/maquinas", titulo: "Máquinas", perfis: ["ENGENHEIRO", "DIRETOR"] },
   { rota: "/usuarios", titulo: "Usuários", perfis: ["ADMIN"] },

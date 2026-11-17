@@ -1208,3 +1208,14 @@ body,
 .valor-positivo { color: #23704d; font-weight: 700; }
 .valor-negativo { color: #b0125c; font-weight: 700; }
 .espaco-acima { margin-top: 20px; }
+
+/* Energia */
+.stats-row-5 { grid-template-columns: repeat(5, 1fr); }
+.valor-destaque { font-weight: 700; color: var(--text-primary); }
+.tabela-aviso { color: #9a4f00; font-weight: 600; }
+.form-tarifas { margin-top: 8px; }
+@media (max-width: 1100px) {
+  .stats-row-5 { grid-template-columns: repeat(3, 1fr); }
+}
+.stats-row-5 .stat-value { font-size: 22px; white-space: nowrap; }
+.stats-row-5 .stat-destaque .stat-value { font-size: 24px; }

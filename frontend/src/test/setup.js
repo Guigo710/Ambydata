@@ -14,12 +14,14 @@ export const MAQUINAS_DE_TESTE = [
     faixaTemperatura: { min: 160, max: 200 }, alertas: { percentualCritico: 50, minutosParadoMax: 15, taxaDefeitosMax: 8 },
     limiteCritico: { min: 140, max: 220 }, custoHora: 150, valorPorPeca: 2.2,
     turnoPlanejado: { inicio: "06:00", fim: "22:00" }, ativa: true,
+    energia: { potenciaKw: 45, potenciaRegeneradaKw: 0, percentualRegeneracao: 0 },
   },
   {
     id: "m2", nome: "Envasadora 04", tipo: "ENVASADORA", setor: "Envase", linha: "Linha B", cadenciaIdeal: 60,
     faixaTemperatura: { min: 18, max: 30 }, alertas: { percentualCritico: 50, minutosParadoMax: 15, taxaDefeitosMax: 8 },
     limiteCritico: { min: 12, max: 36 }, custoHora: 120, valorPorPeca: 2.5,
     turnoPlanejado: { inicio: "06:00", fim: "22:00" }, ativa: true,
+    energia: { potenciaKw: 11, potenciaRegeneradaKw: 3, percentualRegeneracao: 15 },
   },
 ];
 
@@ -150,6 +152,39 @@ export function financeiroDeTeste(periodo) {
   };
 }
 
+// Energia de 24 h: forno 45 kW × 15 h (sem regeneração); envasadora 11 kW × 12 h, regenerando
+// 3 kW em 15% do tempo (1,8 h). Tarifas R$ 0,85 / R$ 0,55; demanda 150 kW × R$ 40 → R$ 200 no dia.
+export const TARIFAS_DE_TESTE = {
+  id: "fabrica", tarifaCheia: 0.85, tarifaCompensavel: 0.55, demandaContratadaKw: 150, tarifaDemanda: 40,
+  atualizadoEm: "2026-11-17T12:00:00Z", atualizadoPor: "Fulano ENGENHEIRO",
+};
+export function energiaDeTeste(periodo) {
+  const balanco = (potenciaKw, horasOperando, potenciaRegeneradaKw, horasRegeneracao) => {
+    const consumoKwh = potenciaKw * horasOperando;
+    const energiaInjetadaKwh = potenciaRegeneradaKw * horasRegeneracao;
+    const custoEntrada = consumoKwh * 0.85;
+    const valorInjetado = energiaInjetadaKwh * 0.55;
+    return { potenciaKw, horasOperando, consumoKwh, custoEntrada, potenciaRegeneradaKw, horasRegeneracao,
+      energiaInjetadaKwh, valorInjetado, custoLiquido: custoEntrada - valorInjetado };
+  };
+  const forno = balanco(45, 15, 0, 0);
+  const envasadora = balanco(11, 12, 3, 1.8);
+  const soma = (bs) => ["consumoKwh", "custoEntrada", "energiaInjetadaKwh", "valorInjetado", "custoLiquido"]
+    .reduce((acc, k) => ({ ...acc, [k]: bs.reduce((t, b) => t + b[k], 0) }), {});
+  const horas = periodo === "7d" ? 168 : 24;
+  const encargos = (150 * 40 * horas) / 720;
+  return {
+    periodo, inicio: "2026-11-16T15:00:00Z", fim: "2026-11-17T15:00:00Z", tarifas: TARIFAS_DE_TESTE,
+    maquinas: [
+      { id: "m1", nome: "Forno 02", setor: "Cozimento", linha: "Linha A", semParametros: false, energia: MAQUINAS_DE_TESTE[0].energia, balanco: forno },
+      { id: "m2", nome: "Envasadora 04", setor: "Envase", linha: "Linha B", semParametros: false, energia: MAQUINAS_DE_TESTE[1].energia, balanco: envasadora },
+    ],
+    linhas: [{ linha: "Linha A", soma: soma([forno]) }, { linha: "Linha B", soma: soma([envasadora]) }],
+    total: { maquinas: soma([forno, envasadora]), horasPeriodo: horas, encargosDemanda: encargos,
+      custoLiquido: soma([forno, envasadora]).custoLiquido + encargos },
+  };
+}
+
 beforeEach(() => {
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
@@ -176,6 +211,10 @@ beforeEach(() => {
     const financeiro = url.match(/^\/api\/indicadores\/financeiro\?periodo=(24h|7d)$/);
     if (financeiro) {
       return { data: financeiroDeTeste(financeiro[1]) };
+    }
+    const energia = url.match(/^\/api\/indicadores\/energia\?periodo=(24h|7d)$/);
+    if (energia) {
+      return { data: energiaDeTeste(energia[1]) };
     }
     const agora = url.match(/^\/api\/indicadores\/maquinas\/([^/]+)\/agora$/);
     if (agora) {

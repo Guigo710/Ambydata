@@ -7,6 +7,7 @@ const ESPERADO = {
   "/status-maquina": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
   "/oee": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
   "/produtividade": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
+  "/energia": ["ENGENHEIRO", "DIRETOR"],
   "/custos": ["DIRETOR"],
   "/usuarios": ["ADMIN"],
   "/maquinas": ["ENGENHEIRO", "DIRETOR"],
@@ -40,9 +41,9 @@ describe("matriz de permissões", () => {
     expect(telasDoMenu("OPERARIO").map((t) => t.rota))
       .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/meu-perfil"]);
     expect(telasDoMenu("ENGENHEIRO").map((t) => t.rota))
-      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/maquinas", "/meu-perfil"]);
+      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/energia", "/maquinas", "/meu-perfil"]);
     expect(telasDoMenu("DIRETOR").map((t) => t.rota))
-      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/custos", "/maquinas", "/meu-perfil"]);
+      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/energia", "/custos", "/maquinas", "/meu-perfil"]);
   });
 
   it("tela inicial: ADMIN vai para Usuários e os demais para o Painel", () => {

@@ -29,6 +29,11 @@ const ICONES = {
       <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
     </>
   ),
+  "/energia": (
+    <>
+      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
+    </>
+  ),
   "/custos": (
     <>
       <path d="M12 2v20" />

@@ -5,8 +5,8 @@ import { renderizarApp, salvarSessao } from "../test/utils";
 
 const MENU_ESPERADO = {
   OPERARIO: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Meu perfil"],
-  ENGENHEIRO: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Máquinas", "Meu perfil"],
-  DIRETOR: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Custos e Lucros", "Máquinas", "Meu perfil"],
+  ENGENHEIRO: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Energia", "Máquinas", "Meu perfil"],
+  DIRETOR: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Energia", "Custos e Lucros", "Máquinas", "Meu perfil"],
   ADMIN: ["Usuários", "Meu perfil"],
 };
 

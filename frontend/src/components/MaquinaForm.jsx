@@ -12,12 +12,15 @@ const NUMERICOS = {
   percentualCritico: { rotulo: "Crítico além da faixa (%)", api: "alertas.percentualCritico", min: 1, max: 500, inteiro: true },
   minutosParadoMax: { rotulo: "Parada crítica após (min)", api: "alertas.minutosParadoMax", min: 1, max: 480, inteiro: true },
   taxaDefeitosMax: { rotulo: "Defeitos críticos acima de (%)", api: "alertas.taxaDefeitosMax", min: 0.1, max: 100 },
+  potenciaKw: { rotulo: "Potência ativa (kW)", api: "energia.potenciaKw", min: 0.1, max: 10000 },
+  potenciaRegeneradaKw: { rotulo: "Potência regenerada (kW)", api: "energia.potenciaRegeneradaKw", min: 0, max: 10000 },
+  percentualRegeneracao: { rotulo: "Regeneração (% do tempo operando)", api: "energia.percentualRegeneracao", min: 0, max: 100, inteiro: true },
 };
 
 // Rótulo de cada campo que o backend pode recusar (chave de `campos` na resposta de erro).
 const ROTULOS_DA_API = {
   nome: "Nome", tipo: "Tipo", setor: "Setor", linha: "Linha",
-  faixaTemperatura: "Faixa de temperatura",
+  faixaTemperatura: "Faixa de temperatura", energia: "Energia",
   turnoPlanejado: "Turno", "turnoPlanejado.inicio": "Início do turno", "turnoPlanejado.fim": "Fim do turno",
   ...Object.fromEntries(Object.values(NUMERICOS).map((c) => [c.api, c.rotulo])),
 };
@@ -26,6 +29,7 @@ const PADRAO = {
   nome: "", tipo: "OUTRA", setor: "", linha: "", cadenciaIdeal: "60",
   tempMin: "", tempMax: "", percentualCritico: "50", minutosParadoMax: "15", taxaDefeitosMax: "8",
   custoHora: "100", valorPorPeca: "2", turnoInicio: "06:00", turnoFim: "22:00",
+  potenciaKw: "", potenciaRegeneradaKw: "0", percentualRegeneracao: "0",
 };
 
 function camposDe(maquina) {
@@ -39,6 +43,9 @@ function camposDe(maquina) {
     taxaDefeitosMax: String(maquina.alertas.taxaDefeitosMax),
     custoHora: String(maquina.custoHora), valorPorPeca: String(maquina.valorPorPeca),
     turnoInicio: maquina.turnoPlanejado.inicio, turnoFim: maquina.turnoPlanejado.fim,
+    potenciaKw: maquina.energia ? String(maquina.energia.potenciaKw) : "",
+    potenciaRegeneradaKw: maquina.energia ? String(maquina.energia.potenciaRegeneradaKw) : "0",
+    percentualRegeneracao: maquina.energia ? String(maquina.energia.percentualRegeneracao) : "0",
   };
 }
 
@@ -64,6 +71,10 @@ function validar(campos, valores) {
   }
   if (Number.isFinite(valores.tempMin) && Number.isFinite(valores.tempMax) && valores.tempMin >= valores.tempMax) {
     problemas.push("A temperatura mínima precisa ser menor que a máxima.");
+  }
+  if (Number.isFinite(valores.potenciaKw) && Number.isFinite(valores.potenciaRegeneradaKw)
+    && valores.potenciaRegeneradaKw > valores.potenciaKw) {
+    problemas.push("A potência regenerada não pode passar da potência ativa.");
   }
   if (campos.turnoInicio === campos.turnoFim) {
     problemas.push("O início e o fim do turno precisam ser diferentes.");
@@ -111,6 +122,11 @@ export default function MaquinaForm({ maquina, pendente, erro, onEnviar, onCance
       },
       custoHora: valores.custoHora, valorPorPeca: valores.valorPorPeca,
       turnoPlanejado: { inicio: campos.turnoInicio, fim: campos.turnoFim },
+      energia: {
+        potenciaKw: valores.potenciaKw,
+        potenciaRegeneradaKw: valores.potenciaRegeneradaKw,
+        percentualRegeneracao: valores.percentualRegeneracao,
+      },
     });
   };
 
@@ -178,6 +194,17 @@ export default function MaquinaForm({ maquina, pendente, erro, onEnviar, onCance
               : "Informe a faixa de temperatura para ver o limite crítico."}
           </strong>
           <span> Fora da faixa é alerta; além do limite crítico, a máquina abre um chamado sozinha.</span>
+        </p>
+
+        <h3 className="form-secao">Energia</h3>
+        <div className="form-colunas">
+          {numerico("maquina-potencia", "potenciaKw")}
+          {numerico("maquina-potencia-regenerada", "potenciaRegeneradaKw")}
+          {numerico("maquina-regeneracao", "percentualRegeneracao", { inputMode: "numeric" })}
+        </div>
+        <p className="form-ajuda">
+          Consumo = potência ativa × tempo operando. Com frenagem regenerativa, a máquina devolve à rede a
+          potência regenerada durante o percentual do tempo operando informado (0 = não regenera).
         </p>
 
         <div className="form-acoes">

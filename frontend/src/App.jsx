@@ -5,6 +5,7 @@ import RotaProtegida from "./auth/RotaProtegida";
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 import Custos from "./pages/Custos";
+import Energia from "./pages/Energia";
 import Login from "./pages/Login";
 import Maquinas from "./pages/Maquinas";
 import MeuPerfil from "./pages/MeuPerfil";
@@ -45,6 +46,7 @@ export function AppRoutes() {
         <Route path="/status-maquina" element={<StatusMaquina />} />
         <Route path="/oee" element={<OEE />} />
         <Route path="/produtividade" element={<Produtividade />} />
+        <Route path="/energia" element={<Energia />} />
         <Route path="/custos" element={<Custos />} />
         <Route path="/maquinas" element={<Maquinas />} />
         <Route path="/usuarios" element={<Usuarios />} />

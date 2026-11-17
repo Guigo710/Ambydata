@@ -53,6 +53,14 @@ export function useComparativo(periodo, por) {
   });
 }
 
+export function useEnergia(periodo) {
+  return useQuery({
+    queryKey: ["indicadores", "energia", periodo],
+    queryFn: () => buscar(`/api/indicadores/energia?periodo=${periodo}`),
+    refetchInterval: INTERVALO_HISTORICO,
+  });
+}
+
 export function useFinanceiro(periodo) {
   return useQuery({
     queryKey: ["indicadores", "financeiro", periodo],
@@ -71,6 +79,12 @@ export const FORMULAS = {
   downtime: "Downtime = minutos parados no turno",
   lucro: "Lucro = peças boas × valor por peça − custo-hora × horas do turno",
   pecasPorHora: "Peças por hora = peças produzidas ÷ horas planejadas",
+  consumo: "Consumo (kWh) = potência ativa (kW) × tempo operando (h)",
+  custoEntrada: "Custo de entrada = consumo (kWh) × tarifa cheia (TE + TUSD)",
+  energiaInjetada: "Energia injetada (kWh) = potência regenerada (kW) × tempo de regeneração (h)",
+  valorInjetado: "Valor injetado = energia injetada (kWh) × tarifa compensável",
+  encargos: "Encargos/demanda = demanda contratada (kW) × tarifa de demanda × horas do período ÷ 720",
+  custoLiquido: "Custo líquido = custo de entrada − valor injetado + encargos/demanda",
   limiteCritico: "Limite crítico = faixa permitida aumentada, para cada lado, no percentual crítico da largura dela",
 };
 
@@ -96,6 +110,15 @@ export function tempoDesde(instante, agora = Date.now()) {
 // "R$ 51.926,80".
 export function dinheiro(valor) {
   return `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+const decimal = (valor, casas = 1) => valor.toLocaleString("pt-BR", { maximumFractionDigits: casas });
+export const kwh = (valor) => `${decimal(valor)} kWh`;
+export const kw = (valor) => `${decimal(valor)} kW`;
+export const horas = (valor) => `${decimal(valor)} h`;
+// Tarifas têm até 4 casas ("R$ 0,8523").
+export function tarifa(valor) {
+  return `R$ ${valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`;
 }
 
 // "16/11 15:00 a 17/11 15:00", no fuso do navegador.

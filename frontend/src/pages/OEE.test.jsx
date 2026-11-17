@@ -50,6 +50,31 @@ describe("OEE em tempo real", () => {
     }
   });
 
+  it("ENGENHEIRO e DIRETOR veem o MTTR dos chamados da máquina", async () => {
+    salvarSessao("DIRETOR");
+    renderizarApp("/oee?maquina=m1");
+
+    const c = await screen.findByRole("region", { name: "Confiabilidade" });
+    expect(await within(c).findByText("1 h")).toBeTruthy();
+    expect(within(c).getByText("2 chamados finalizados nos últimos 7 dias")).toBeTruthy();
+    expect(api.get).toHaveBeenCalledWith("/api/chamados/mttr?maquinaId=m1&dias=7");
+  });
+
+  it("sem chamados finalizados, o MTTR fica em branco", async () => {
+    salvarSessao("ENGENHEIRO");
+    renderizarApp("/oee?maquina=m2");
+
+    const c = await screen.findByRole("region", { name: "Confiabilidade" });
+    expect(await within(c).findByText("Nenhum chamado finalizado nos últimos 7 dias")).toBeTruthy();
+  });
+
+  it("OPERARIO não busca o MTTR", async () => {
+    salvarSessao("OPERARIO");
+    renderizarApp("/oee?maquina=m1");
+    await screen.findByRole("region", { name: "Decomposição do OEE" });
+    expect(api.get).not.toHaveBeenCalledWith(expect.stringContaining("/api/chamados/mttr"));
+  });
+
   it("gráfico das últimas 24 h descrito em texto, contando as horas sem dados", async () => {
     salvarSessao("OPERARIO");
     renderizarApp("/oee?maquina=m1");

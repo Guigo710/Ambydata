@@ -21,6 +21,16 @@ export function useChamado(id) {
   });
 }
 
+// MTTR da máquina nos últimos 7 dias (só ENGENHEIRO e DIRETOR; o backend recusa os outros).
+export function useMttr(maquinaId, habilitado) {
+  return useQuery({
+    queryKey: [...CHAVE_CHAMADOS, "mttr", maquinaId],
+    queryFn: () => api.get(`/api/chamados/mttr?maquinaId=${encodeURIComponent(maquinaId)}&dias=7`).then((r) => r.data),
+    enabled: Boolean(maquinaId) && habilitado,
+    refetchInterval: 60_000,
+  });
+}
+
 export const NOME_DO_STATUS = { ABERTO: "Aberto", EM_ANDAMENTO: "Em andamento", FINALIZADO: "Finalizado", CANCELADO: "Cancelado" };
 
 export const NOME_DO_TIPO = {

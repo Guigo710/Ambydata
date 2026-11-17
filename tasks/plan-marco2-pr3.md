@@ -53,7 +53,7 @@ chamado sozinha. O OEE ganha o MTTR para ENGENHEIRO e DIRETOR.
 - [x] Task 5: Serviço de chamados, rota e menu "Report de Manutenção", kanban com os cards (M)
 - [x] Task 6: Abrir chamado; assumir, finalizar e cancelar (engenheiro); detalhe com histórico (M)
 - [x] Task 7: Sino de notificações na barra superior (S)
-- [ ] Task 8: MTTR na tela de OEE para ENGENHEIRO e DIRETOR (S)
+- [x] Task 8: MTTR na tela de OEE para ENGENHEIRO e DIRETOR (S)
 
 ### Phase 3: Fechamento
 - [ ] Task 9: Navegador ponta a ponta (operário abre → engenheiro assume e finaliza → operário vê o aviso), READMEs, revisões (code-reviewer, security-auditor) e PR (S)

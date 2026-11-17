@@ -77,6 +77,7 @@ export const FORMULAS = {
   oee: "OEE = Disponibilidade × Performance × Qualidade",
   mtbf: "MTBF = tempo operando ÷ número de paradas",
   downtime: "Downtime = minutos parados no turno",
+  mttr: "MTTR = média de (finalização − abertura) dos chamados finalizados",
   lucro: "Lucro = peças boas × valor por peça − custo-hora × horas do turno",
   pecasPorHora: "Peças por hora = peças produzidas ÷ horas planejadas",
   consumo: "Consumo (kWh) = potência ativa (kW) × tempo operando (h)",

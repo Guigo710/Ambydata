@@ -240,6 +240,11 @@ beforeEach(() => {
     if (url.startsWith("/api/maquinas")) {
       return { data: structuredClone(MAQUINAS_DE_TESTE) };
     }
+    const mttr = url.match(/^\/api\/chamados\/mttr\?maquinaId=([^&]+)&dias=(\d+)$/);
+    if (mttr) {
+      const finalizados = mttr[1] === "m1" ? 2 : 0;
+      return { data: { maquinaId: mttr[1], dias: Number(mttr[2]), chamadosFinalizados: finalizados, ...(finalizados && { mttrMinutos: 60 }) } };
+    }
     if (url === "/api/notificacoes") {
       return { data: structuredClone(NOTIFICACOES_DE_TESTE) };
     }

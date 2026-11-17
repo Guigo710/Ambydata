@@ -1124,3 +1124,29 @@ body,
 @media (max-width: 900px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Status da Máquina: aviso de temperatura e gráfico */
+.aviso-temperatura {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.aviso-critico { background: #d00052; color: #fff; }
+.aviso-alerta { background: rgba(251, 133, 0, 0.16); color: #7a3e00; border: 1px solid rgba(251, 133, 0, 0.4); }
+.grafico-temperatura { margin: 0; }
+.grafico-area { min-height: 300px; }
+.grafico-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.legenda-item { display: inline-flex; align-items: center; gap: 6px; }
+.legenda-cor { display: inline-block; width: 16px; height: 10px; border-radius: 2px; }
+.legenda-faixa { background: rgba(82, 183, 136, 0.35); }
+.legenda-critico { height: 0; border-top: 2px dashed #d00052; }
+.legenda-parada { background: rgba(155, 168, 204, 0.5); }

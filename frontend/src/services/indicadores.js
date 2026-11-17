@@ -71,6 +71,7 @@ export const FORMULAS = {
   downtime: "Downtime = minutos parados no turno",
   lucro: "Lucro = peças boas × valor por peça − custo-hora × horas do turno",
   pecasPorHora: "Peças por hora = peças produzidas ÷ horas planejadas",
+  limiteCritico: "Limite crítico = faixa permitida aumentada, para cada lado, no percentual crítico da largura dela",
 };
 
 export const NOME_DO_STATUS = { OPERANDO: "Operando", PARADA: "Parada", FORA_DO_TURNO: "Fora do turno" };

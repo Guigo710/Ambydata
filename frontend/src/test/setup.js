@@ -64,6 +64,17 @@ export function agoraDeTeste(id) {
   };
 }
 
+// Pontos do gráfico de temperatura: o forno sobe de 195 a 225 °C; a envasadora fica em 24 °C.
+export function leiturasDeTeste(id) {
+  return Array.from({ length: 13 }, (_, i) => ({
+    instante: new Date(Date.parse("2026-11-17T13:00:00Z") + i * 10 * 60 * 1000).toISOString(),
+    status: id === "m2" && i > 10 ? "PARADA" : "OPERANDO",
+    temperatura: id === "m1" ? 195 + i * 2.5 : 24,
+    pecasProduzidas: 5,
+    pecasBoas: 5,
+  }));
+}
+
 beforeEach(() => {
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
@@ -74,6 +85,10 @@ beforeEach(() => {
     }
     if (url === "/api/indicadores/resumo") {
       return { data: structuredClone(RESUMO_DE_TESTE) };
+    }
+    const leituras = url.match(/^\/api\/indicadores\/leituras\/([^/?]+)\?minutos=\d+$/);
+    if (leituras) {
+      return { data: leiturasDeTeste(leituras[1]) };
     }
     const agora = url.match(/^\/api\/indicadores\/maquinas\/([^/]+)\/agora$/);
     if (agora) {

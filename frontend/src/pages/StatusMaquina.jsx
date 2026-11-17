@@ -1,61 +1,92 @@
 import CartaoMaquina from "../components/CartaoMaquina";
+import GraficoTemperatura from "../components/GraficoTemperatura";
+import { SeloSituacao, SeloStatus, Temperatura } from "../components/Selos";
 import SeletorMaquina from "../components/SeletorMaquina";
-import { useMaquinaSelecionada } from "../services/maquinas";
-import {
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import SobreEstesDados from "../components/SobreEstesDados";
+import { mensagemDeErro } from "../services/api";
+import { formatarMinutos, tempoDesde, useAgora, useLeituras, useRelogio } from "../services/indicadores";
+import { formatarNumero, textoFaixa, useMaquinaSelecionada } from "../services/maquinas";
 
-const data2020 = [
-  { subject: "CoreID RAW", value: 80 },
-  { subject: "Sketch", value: 90 },
-  { subject: "XD", value: 70 },
-  { subject: "PS", value: 60 },
-  { subject: "AI", value: 85 },
-];
+// Aviso quando a temperatura sai da faixa (alerta) ou passa do limite crítico.
+function avisoDeTemperatura(maquina, leitura) {
+  if (!leitura) return null;
+  const temperatura = `${formatarNumero(leitura.temperatura)} °C`;
+  const { limiteCritico: critico } = maquina;
+  if (leitura.situacaoTemperatura === "CRITICO") {
+    const lado = leitura.temperatura > critico.max
+      ? `acima de ${formatarNumero(critico.max)} °C`
+      : `abaixo de ${formatarNumero(critico.min)} °C`;
+    return `Temperatura além do limite crítico: ${temperatura} (crítico ${lado}).`;
+  }
+  if (leitura.situacaoTemperatura === "ALERTA") {
+    return `Temperatura fora da faixa permitida: ${temperatura} (faixa ${textoFaixa(maquina.faixaTemperatura)}).`;
+  }
+  return null;
+}
 
-const data2021 = [
-  { subject: "CoreID RAW", value: 65 },
-  { subject: "Sketch", value: 75 },
-  { subject: "XD", value: 85 },
-  { subject: "PS", value: 70 },
-  { subject: "AI", value: 60 },
-];
+function SituacaoAtual({ maquina, agora }) {
+  const relogio = useRelogio();
+  const { ultimaLeitura: leitura, ultimaHora, turno } = agora;
+  const defeituosas = ultimaHora.totais.pecasProduzidas - ultimaHora.totais.pecasBoas;
+  return (
+    <section className="stats-row" aria-label={`Situação atual de ${maquina.nome}`}>
+      <div className="stat-card">
+        <span className="stat-label">Status atual</span>
+        <span className="stat-value"><SeloStatus status={leitura?.status} /></span>
+        <span className="stat-detalhe">{tempoDesde(leitura?.instante, relogio)}</span>
+      </div>
+      <div className="stat-card">
+        <span className="stat-label">Temperatura</span>
+        <span className="stat-value"><Temperatura valor={leitura?.temperatura} /></span>
+        <span className="stat-detalhe"><SeloSituacao situacao={leitura?.situacaoTemperatura} /></span>
+      </div>
+      <div className="stat-card">
+        <span className="stat-label">Peças na última hora</span>
+        <span className="stat-value">{ultimaHora.totais.pecasProduzidas.toLocaleString("pt-BR")}</span>
+        <span className="stat-detalhe">
+          {`${ultimaHora.totais.pecasBoas.toLocaleString("pt-BR")} boas · ${defeituosas.toLocaleString("pt-BR")} defeituosas`}
+        </span>
+      </div>
+      <div className="stat-card">
+        <span className="stat-label">Paradas no turno{turno.emAndamento ? "" : " (encerrado)"}</span>
+        <span className="stat-value">{turno.totais.paradas}</span>
+        <span className="stat-detalhe">
+          {`parado ${formatarMinutos(turno.indicadores.downtimeMinutos)} · MTBF ${formatarMinutos(turno.indicadores.mtbfMinutos)}`}
+        </span>
+      </div>
+    </section>
+  );
+}
 
-const data2022 = [
-  { subject: "CoreID RAW", value: 70 },
-  { subject: "Sketch", value: 60 },
-  { subject: "XD", value: 80 },
-  { subject: "PS", value: 90 },
-  { subject: "AI", value: 75 },
-];
+function StatusDaMaquina({ maquina }) {
+  const agora = useAgora(maquina.id);
+  const leituras = useLeituras(maquina.id, 120);
+  if (agora.isPending) return <p className="tabela-vazia">Carregando indicadores...</p>;
+  if (agora.isError) return <div className="error-message" role="alert">{mensagemDeErro(agora.error)}</div>;
 
-const combined = data2020.map((d, i) => ({
-  subject: d.subject,
-  v2020: d.value,
-  v2021: data2021[i].value,
-  v2022: data2022[i].value,
-}));
+  const aviso = avisoDeTemperatura(maquina, agora.data.ultimaLeitura);
+  return (
+    <>
+      {aviso && (
+        <div role="alert" className={`aviso-temperatura aviso-${agora.data.ultimaLeitura.situacaoTemperatura.toLowerCase()}`}>
+          {aviso}
+        </div>
+      )}
+      <SituacaoAtual maquina={maquina} agora={agora.data} />
+      <section className="card" aria-labelledby="titulo-grafico-temperatura">
+        <h2 id="titulo-grafico-temperatura" className="card-title">Temperatura nas últimas 2 h</h2>
+        {leituras.isPending && <p className="tabela-vazia">Carregando leituras...</p>}
+        {leituras.isError && <p className="tabela-vazia">{mensagemDeErro(leituras.error)}</p>}
+        {leituras.isSuccess && <GraficoTemperatura maquina={maquina} pontos={leituras.data} />}
+      </section>
+      <SobreEstesDados maquina={maquina.nome} ultimaLeitura={agora.data.ultimaLeitura}
+        frequenciaSegundos={agora.data.frequenciaSegundos} formulas={["downtime", "mtbf", "limiteCritico"]} />
+    </>
+  );
+}
 
-const stats = [
-  { label: "Disponibilidade", value: "94.2%", change: "+2.1%", dir: "up" },
-  { label: "Performance", value: "87.5%", change: "-0.8%", dir: "down" },
-  { label: "Qualidade", value: "98.1%", change: "+1.3%", dir: "up" },
-  { label: "OEE Geral", value: "81.9%", change: "+0.5%", dir: "up" },
-];
-
-const tooltipStyle = {
-  borderRadius: 8,
-  border: "none",
-  boxShadow: "0 4px 16px rgba(27,37,87,0.12)",
-  fontSize: 12,
-};
-
+// Situação da máquina escolhida agora: status, temperatura × faixa, peças, paradas e o
+// gráfico das últimas 2 h. Atualiza sozinha a cada 10 s.
 export default function StatusMaquina() {
   const selecao = useMaquinaSelecionada();
   return (
@@ -67,77 +98,8 @@ export default function StatusMaquina() {
         </div>
         <SeletorMaquina selecao={selecao} />
       </div>
-
       <CartaoMaquina maquina={selecao.maquina} />
-
-      <div className="stats-row">
-        {stats.map((s) => (
-          <div className="stat-card" key={s.label}>
-            <span className="stat-label">{s.label}</span>
-            <span className="stat-value">{s.value}</span>
-            <span className={`stat-change ${s.dir}`}>
-              {s.change} vs mês anterior
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="charts-grid">
-        <div className="card" style={{ gridColumn: "span 2" }}>
-          <p className="card-title">Comparativo por Período</p>
-          <ResponsiveContainer width="100%" height={360}>
-            <RadarChart data={combined}>
-              <PolarGrid stroke="#E8ECFB" />
-              <PolarAngleAxis
-                dataKey="subject"
-                tick={{ fontSize: 11, fill: "#6B7BB6" }}
-              />
-              <PolarRadiusAxis
-                angle={30}
-                domain={[0, 100]}
-                tick={{ fontSize: 9, fill: "#9BA8CC" }}
-              />
-              <Radar
-                name="2020"
-                dataKey="v2020"
-                stroke="#4361EE"
-                fill="#4361EE"
-                fillOpacity={0.18}
-                strokeWidth={2}
-              />
-              <Radar
-                name="2021"
-                dataKey="v2021"
-                stroke="#F72585"
-                fill="#F72585"
-                fillOpacity={0.18}
-                strokeWidth={2}
-              />
-              <Radar
-                name="2022"
-                dataKey="v2022"
-                stroke="#4CC9F0"
-                fill="#4CC9F0"
-                fillOpacity={0.18}
-                strokeWidth={2}
-              />
-              <Tooltip contentStyle={tooltipStyle} />
-            </RadarChart>
-          </ResponsiveContainer>
-          <div className="chart-legend">
-            {[
-              ["2020", "#4361EE"],
-              ["2021", "#F72585"],
-              ["2022", "#4CC9F0"],
-            ].map(([y, c]) => (
-              <div className="legend-item" key={y}>
-                <div className="legend-dot" style={{ background: c }} />
-                {y}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {selecao.maquina && <StatusDaMaquina key={selecao.maquina.id} maquina={selecao.maquina} />}
     </>
   );
 }

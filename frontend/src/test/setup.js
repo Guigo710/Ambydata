@@ -75,6 +75,39 @@ export function leiturasDeTeste(id) {
   }));
 }
 
+// 24 horas fechadas: as 9 primeiras fora do turno (sem tempo planejado), 2 sem dados
+// (backend dormindo, máquina com dispositivo) e o resto com OEE entre 70% e 92%.
+export function historicoDeTeste(id) {
+  const maquina = MAQUINAS_DE_TESTE.find((m) => m.id === id);
+  const horas = Array.from({ length: 24 }, (_, i) => {
+    const hora = new Date(Date.parse("2026-11-16T15:00:00Z") + i * 3600 * 1000).toISOString();
+    if (i === 20 || i === 21) {
+      return { hora, semDados: true, fonte: null, totais: null, indicadores: null };
+    }
+    if (i < 9) {
+      return {
+        hora, semDados: false, fonte: "GERADOR",
+        totais: { segundosPlanejados: 0, segundosOperando: 0, segundosParado: 0, paradas: 0, pecasProduzidas: 0, pecasBoas: 0 },
+        indicadores: { disponibilidade: null, performance: null, qualidade: null, oee: null, mtbfMinutos: null, downtimeMinutos: 0, pecasPorHora: null },
+      };
+    }
+    const oee = i === 12 ? 0.7 : i === 15 ? 0.92 : 0.8;
+    return {
+      hora, semDados: false, fonte: "GERADOR",
+      totais: { segundosPlanejados: 3600, segundosOperando: 3300, segundosParado: 300, paradas: 1, pecasProduzidas: 1500, pecasBoas: 1470 },
+      indicadores: { disponibilidade: 0.9, performance: 0.9, qualidade: oee / 0.81, oee, mtbfMinutos: 55, downtimeMinutos: 5, pecasPorHora: 1500 },
+    };
+  });
+  return {
+    maquina, horas,
+    total: {
+      inicio: horas[0].hora, fim: "2026-11-17T15:00:00Z", emAndamento: false,
+      totais: { segundosPlanejados: 46800, segundosOperando: 42900, segundosParado: 3900, paradas: 13, pecasProduzidas: 19500, pecasBoas: 19110 },
+      indicadores: { disponibilidade: 0.9167, performance: 0.9, qualidade: 0.98, oee: 0.8085, mtbfMinutos: 55, downtimeMinutos: 65, pecasPorHora: 1500 },
+    },
+  };
+}
+
 beforeEach(() => {
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
@@ -89,6 +122,10 @@ beforeEach(() => {
     const leituras = url.match(/^\/api\/indicadores\/leituras\/([^/?]+)\?minutos=\d+$/);
     if (leituras) {
       return { data: leiturasDeTeste(leituras[1]) };
+    }
+    const historico = url.match(/^\/api\/indicadores\/maquinas\/([^/]+)\/historico\?horas=\d+$/);
+    if (historico) {
+      return { data: historicoDeTeste(historico[1]) };
     }
     const agora = url.match(/^\/api\/indicadores\/maquinas\/([^/]+)\/agora$/);
     if (agora) {

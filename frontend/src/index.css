@@ -1150,3 +1150,30 @@ body,
 .legenda-faixa { background: rgba(82, 183, 136, 0.35); }
 .legenda-critico { height: 0; border-top: 2px dashed #d00052; }
 .legenda-parada { background: rgba(155, 168, 204, 0.5); }
+
+/* OEE: escolha do período e a conta de cada componente */
+.seletor-periodo {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 20px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+.seletor-periodo label {
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.seletor-periodo label.ativo { background: var(--blue); color: #fff; }
+.seletor-periodo label { position: relative; }
+.seletor-periodo input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.seletor-periodo label:has(input:focus-visible) { outline: 2px solid var(--blue); outline-offset: 2px; }
+.stat-formula { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.stat-destaque .stat-value { color: var(--blue); font-size: 30px; }
+.stats-row-2 { grid-template-columns: repeat(2, 1fr); }

@@ -6,6 +6,7 @@ import SeletorMaquina from "../components/SeletorMaquina";
 import SeletorOpcoes from "../components/SeletorOpcoes";
 import SobreEstesDados from "../components/SobreEstesDados";
 import { mensagemDeErro } from "../services/api";
+import { useMttr } from "../services/chamados";
 import { FORMULAS, formatarMinutos, percentual, useAgora, useHistorico } from "../services/indicadores";
 import { useMaquinaSelecionada } from "../services/maquinas";
 
@@ -33,6 +34,15 @@ function contas(totais, indicadores, cadencia) {
   };
 }
 
+// "2 chamados finalizados nos últimos 7 dias" (MTTR vem dos chamados do Report de Manutenção).
+function textoMttr(mttr) {
+  if (mttr.isPending) return "Carregando chamados...";
+  if (mttr.isError) return "Não foi possível carregar os chamados.";
+  const n = mttr.data.chamadosFinalizados;
+  if (n === 0) return "Nenhum chamado finalizado nos últimos 7 dias";
+  return `${n} ${n === 1 ? "chamado finalizado" : "chamados finalizados"} nos últimos ${mttr.data.dias} dias`;
+}
+
 function Componente({ titulo, valor, formula, conta, destaque = false }) {
   return (
     <div className={`stat-card ${destaque ? "stat-destaque" : ""}`}>
@@ -47,15 +57,16 @@ function Componente({ titulo, valor, formula, conta, destaque = false }) {
 function OeeDaMaquina({ maquina }) {
   const { perfil } = useAuth();
   const [periodo, setPeriodo] = useState("ultimaHora");
+  const veConfiabilidade = perfil === "ENGENHEIRO" || perfil === "DIRETOR";
   const agora = useAgora(maquina.id);
   const historico = useHistorico(maquina.id, 24);
+  const mttr = useMttr(maquina.id, veConfiabilidade);
   if (agora.isPending) return <p className="tabela-vazia">Carregando indicadores...</p>;
   if (agora.isError) return <div className="error-message" role="alert">{mensagemDeErro(agora.error)}</div>;
 
   const { totais, indicadores } = agora.data[periodo];
   const conta = contas(totais, indicadores, maquina.cadenciaIdeal);
   const semTurno = totais.segundosPlanejados === 0;
-  const veConfiabilidade = perfil === "ENGENHEIRO" || perfil === "DIRETOR";
 
   return (
     <>
@@ -75,11 +86,13 @@ function OeeDaMaquina({ maquina }) {
       </section>
 
       {veConfiabilidade && (
-        <section className="stats-row stats-row-2" aria-label="Confiabilidade">
+        <section className="stats-row stats-row-3" aria-label="Confiabilidade">
           <Componente titulo="MTBF (tempo médio entre paradas)" valor={formatarMinutos(indicadores.mtbfMinutos)}
             formula={FORMULAS.mtbf} conta={conta.mtbf} />
           <Componente titulo="Tempo parado (downtime)" valor={formatarMinutos(indicadores.downtimeMinutos)}
             formula={FORMULAS.downtime} conta={`${totais.paradas} ${totais.paradas === 1 ? "parada" : "paradas"} no período`} />
+          <Componente titulo="MTTR (tempo médio de reparo)" valor={mttr.isSuccess ? formatarMinutos(mttr.data.mttrMinutos) : "—"}
+            formula={FORMULAS.mttr} conta={textoMttr(mttr)} />
         </section>
       )}
 
@@ -91,7 +104,7 @@ function OeeDaMaquina({ maquina }) {
       </section>
 
       <SobreEstesDados maquina={maquina.nome} ultimaLeitura={agora.data.ultimaLeitura} frequenciaSegundos={agora.data.frequenciaSegundos}
-        formulas={["oee", "disponibilidade", "performance", "qualidade", ...(veConfiabilidade ? ["mtbf", "downtime"] : [])]} />
+        formulas={["oee", "disponibilidade", "performance", "qualidade", ...(veConfiabilidade ? ["mtbf", "downtime", "mttr"] : [])]} />
     </>
   );
 }

@@ -25,7 +25,9 @@ import java.time.Instant;
 public class IngestaoController {
 
     static final Duration JANELA_PASSADO = Duration.ofMinutes(5);
-    static final Duration JANELA_FUTURO = Duration.ofSeconds(30);
+    // Nada no futuro: com folga, quem tem a chave ocupava os próximos blocos de 10 s e a leitura
+    // real do sensor recebia 409 (e um superaquecimento não abria chamado).
+    static final Duration JANELA_FUTURO = Duration.ZERO;
 
     private final MaquinaService maquinas;
     private final MongoTemplate mongoTemplate;
@@ -52,7 +54,7 @@ public class IngestaoController {
         Instant agora = Instant.now();
         Instant instante = dados.instante() != null ? dados.instante() : agora;
         if (instante.isBefore(agora.minus(JANELA_PASSADO)) || instante.isAfter(agora.plus(JANELA_FUTURO))) {
-            throw new CampoInvalidoException("instante", "O instante precisa estar nos últimos 5 minutos.");
+            throw new CampoInvalidoException("instante", "O instante precisa estar nos últimos 5 minutos, não no futuro (ou omita o campo).");
         }
         Leitura leitura = new Leitura(Leitura.idDe(dados.maquinaId(), instante), dados.maquinaId(), instante,
                 dados.status(), dados.temperatura(), dados.pecasProduzidas(), dados.pecasBoas(),

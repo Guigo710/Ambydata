@@ -141,7 +141,8 @@ O backend atual usa **MongoDB**, não MySQL nem JPA.
 - Banco: variável `MONGODB_DATABASE` (padrão `ambydata_dev`; no deploy, `ambydata_prod`)
 - Coleções: `usuario`, `maquina` (6 máquinas iniciais em 2 linhas, criadas pela migração
   `M002`), `leitura` (uma por máquina a cada 10 s, apagadas sozinhas após 48 h),
-  `indicador_hora` (totais por máquina e hora, 90 dias), `configuracao_energia` e `migracao`
+  `indicador_hora` (totais por máquina e hora, 90 dias), `configuracao_energia`, `chamado`,
+  `notificacao` (30 dias) e `migracao`
 
 ## Endpoints implementados
 
@@ -175,6 +176,15 @@ O contrato também está descrito em [`SPEC-identity.md`](../SPEC-identity.md#co
 | GET | `/api/indicadores/energia?periodo=24h\|7d` | ENGENHEIRO, DIRETOR | Consumo, energia injetada e custo líquido por máquina, linha e fábrica |
 | GET | `/api/energia/tarifas` | ENGENHEIRO, DIRETOR | Tarifas de energia da fábrica |
 | PUT | `/api/energia/tarifas` | ENGENHEIRO | Altera `{ tarifaCheia, tarifaCompensavel, demandaContratadaKw, tarifaDemanda }` |
+| GET | `/api/chamados?status=&maquinaId=` | OPERARIO, ENGENHEIRO, DIRETOR | Kanban: abertos, em andamento e finalizados dos últimos 7 dias (ou um status) |
+| GET | `/api/chamados/{id}` | OPERARIO, ENGENHEIRO, DIRETOR | Chamado com o histórico |
+| POST | `/api/chamados` | OPERARIO, ENGENHEIRO | Abre `{ tipo, maquinaId, descricao, prioridade }`; 201 |
+| POST | `/api/chamados/{id}/assumir` | ENGENHEIRO | ABERTO → EM_ANDAMENTO, com o responsável |
+| POST | `/api/chamados/{id}/finalizar` | ENGENHEIRO | EM_ANDAMENTO → FINALIZADO `{ solucao }`; avisa quem abriu |
+| POST | `/api/chamados/{id}/cancelar` | ENGENHEIRO | ABERTO ou EM_ANDAMENTO → CANCELADO `{ motivo }` |
+| GET | `/api/chamados/mttr?maquinaId=&dias=7` | ENGENHEIRO, DIRETOR | MTTR dos chamados finalizados (1 a 30 dias) |
+| GET | `/api/notificacoes` | OPERARIO, ENGENHEIRO, DIRETOR | As suas: não lidas e as 50 mais recentes |
+| POST | `/api/notificacoes/{id}/lida` · `/api/notificacoes/lidas` | OPERARIO, ENGENHEIRO, DIRETOR | Marca uma ou todas como lidas; 204 |
 
 Regras da gestão: e-mail único (400), o ADMIN não desativa a si mesmo e o sistema nunca fica
 sem um ADMIN ativo (409).
@@ -235,6 +245,21 @@ Fórmulas e telas em [`SPEC-indicadores.md`](../SPEC-indicadores.md). Como funci
   encargos de demanda (só no total da fábrica). Tarifas em `configuracao_energia`, ajustadas pelo
   ENGENHEIRO.
 
+## Chamados e alertas
+
+Regras em [`SPEC-chamados.md`](../SPEC-chamados.md) e no plano `tasks/plan-marco2-pr3.md`:
+
+- Cada ação do engenheiro só acontece se o chamado ainda está no status esperado (atômico): ação
+  fora de ordem ou dois engenheiros ao mesmo tempo → 409.
+- A cada 30 s o backend confere as máquinas ativas e abre um chamado CRÍTICO, "Sistema — limite
+  ultrapassado", quando: a última leitura passa do limite crítico de temperatura; a máquina fica
+  parada, no turno, mais que `minutosParadoMax`; ou a última hora tem defeitos acima de
+  `taxaDefeitosMax` (com pelo menos 100 peças). Avisa todos os engenheiros ativos.
+- Não duplica (índice único parcial por máquina e causa enquanto aberto); nova detecção vira
+  evento no histórico, no máximo um por hora; depois de finalizado ou cancelado, a mesma máquina e
+  causa só reabrem após 1 h.
+- Notificações (`notificacao`) apagadas após 30 dias; cada usuário só vê e marca as suas.
+
 Migrações: `001` perfis e índices, `002` as 6 máquinas iniciais, `003` energia das máquinas iniciais e
 tarifas padrão (não sobrescreve o que já foi ajustado).
 
@@ -250,6 +275,9 @@ src/
       simulacao/    # Gerador de leituras, agendamento e ingestão de dispositivos
       indicadores/  # Cálculos, agregados por hora e a API /api/indicadores
       energia/      # Custo de energia e tarifas da fábrica
+      chamado/      # Chamados de manutenção (kanban, transições, MTTR)
+      alerta/       # Detector dos limites críticos (chamado automático)
+      notificacao/  # Notificações do sino
       config/       # Segurança, CORS, erros padrão, PasswordEncoder, usuários iniciais
       migracao/     # Migrações versionadas do banco (coleção migracao)
     resources/
@@ -270,7 +298,7 @@ mvnw.cmd
 - [x] Configurar CI para build e testes (`.github/workflows/ci.yml` na raiz)
 - [x] Cadastro de máquinas e leituras simuladas
 - [x] Indicadores: OEE, produtividade, custos e energia por máquina
-- [ ] Chamados de manutenção em kanban, com abertura automática nos alertas críticos
+- [x] Chamados de manutenção em kanban, com abertura automática nos alertas críticos
 
 ## Licença
 

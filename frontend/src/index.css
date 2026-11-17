@@ -1219,3 +1219,138 @@ body,
 }
 .stats-row-5 .stat-value { font-size: 22px; white-space: nowrap; }
 .stats-row-5 .stat-destaque .stat-value { font-size: 24px; }
+
+/* Report de Manutenção: kanban */
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.coluna-kanban {
+  background: rgba(67, 97, 238, 0.04);
+  border-radius: var(--card-radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 160px;
+}
+.coluna-kanban-titulo {
+  margin: 4px 4px 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.coluna-kanban-contador {
+  background: var(--card-bg);
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cartao-chamado { display: flex; flex-direction: column; gap: 8px; border-left: 4px solid transparent; padding: 14px 16px; }
+.cartao-chamado.prioridade-critica { border-left-color: #d00052; }
+.cartao-chamado.prioridade-alta { border-left-color: var(--orange); }
+.cartao-chamado.prioridade-media { border-left-color: var(--blue); }
+.cartao-chamado.prioridade-baixa { border-left-color: var(--text-muted); }
+.cartao-chamado-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.cartao-chamado-titulo { margin: 0; font-size: 15px; color: var(--text-primary); }
+.cartao-chamado-autor { margin: 0; font-size: 12px; color: var(--text-secondary); }
+.autor-sistema { color: #b0125c; font-weight: 700; }
+.cartao-chamado-notas { margin: 0; font-size: 13px; color: var(--text-primary); line-height: 1.45; }
+.cartao-chamado-dados { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; }
+.cartao-chamado-dados dt { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.cartao-chamado-dados dd { margin: 1px 0 0; font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.cartao-chamado-responsavel, .cartao-chamado-solucao { margin: 0; font-size: 12px; color: var(--text-secondary); }
+.selo-prioridade-critica { background: #d00052; color: #fff; }
+.selo-prioridade-alta { background: rgba(251, 133, 0, 0.16); color: #9a4f00; }
+.selo-prioridade-media { background: rgba(67, 97, 238, 0.12); color: #2c46c9; }
+.selo-prioridade-baixa { background: rgba(155, 168, 204, 0.2); color: var(--text-secondary); }
+@media (max-width: 1000px) {
+  .kanban { grid-template-columns: 1fr; }
+}
+
+/* Chamados: ações, formulário e detalhe */
+.cabecalho-acoes { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cartao-chamado-rodape { display: flex; justify-content: flex-end; }
+.cartao-chamado-rodape .btn-link { padding: 0; font-size: 12px; }
+.acoes-chamado { border-top: 1px solid #eef1f8; padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.acoes-chamado-botoes { display: flex; justify-content: flex-end; align-items: center; gap: 10px; flex-wrap: wrap; }
+.acoes-chamado-texto { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.acoes-chamado-texto textarea, .input-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--text-muted);
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text-primary);
+  resize: vertical;
+}
+.btn-pequeno { padding: 6px 14px; font-size: 13px; }
+.erro-campo { margin: 0; color: #b0125c; font-size: 12px; }
+.fundo-dialogo {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 37, 87, 0.35);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 16px;
+  overflow-y: auto;
+  z-index: 50;
+}
+.dialogo { width: min(640px, 100%); display: flex; flex-direction: column; gap: 8px; }
+.dialogo-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dialogo-topo .card-title:focus { outline: none; }
+.detalhe-dados { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 0; }
+.historico-chamado { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--text-primary); }
+.historico-chamado li { display: flex; flex-direction: column; gap: 2px; }
+.historico-quando { font-size: 11px; color: var(--text-muted); }
+.dialogo { animation: none; }
+
+/* Sino de notificações */
+.sino { position: relative; }
+.sino .topbar-icon { position: relative; }
+.sino-contador {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #d00052;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+.painel-notificacoes {
+  position: absolute;
+  right: 0;
+  top: 46px;
+  width: min(360px, calc(100vw - 32px));
+  max-height: 420px;
+  overflow-y: auto;
+  z-index: 40;
+  animation: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.painel-notificacoes-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.painel-notificacoes-topo .card-title { margin: 0; }
+.painel-notificacoes-topo .btn-link { padding: 0; font-size: 12px; }
+.lista-notificacoes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.lista-notificacoes li { display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border-bottom: 1px solid #f0f2f8; }
+.lista-notificacoes li:last-child { border-bottom: none; }
+.lista-notificacoes a { color: var(--text-secondary); font-size: 13px; text-decoration: none; line-height: 1.4; }
+.lista-notificacoes li.nao-lida a { color: var(--text-primary); font-weight: 700; }
+.lista-notificacoes li.nao-lida { background: rgba(67, 97, 238, 0.05); border-radius: 8px; }
+.lista-notificacoes a:hover { color: var(--blue); }
+.notificacao-quando { font-size: 11px; color: var(--text-muted); }

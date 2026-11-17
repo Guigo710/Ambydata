@@ -62,14 +62,12 @@ public record Totais(
     }
 
     // Soma do intervalo seguinte (ex.: as horas de um turno, em ordem). Uma parada que
-    // atravessa a virada da hora termina num e começa no outro: conta uma vez só.
-    // Intervalo sem nada (VAZIO, ou só fora do turno) é neutro.
+    // atravessa a virada da hora termina num e começa no outro: conta uma vez só. VAZIO é o
+    // ponto de partida neutro; um intervalo seguinte sem tempo planejado (hora só fora do turno,
+    // ou sem leituras) quebra a continuidade: a parada de antes não é a mesma de depois.
     public Totais somar(Totais seguinte) {
         if (vazio()) {
             return seguinte;
-        }
-        if (seguinte.vazio()) {
-            return this;
         }
         int mesmaParada = terminaParada && seguinte.comecaParada ? 1 : 0;
         return new Totais(segundosPlanejados + seguinte.segundosPlanejados, segundosOperando + seguinte.segundosOperando,

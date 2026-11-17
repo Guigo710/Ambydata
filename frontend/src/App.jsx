@@ -7,6 +7,7 @@ import Topbar from "./components/Topbar";
 import Custos from "./pages/Custos";
 import Energia from "./pages/Energia";
 import Login from "./pages/Login";
+import Manutencao from "./pages/Manutencao";
 import Maquinas from "./pages/Maquinas";
 import MeuPerfil from "./pages/MeuPerfil";
 import OEE from "./pages/OEE";
@@ -44,6 +45,7 @@ export function AppRoutes() {
       <Route element={<RotaProtegida><LayoutDashboard /></RotaProtegida>}>
         <Route path="/painel" element={<PainelPrincipal />} />
         <Route path="/status-maquina" element={<StatusMaquina />} />
+        <Route path="/manutencao" element={<Manutencao />} />
         <Route path="/oee" element={<OEE />} />
         <Route path="/produtividade" element={<Produtividade />} />
         <Route path="/energia" element={<Energia />} />

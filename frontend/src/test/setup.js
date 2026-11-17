@@ -185,6 +185,53 @@ export function energiaDeTeste(periodo) {
   };
 }
 
+// Chamados do kanban: dois abertos no forno (um automático crítico, um de pessoa com prioridade
+// alta), um em andamento e um finalizado na envasadora.
+const evento = (em, tipo, texto, por) => ({ em, tipo, texto, por });
+export const CHAMADOS_DE_TESTE = [
+  {
+    id: "c1", tipo: "MECANICO", maquinaId: "m1", maquinaNome: "Forno 02", setor: "Cozimento", linha: "Linha A",
+    descricao: "Barulho estranho no motor.", prioridade: "ALTA", status: "ABERTO",
+    abertoPor: { nome: "Fulano OPERARIO", sistema: false }, abertoEm: "2026-11-17T13:20:00Z",
+    historico: [evento("2026-11-17T13:20:00Z", "ABERTO", "Chamado aberto.", "Fulano OPERARIO")],
+  },
+  {
+    id: "c2", tipo: "TEMPERATURA", maquinaId: "m1", maquinaNome: "Forno 02", setor: "Cozimento", linha: "Linha A",
+    descricao: "Temperatura de 230,5 °C, acima do limite crítico de 220 °C (faixa 160 a 200 °C).", prioridade: "CRITICA",
+    status: "ABERTO", causaAutomatica: "TEMPERATURA_CRITICA",
+    abertoPor: { nome: "Sistema — limite ultrapassado", sistema: true }, abertoEm: "2026-11-17T14:05:00Z",
+    historico: [evento("2026-11-17T14:05:00Z", "ABERTO", "Aberto automaticamente.", "Sistema")],
+  },
+  {
+    id: "c3", tipo: "PARADA", maquinaId: "m2", maquinaNome: "Envasadora 04", setor: "Envase", linha: "Linha B",
+    descricao: "Esteira travando na saída.", prioridade: "MEDIA", status: "EM_ANDAMENTO",
+    abertoPor: { nome: "Fulano OPERARIO", sistema: false }, abertoEm: "2026-11-17T10:00:00Z",
+    responsavel: { nome: "Eng Beltrano", sistema: false }, assumidoEm: "2026-11-17T10:30:00Z",
+    historico: [
+      evento("2026-11-17T10:00:00Z", "ABERTO", "Chamado aberto.", "Fulano OPERARIO"),
+      evento("2026-11-17T10:30:00Z", "ASSUMIDO", "Assumido.", "Eng Beltrano"),
+    ],
+  },
+  {
+    id: "c4", tipo: "ELETRICO", maquinaId: "m2", maquinaNome: "Envasadora 04", setor: "Envase", linha: "Linha B",
+    descricao: "Sensor de nível sem leitura.", prioridade: "BAIXA", status: "FINALIZADO",
+    abertoPor: { nome: "Fulano OPERARIO", sistema: false }, abertoEm: "2026-11-16T08:00:00Z",
+    responsavel: { nome: "Eng Beltrano", sistema: false }, assumidoEm: "2026-11-16T08:10:00Z",
+    finalizadoEm: "2026-11-16T09:00:00Z", solucao: "Sensor trocado.",
+    historico: [],
+  },
+];
+
+// Sino: duas não lidas (uma leva ao chamado c4) e uma lida.
+export const NOTIFICACOES_DE_TESTE = {
+  naoLidas: 2,
+  itens: [
+    { id: "n1", texto: "Seu chamado da máquina Envasadora 04 foi finalizado por Eng Beltrano.", link: "/manutencao?chamado=c4", lida: false, criadaEm: "2026-11-17T14:50:00Z" },
+    { id: "n2", texto: "Chamado automático: Forno 02 — temperatura crítica (230,5 °C).", link: "/manutencao?chamado=c2", lida: false, criadaEm: "2026-11-17T14:05:00Z" },
+    { id: "n3", texto: "Aviso antigo.", link: "/manutencao", lida: true, criadaEm: "2026-11-16T09:00:00Z" },
+  ],
+};
+
 beforeEach(() => {
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
@@ -192,6 +239,25 @@ beforeEach(() => {
     }
     if (url.startsWith("/api/maquinas")) {
       return { data: structuredClone(MAQUINAS_DE_TESTE) };
+    }
+    const mttr = url.match(/^\/api\/chamados\/mttr\?maquinaId=([^&]+)&dias=(\d+)$/);
+    if (mttr) {
+      const finalizados = mttr[1] === "m1" ? 2 : 0;
+      return { data: { maquinaId: mttr[1], dias: Number(mttr[2]), chamadosFinalizados: finalizados, ...(finalizados && { mttrMinutos: 60 }) } };
+    }
+    if (url === "/api/notificacoes") {
+      return { data: structuredClone(NOTIFICACOES_DE_TESTE) };
+    }
+    const chamado = url.match(/^\/api\/chamados\/([^/?]+)$/);
+    if (chamado) {
+      const encontrado = CHAMADOS_DE_TESTE.find((c) => c.id === chamado[1]);
+      if (!encontrado) throw { response: { status: 404, data: { status: 404, erro: "Chamado não encontrado." } } };
+      return { data: structuredClone(encontrado) };
+    }
+    const chamados = url.match(/^\/api\/chamados(?:\?maquinaId=([^&]+))?$/);
+    if (chamados) {
+      const lista = CHAMADOS_DE_TESTE.filter((c) => !chamados[1] || c.maquinaId === chamados[1]);
+      return { data: structuredClone(lista) };
     }
     if (url === "/api/indicadores/resumo") {
       return { data: structuredClone(RESUMO_DE_TESTE) };

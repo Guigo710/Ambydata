@@ -999,3 +999,223 @@ body,
   margin: 0;
   padding-left: 18px;
 }
+
+/* Bloco "Sobre estes dados" das telas de indicadores */
+.sobre-dados {
+  margin-top: 24px;
+}
+
+.sobre-dados-titulo {
+  margin: 0 0 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sobre-dados-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 0;
+}
+
+.sobre-dados-lista dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.sobre-dados-lista dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sobre-dados-formulas {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.sobre-dados-formulas summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.sobre-dados-formulas ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  line-height: 1.7;
+}
+
+/* Selos de status e de situação da temperatura */
+.selo {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.selo-status-operando { background: rgba(82, 183, 136, 0.15); color: #23704d; }
+.selo-status-parada { background: rgba(247, 37, 133, 0.12); color: #b0125c; }
+.selo-status-fora_do_turno, .selo-sem-dados { background: rgba(155, 168, 204, 0.2); color: var(--text-secondary); }
+.selo-situacao-normal { background: rgba(82, 183, 136, 0.15); color: #23704d; }
+.selo-situacao-alerta { background: rgba(251, 133, 0, 0.16); color: #9a4f00; }
+.selo-situacao-critico { background: #d00052; color: #fff; }
+
+/* Painel: resumo da fábrica e cards por linha */
+.resumo-fabrica {
+  margin: 0 0 20px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.grupo-linha { margin-bottom: 24px; }
+.grupo-linha-titulo {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+.grade-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.cartao-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-left: 4px solid transparent;
+}
+.cartao-resumo.borda-alerta { border-left-color: var(--orange); }
+.cartao-resumo.borda-critico { border-left-color: #d00052; }
+.cartao-resumo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.cartao-resumo-nome { margin: 0; font-size: 16px; color: var(--text-primary); }
+.cartao-resumo-setor { margin: 2px 0 0; font-size: 12px; color: var(--text-secondary); }
+.cartao-resumo-dados {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin: 0;
+}
+.cartao-resumo-dados dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.cartao-resumo-dados dd { margin: 4px 0 0; }
+.cartao-resumo-temperatura { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.cartao-resumo-faixa { font-size: 12px; color: var(--text-secondary); }
+.cartao-resumo-oee { font-size: 24px; font-weight: 800; color: var(--text-primary); text-align: right; }
+.cartao-resumo-ver { align-self: flex-start; padding: 0; }
+.stat-detalhe { font-size: 12px; color: var(--text-secondary); }
+
+@media (max-width: 900px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Status da Máquina: aviso de temperatura e gráfico */
+.aviso-temperatura {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+}
+.aviso-critico { background: #d00052; color: #fff; }
+.aviso-alerta { background: rgba(251, 133, 0, 0.16); color: #7a3e00; border: 1px solid rgba(251, 133, 0, 0.4); }
+.grafico-temperatura { margin: 0; }
+.grafico-area { min-height: 300px; }
+.grafico-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.legenda-item { display: inline-flex; align-items: center; gap: 6px; }
+.legenda-cor { display: inline-block; width: 16px; height: 10px; border-radius: 2px; }
+.legenda-faixa { background: rgba(82, 183, 136, 0.35); }
+.legenda-critico { height: 0; border-top: 2px dashed #d00052; }
+.legenda-parada { background: rgba(155, 168, 204, 0.5); }
+
+/* OEE: escolha do período e a conta de cada componente */
+.seletor-periodo {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 20px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+.seletor-periodo label {
+  padding: 8px 16px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.seletor-periodo label.ativo { background: var(--blue); color: #fff; }
+.seletor-periodo label { position: relative; }
+.seletor-periodo input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.seletor-periodo label:has(input:focus-visible) { outline: 2px solid var(--blue); outline-offset: 2px; }
+.stat-formula { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.stat-destaque .stat-value { color: var(--blue); font-size: 30px; }
+.stats-row-2 { grid-template-columns: repeat(2, 1fr); }
+
+/* Produtividade e Custos */
+.comparativo { margin-top: 24px; }
+.comparativo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.comparativo-topo .card-title { margin: 0; }
+.comparativo-filtros { display: flex; flex-wrap: wrap; gap: 12px; }
+.comparativo-filtros .seletor-periodo { margin: 0; }
+.tabela-rolagem { overflow-x: auto; }
+.tabela th[scope="row"] {
+  padding: 12px 10px;
+  border-bottom: 1px solid #f0f2f8;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-primary);
+}
+.tabela tr:last-child th[scope="row"] { border-bottom: none; }
+.tabela th[scope="row"] .tabela-detalhe { font-weight: 400; }
+.linha-destacada { background: rgba(67, 97, 238, 0.06); }
+.stats-row-3 { grid-template-columns: repeat(3, 1fr); }
+.valor-positivo { color: #23704d; font-weight: 700; }
+.valor-negativo { color: #b0125c; font-weight: 700; }
+.espaco-acima { margin-top: 20px; }
+
+/* Energia */
+.stats-row-5 { grid-template-columns: repeat(5, 1fr); }
+.valor-destaque { font-weight: 700; color: var(--text-primary); }
+.tabela-aviso { color: #9a4f00; font-weight: 600; }
+.form-tarifas { margin-top: 8px; }
+@media (max-width: 1100px) {
+  .stats-row-5 { grid-template-columns: repeat(3, 1fr); }
+}
+.stats-row-5 .stat-value { font-size: 22px; white-space: nowrap; }
+.stats-row-5 .stat-destaque .stat-value { font-size: 24px; }

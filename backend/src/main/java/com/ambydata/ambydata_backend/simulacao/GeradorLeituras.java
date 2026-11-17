@@ -14,7 +14,7 @@ import java.util.SplittableRandom;
 // backend esteve parado pode ser preenchido depois, de forma coerente.
 public class GeradorLeituras {
 
-    static final int SEGUNDOS_POR_BLOCO = 10;
+    public static final int SEGUNDOS_POR_BLOCO = 10;
     private static final int BLOCOS_POR_JANELA_DE_PARADA = 30;   // 5 min
     private static final int BLOCOS_CICLO_AQUECIMENTO = 720;     // 2 h
     private static final int BLOCOS_CICLO_OSCILACAO = 360;       // 1 h
@@ -96,8 +96,17 @@ public class GeradorLeituras {
         };
     }
 
-    private static long semente(String maquinaId, long n) {
-        return maquinaId.hashCode() * 0x9E3779B97F4A7C15L + n;
+    // Semente de (máquina, bloco ou janela) passada por um misturador não linear (SplitMix64):
+    // sem ele, ids vizinhos (ObjectIds criados em sequência) davam sementes separadas pelo
+    // próprio passo do SplittableRandom, e uma máquina repetia os sorteios da outra.
+    static long semente(String maquinaId, long n) {
+        return misturar(misturar(maquinaId.hashCode()) + n);
+    }
+
+    private static long misturar(long z) {
+        z = (z ^ (z >>> 30)) * 0xBF58476D1CE4E5B9L;
+        z = (z ^ (z >>> 27)) * 0x94D049BB133111EBL;
+        return z ^ (z >>> 31);
     }
 
     private static double arredondar(double valor) {

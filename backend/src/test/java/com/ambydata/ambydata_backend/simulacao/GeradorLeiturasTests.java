@@ -50,6 +50,23 @@ class GeradorLeiturasTests {
     }
 
     @Test
+    void idsVizinhosNaoTemSorteiosDeslocados() {
+        // ObjectIds criados em sequência diferem só no fim; a semente não pode deixar os sorteios
+        // de um iguais aos do outro deslocados de uma posição (o "gamma" do SplittableRandom).
+        String a = "6afc741ab3866d3908e60c91";
+        String b = "6afc741ab3866d3908e60c92";
+        int coincidencias = 0;
+        for (long n = 0; n < 1000; n++) {
+            java.util.SplittableRandom ra = new java.util.SplittableRandom(GeradorLeituras.semente(a, n));
+            ra.nextDouble();
+            if (ra.nextDouble() == new java.util.SplittableRandom(GeradorLeituras.semente(b, n)).nextDouble()) {
+                coincidencias++;
+            }
+        }
+        assertThat(coincidencias).isZero();
+    }
+
+    @Test
     void foraDoTurnoAMaquinaNaoProduzNemContaParada() {
         Leitura madrugada = gerador.gerar(maquina("m1", CenarioSimulacao.SAUDAVEL),
                 ZonedDateTime.of(2026, 11, 10, 3, 0, 0, 0, FUSO).toInstant());
@@ -152,6 +169,6 @@ class GeradorLeiturasTests {
     private static Maquina maquina(String id, CenarioSimulacao cenario) {
         return new Maquina(id, "Máquina " + id, TipoMaquina.OUTRA, "Setor", "Linha A", 60,
                 new FaixaTemperatura(10.0, 30.0), new LimitesAlerta(50, 15, 8.0), 100, 2,
-                new Turno("06:00", "22:00"), true, cenario);
+                new Turno("06:00", "22:00"), true, cenario, null, null);
     }
 }

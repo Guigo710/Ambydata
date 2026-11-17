@@ -14,7 +14,11 @@ export default function Maquinas() {
   const [painel, setPainel] = useState(null); // null | { maquina? }
   const [aviso, setAviso] = useState(null);
 
-  const atualizar = () => queryClient.invalidateQueries({ queryKey: CHAVE_MAQUINAS });
+  // Parâmetros da máquina mudam faixa, cadência, potência: os indicadores também se refazem.
+  const atualizar = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: CHAVE_MAQUINAS }),
+    queryClient.invalidateQueries({ queryKey: ["indicadores"] }),
+  ]);
 
   const salvar = useMutation({
     mutationFn: ({ id, ...dados }) => (id ? api.put(`/api/maquinas/${id}`, dados) : api.post("/api/maquinas", dados)),

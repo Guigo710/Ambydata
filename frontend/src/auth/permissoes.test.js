@@ -5,6 +5,10 @@ import { PERFIS, podeAcessar, rotaInicial, telasDoMenu } from "./permissoes";
 const ESPERADO = {
   "/painel": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
   "/status-maquina": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
+  "/oee": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
+  "/produtividade": ["OPERARIO", "ENGENHEIRO", "DIRETOR"],
+  "/energia": ["ENGENHEIRO", "DIRETOR"],
+  "/custos": ["DIRETOR"],
   "/usuarios": ["ADMIN"],
   "/maquinas": ["ENGENHEIRO", "DIRETOR"],
   "/meu-perfil": ["OPERARIO", "ENGENHEIRO", "DIRETOR", "ADMIN"],
@@ -34,8 +38,12 @@ describe("matriz de permissões", () => {
   });
 
   it("menu do OPERARIO não tem Usuários", () => {
-    expect(telasDoMenu("OPERARIO").map((t) => t.rota)).toEqual(["/painel", "/status-maquina", "/meu-perfil"]);
-    expect(telasDoMenu("ENGENHEIRO").map((t) => t.rota)).toEqual(["/painel", "/status-maquina", "/maquinas", "/meu-perfil"]);
+    expect(telasDoMenu("OPERARIO").map((t) => t.rota))
+      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/meu-perfil"]);
+    expect(telasDoMenu("ENGENHEIRO").map((t) => t.rota))
+      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/energia", "/maquinas", "/meu-perfil"]);
+    expect(telasDoMenu("DIRETOR").map((t) => t.rota))
+      .toEqual(["/painel", "/status-maquina", "/oee", "/produtividade", "/energia", "/custos", "/maquinas", "/meu-perfil"]);
   });
 
   it("tela inicial: ADMIN vai para Usuários e os demais para o Painel", () => {

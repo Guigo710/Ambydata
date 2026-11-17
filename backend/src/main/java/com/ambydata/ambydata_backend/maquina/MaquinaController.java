@@ -1,8 +1,11 @@
 package com.ambydata.ambydata_backend.maquina;
 
+import com.ambydata.ambydata_backend.usuario.Perfil;
+import com.ambydata.ambydata_backend.usuario.Usuario;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.function.Function;
 
 // Leitura para os perfis de produção; alterações só para o ENGENHEIRO (SecurityConfig).
 @RestController
@@ -30,14 +34,20 @@ public class MaquinaController {
         this.servico = servico;
     }
 
+    // OPERARIO recebe a máquina sem os dados de gestão (MaquinaResponse.publica).
+    private static Function<Maquina, MaquinaResponse> paraQuem(Usuario usuario) {
+        return usuario.getPerfil() == Perfil.OPERARIO ? MaquinaResponse::publica : MaquinaResponse::de;
+    }
+
     @GetMapping
-    public List<MaquinaResponse> listar(@RequestParam(defaultValue = "false") boolean ativas) {
-        return servico.listar(ativas).stream().map(MaquinaResponse::de).toList();
+    public List<MaquinaResponse> listar(@RequestParam(defaultValue = "false") boolean ativas,
+            @AuthenticationPrincipal Usuario usuario) {
+        return servico.listar(ativas).stream().map(paraQuem(usuario)).toList();
     }
 
     @GetMapping("/{id}")
-    public MaquinaResponse buscar(@PathVariable String id) {
-        return MaquinaResponse.de(servico.buscar(id));
+    public MaquinaResponse buscar(@PathVariable String id, @AuthenticationPrincipal Usuario usuario) {
+        return paraQuem(usuario).apply(servico.buscar(id));
     }
 
     @PostMapping

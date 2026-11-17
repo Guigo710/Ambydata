@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
+
 @Document(collection = "maquina")
 @Getter
 @Setter
@@ -31,4 +33,8 @@ public class Maquina {
     private Turno turnoPlanejado;
     private boolean ativa = true;
     private CenarioSimulacao cenario = CenarioSimulacao.SAUDAVEL;
+    // Desde quando a máquina existe na fábrica: os indicadores não inventam histórico antes
+    // disso. Nulo nas máquinas da M002, que representam uma fábrica que já operava.
+    private Instant emOperacaoDesde;
+    private ParametrosEnergia energia;
 }

@@ -33,10 +33,17 @@ Ao final deste módulo:
 | `alertas.taxaDefeitosMax` | 8 (%) | defeitos na última hora além disso é crítico |
 | `custoHora` | 120,00 R$ | custos |
 | `valorPorPeca` | 2,50 R$ | lucro |
+| `energia.potenciaKw` | 11 kW | potência ativa operando: consumo de energia |
+| `energia.potenciaRegeneradaKw` | 3 kW (0 = não regenera) | potência devolvida à rede pela frenagem regenerativa |
+| `energia.percentualRegeneracao` | 15 (% do tempo operando) | tempo em que a máquina regenera |
 | `turnoPlanejado` | `{ inicio: "06:00", fim: "22:00" }` | Disponibilidade do OEE |
 | `ativa` | true | máquinas inativas não geram leituras nem aparecem nas listas de produção |
 
 Não há exclusão: desativar preserva o histórico de leituras e chamados.
+
+Parâmetros de energia (adendo do PR 2, ver SPEC-indicadores "Custo de energia"): o ENGENHEIRO
+informa ao criar ou editar a máquina; potência ativa de 0,1 a 10.000 kW, potência regenerada de
+0 até a ativa, percentual de 0 a 100. A migração 003 preenche as 6 máquinas iniciais.
 
 Seed (migração 002): Linha A — Misturadora 01 (Preparo), Forno 02 (Cozimento),
 Resfriador 03 (Resfriamento); Linha B — Envasadora 04 (Envase), Seladora 05 (Embalagem),

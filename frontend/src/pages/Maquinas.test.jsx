@@ -43,6 +43,7 @@ describe("tela Máquinas", () => {
     await userEvent.type(screen.getByLabelText("Linha"), "Linha A");
     await userEvent.type(screen.getByLabelText("Temperatura mínima (°C)"), "0");
     await userEvent.type(screen.getByLabelText("Temperatura máxima (°C)"), "10");
+    await userEvent.type(screen.getByLabelText("Potência ativa (kW)"), "7,5");
 
     expect(screen.getByText("Crítico abaixo de -5 °C ou acima de 15 °C")).toBeTruthy();
 
@@ -56,6 +57,7 @@ describe("tela Máquinas", () => {
       faixaTemperatura: { min: 0, max: 10 },
       alertas: { percentualCritico: 50, minutosParadoMax: 15, taxaDefeitosMax: 8 },
       turnoPlanejado: { inicio: "06:00", fim: "22:00" },
+      energia: { potenciaKw: 7.5, potenciaRegeneradaKw: 0, percentualRegeneracao: 0 },
     }));
     expect(await screen.findByText("Máquina criada.")).toBeTruthy();
   });
@@ -74,6 +76,7 @@ describe("tela Máquinas", () => {
     await userEvent.type(screen.getByLabelText("Linha"), "Linha A");
     await userEvent.type(screen.getByLabelText("Temperatura mínima (°C)"), "1");
     await userEvent.type(screen.getByLabelText("Temperatura máxima (°C)"), "2");
+    await userEvent.type(screen.getByLabelText("Potência ativa (kW)"), "5");
     await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
 
     expect(await screen.findByText("Já existe uma máquina com esse nome.")).toBeTruthy();
@@ -105,7 +108,33 @@ describe("tela Máquinas", () => {
     await userEvent.type(screen.getByLabelText("Linha"), "Linha A");
     await userEvent.type(screen.getByLabelText("Temperatura mínima (°C)"), "-5");
     await userEvent.type(screen.getByLabelText("Temperatura máxima (°C)"), "10");
+    await userEvent.type(screen.getByLabelText("Potência ativa (kW)"), "11");
   }
+
+  it("potência regenerada maior que a ativa não envia", async () => {
+    salvarSessao("ENGENHEIRO");
+    const post = vi.spyOn(api, "post");
+    renderizarApp("/maquinas");
+    await abrirFormularioPreenchido();
+
+    await userEvent.clear(screen.getByLabelText("Potência regenerada (kW)"));
+    await userEvent.type(screen.getByLabelText("Potência regenerada (kW)"), "12");
+    await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(screen.getByText("A potência regenerada não pode passar da potência ativa.")).toBeTruthy();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("editar traz a energia da máquina", async () => {
+    salvarSessao("ENGENHEIRO");
+    renderizarApp("/maquinas");
+    await screen.findByRole("row", { name: /Envasadora 04/ });
+    await userEvent.click(within(linhaDe("Envasadora 04")).getByRole("button", { name: "Editar" }));
+
+    expect(screen.getByLabelText("Potência ativa (kW)").value).toBe("11");
+    expect(screen.getByLabelText("Potência regenerada (kW)").value).toBe("3");
+    expect(screen.getByLabelText("Regeneração (% do tempo operando)").value).toBe("15");
+  });
 
   it("número vazio ou quebrado não vira null no envio: o campo é apontado", async () => {
     salvarSessao("ENGENHEIRO");

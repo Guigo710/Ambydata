@@ -50,6 +50,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").authenticated()
                 .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/maquinas", "/api/maquinas/**").hasAnyRole(PRODUCAO)
+                .requestMatchers(HttpMethod.GET, "/api/energia/tarifas").hasAnyRole("ENGENHEIRO", "DIRETOR")
+                .requestMatchers(HttpMethod.PUT, "/api/energia/tarifas").hasRole("ENGENHEIRO")
+                .requestMatchers(HttpMethod.GET, "/api/indicadores/financeiro").hasRole("DIRETOR")
+                .requestMatchers(HttpMethod.GET, "/api/indicadores/energia").hasAnyRole("ENGENHEIRO", "DIRETOR")
+                .requestMatchers(HttpMethod.GET, "/api/indicadores/**").hasAnyRole(PRODUCAO)
                 .requestMatchers("/api/maquinas", "/api/maquinas/**").hasRole("ENGENHEIRO")
                 .anyRequest().denyAll());
         return http.build();

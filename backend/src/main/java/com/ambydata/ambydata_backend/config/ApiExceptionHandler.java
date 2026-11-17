@@ -14,7 +14,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.LinkedHashMap;
@@ -30,6 +32,17 @@ public class ApiExceptionHandler {
         ex.getBindingResult().getFieldErrors()
                 .forEach(erro -> campos.putIfAbsent(erro.getField(), erro.getDefaultMessage()));
         return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, "Dados inválidos.", campos));
+    }
+
+    // ?horas=abc, ?minutos=99999999999 (não cabe em int) ou parâmetro obrigatório ausente.
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErroResponse> tipoInvalido(MethodArgumentTypeMismatchException ex) {
+        return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, "Dados inválidos.", Map.of(ex.getName(), "valor inválido")));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErroResponse> parametroAusente(MissingServletRequestParameterException ex) {
+        return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, "Dados inválidos.", Map.of(ex.getParameterName(), "obrigatório")));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

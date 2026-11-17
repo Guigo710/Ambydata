@@ -36,10 +36,10 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 - [x] Task 1: `CalculadoraIndicadores` com testes de conta à mão (S)
 - [x] Task 2: Agregados por hora — coleção com TTL, job da hora fechada e preenchimento de 7 dias (M)
 - [x] Task 3: API `resumo`, `maquinas/{id}/agora` e `leituras/{id}` (M)
-- [ ] Task 4: API `historico`, `comparativo` e `financeiro` (DIRETOR) com permissões (M)
+- [x] Task 4: API `historico`, `comparativo` e `financeiro` (DIRETOR) com permissões (M)
 
 ### Checkpoint: Backend
-- [ ] Testes verdes; respostas conferidas no Mongo local com 7 dias preenchidos
+- [x] Testes verdes; respostas conferidas no Mongo local com 7 dias preenchidos
 
 ### Phase 2: Frontend
 - [ ] Task 5: Serviço de indicadores, `SobreEstesDados`, rotas e menu novos (S)

@@ -137,6 +137,20 @@ class CalculadoraIndicadoresTests {
         assertThat(CalculadoraIndicadores.calcular(duas, 60).oee()).isCloseTo(0.675, within(ERRO));
     }
 
+    @Test
+    void grupoDeMaquinasUsaASomaDasPecasIdeaisDeCada() {
+        // Máquina A: 60/min, 50 min operando → ideal 3000; B: 30/min, 40 min → ideal 1200.
+        Totais a = new Totais(3600, 3000, 600, 2, 2700, 2430, false, true);
+        Totais b = new Totais(3600, 2400, 1200, 3, 1080, 1000, true, false);
+        Totais grupo = a.juntar(b);
+
+        assertThat(grupo).isEqualTo(new Totais(7200, 5400, 1800, 5, 3780, 3430)); // paradas de máquinas diferentes somam
+        Indicadores i = CalculadoraIndicadores.calcularComIdeal(grupo, 3000 + 1200);
+        assertThat(i.performance()).isCloseTo(3780.0 / 4200, within(ERRO));
+        assertThat(i.disponibilidade()).isCloseTo(0.75, within(ERRO));
+        assertThat(CalculadoraIndicadores.pecasIdeais(a, 60)).isCloseTo(3000.0, within(ERRO));
+    }
+
     private static Leitura leitura(Instant t, StatusMaquina status, int produzidas, int boas) {
         return new Leitura("m1:" + t.getEpochSecond() / 10, "m1", t, status, 20.0, produzidas, boas,
                 status == StatusMaquina.PARADA ? 10 : 0, OrigemLeitura.SIMULADOR);

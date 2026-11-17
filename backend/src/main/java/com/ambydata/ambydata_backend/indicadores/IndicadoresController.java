@@ -15,9 +15,11 @@ import java.util.List;
 public class IndicadoresController {
 
     private final IndicadoresService servico;
+    private final HistoricoService historico;
 
-    public IndicadoresController(IndicadoresService servico) {
+    public IndicadoresController(IndicadoresService servico, HistoricoService historico) {
         this.servico = servico;
+        this.historico = historico;
     }
 
     @GetMapping("/resumo")
@@ -28,6 +30,23 @@ public class IndicadoresController {
     @GetMapping("/maquinas/{id}/agora")
     public AgoraMaquina agora(@PathVariable String id) {
         return servico.agora(id, Instant.now());
+    }
+
+    @GetMapping("/maquinas/{id}/historico")
+    public Historico historico(@PathVariable String id, @RequestParam(defaultValue = "24") int horas) {
+        return historico.historico(id, horas, Instant.now());
+    }
+
+    @GetMapping("/comparativo")
+    public Comparativo comparativo(@RequestParam(defaultValue = "24h") String periodo,
+            @RequestParam(defaultValue = "linha") String por) {
+        return historico.comparativo(periodo, por, Instant.now());
+    }
+
+    // Só DIRETOR (SecurityConfig).
+    @GetMapping("/financeiro")
+    public RelatorioFinanceiro financeiro(@RequestParam(defaultValue = "24h") String periodo) {
+        return historico.financeiro(periodo, Instant.now());
     }
 
     @GetMapping("/leituras/{id}")

@@ -13,8 +13,18 @@ public final class CalculadoraIndicadores {
     }
 
     public static Indicadores calcular(Totais t, int cadenciaIdealPorMinuto) {
+        return calcularComIdeal(t, pecasIdeais(t, cadenciaIdealPorMinuto));
+    }
+
+    // Peças que a cadência ideal faria no tempo operando (denominador da Performance).
+    public static double pecasIdeais(Totais t, int cadenciaIdealPorMinuto) {
+        return cadenciaIdealPorMinuto * t.segundosOperando() / 60.0;
+    }
+
+    // Para um grupo de máquinas (setor, linha), o ideal é a soma do ideal de cada uma, porque
+    // as cadências são diferentes.
+    public static Indicadores calcularComIdeal(Totais t, double idealNoTempoOperando) {
         Double disponibilidade = razao(t.segundosOperando(), t.segundosPlanejados());
-        double idealNoTempoOperando = cadenciaIdealPorMinuto * t.segundosOperando() / 60.0;
         Double performance = razao(t.pecasProduzidas(), idealNoTempoOperando);
         Double qualidade = razao(t.pecasBoas(), t.pecasProduzidas());
 

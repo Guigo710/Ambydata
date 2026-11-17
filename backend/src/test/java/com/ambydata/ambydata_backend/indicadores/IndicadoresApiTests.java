@@ -144,6 +144,34 @@ class IndicadoresApiTests {
         mvc.perform(como(Perfil.OPERARIO, get("/api/indicadores/leituras/nao-existe"))).andExpect(status().isNotFound());
     }
 
+    @Test
+    void historicoEComparativoParaAProducao() throws Exception {
+        mvc.perform(como(Perfil.OPERARIO, get("/api/indicadores/maquinas/" + forno.getId() + "/historico?horas=24")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.horas", hasSize(24)))
+                .andExpect(jsonPath("$.maquina.nome").value("Forno 02"));
+        mvc.perform(como(Perfil.OPERARIO, get("/api/indicadores/comparativo?periodo=24h&por=linha")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.grupos[0].grupo").value("Linha A"));
+        mvc.perform(como(Perfil.OPERARIO, get("/api/indicadores/comparativo?periodo=1ano&por=linha")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.periodo").isNotEmpty());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Perfil.class, names = {"OPERARIO", "ENGENHEIRO", "ADMIN"})
+    void financeiroSoParaODiretor(Perfil perfil) throws Exception {
+        mvc.perform(como(perfil, get("/api/indicadores/financeiro?periodo=24h"))).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void diretorVeOFinanceiro() throws Exception {
+        mvc.perform(como(Perfil.DIRETOR, get("/api/indicadores/financeiro?periodo=7d")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.maquinas", hasSize(6)))
+                .andExpect(jsonPath("$.total.lucro").isNumber());
+    }
+
     private MockHttpServletRequestBuilder como(Perfil perfil, MockHttpServletRequestBuilder requisicao) {
         return requisicao.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(perfil));
     }

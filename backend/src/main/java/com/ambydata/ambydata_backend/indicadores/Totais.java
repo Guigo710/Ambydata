@@ -78,6 +78,14 @@ public record Totais(
                 comecaParada, seguinte.terminaParada);
     }
 
+    // Soma de máquinas diferentes no mesmo período: paradas somam (a de uma máquina não é a
+    // continuação da de outra) e a informação de borda não vale para o grupo.
+    public Totais juntar(Totais outra) {
+        return new Totais(segundosPlanejados + outra.segundosPlanejados, segundosOperando + outra.segundosOperando,
+                segundosParado + outra.segundosParado, paradas + outra.paradas,
+                pecasProduzidas + outra.pecasProduzidas, pecasBoas + outra.pecasBoas);
+    }
+
     private boolean vazio() {
         return segundosPlanejados == 0 && !comecaParada && !terminaParada;
     }

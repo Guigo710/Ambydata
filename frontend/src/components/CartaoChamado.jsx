@@ -1,0 +1,28 @@
+import { NOME_DA_PRIORIDADE, dataHora, tituloDoChamado } from "../services/chamados";
+
+// Card do kanban (SPEC-chamados, "Card"): título, quem abriu, notas, data e hora, setor,
+// máquina, prioridade e o responsável quando houver; os botões de ação vêm como children.
+export default function CartaoChamado({ chamado, children }) {
+  const titulo = tituloDoChamado(chamado);
+  return (
+    <article className={`card cartao-chamado prioridade-${chamado.prioridade.toLowerCase()}`} aria-label={titulo}>
+      <header className="cartao-chamado-topo">
+        <h3 className="cartao-chamado-titulo">{titulo}</h3>
+        <span className={`selo selo-prioridade-${chamado.prioridade.toLowerCase()}`}>{NOME_DA_PRIORIDADE[chamado.prioridade]}</span>
+      </header>
+      <p className={`cartao-chamado-autor ${chamado.abertoPor.sistema ? "autor-sistema" : ""}`}>
+        {chamado.abertoPor.sistema ? chamado.abertoPor.nome : `Aberto por ${chamado.abertoPor.nome}`}
+      </p>
+      <p className="cartao-chamado-notas">{chamado.descricao}</p>
+      <dl className="cartao-chamado-dados">
+        <div><dt>Aberto em</dt><dd>{dataHora(chamado.abertoEm)}</dd></div>
+        <div><dt>Local</dt><dd>{`${chamado.setor} · ${chamado.linha}`}</dd></div>
+      </dl>
+      {chamado.responsavel && <p className="cartao-chamado-responsavel">{`Responsável: ${chamado.responsavel.nome}`}</p>}
+      {chamado.status === "FINALIZADO" && chamado.solucao && (
+        <p className="cartao-chamado-solucao">{`Solução: ${chamado.solucao}`}</p>
+      )}
+      {children}
+    </article>
+  );
+}

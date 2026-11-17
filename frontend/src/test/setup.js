@@ -185,6 +185,43 @@ export function energiaDeTeste(periodo) {
   };
 }
 
+// Chamados do kanban: dois abertos no forno (um automático crítico, um de pessoa com prioridade
+// alta), um em andamento e um finalizado na envasadora.
+const evento = (em, tipo, texto, por) => ({ em, tipo, texto, por });
+export const CHAMADOS_DE_TESTE = [
+  {
+    id: "c1", tipo: "MECANICO", maquinaId: "m1", maquinaNome: "Forno 02", setor: "Cozimento", linha: "Linha A",
+    descricao: "Barulho estranho no motor.", prioridade: "ALTA", status: "ABERTO",
+    abertoPor: { nome: "Fulano OPERARIO", sistema: false }, abertoEm: "2026-11-17T13:20:00Z",
+    historico: [evento("2026-11-17T13:20:00Z", "ABERTO", "Chamado aberto.", "Fulano OPERARIO")],
+  },
+  {
+    id: "c2", tipo: "TEMPERATURA", maquinaId: "m1", maquinaNome: "Forno 02", setor: "Cozimento", linha: "Linha A",
+    descricao: "Temperatura de 230,5 °C, acima do limite crítico de 220 °C (faixa 160 a 200 °C).", prioridade: "CRITICA",
+    status: "ABERTO", causaAutomatica: "TEMPERATURA_CRITICA",
+    abertoPor: { nome: "Sistema — limite ultrapassado", sistema: true }, abertoEm: "2026-11-17T14:05:00Z",
+    historico: [evento("2026-11-17T14:05:00Z", "ABERTO", "Aberto automaticamente.", "Sistema")],
+  },
+  {
+    id: "c3", tipo: "PARADA", maquinaId: "m2", maquinaNome: "Envasadora 04", setor: "Envase", linha: "Linha B",
+    descricao: "Esteira travando na saída.", prioridade: "MEDIA", status: "EM_ANDAMENTO",
+    abertoPor: { nome: "Fulano OPERARIO", sistema: false }, abertoEm: "2026-11-17T10:00:00Z",
+    responsavel: { nome: "Eng Beltrano", sistema: false }, assumidoEm: "2026-11-17T10:30:00Z",
+    historico: [
+      evento("2026-11-17T10:00:00Z", "ABERTO", "Chamado aberto.", "Fulano OPERARIO"),
+      evento("2026-11-17T10:30:00Z", "ASSUMIDO", "Assumido.", "Eng Beltrano"),
+    ],
+  },
+  {
+    id: "c4", tipo: "ELETRICO", maquinaId: "m2", maquinaNome: "Envasadora 04", setor: "Envase", linha: "Linha B",
+    descricao: "Sensor de nível sem leitura.", prioridade: "BAIXA", status: "FINALIZADO",
+    abertoPor: { nome: "Fulano OPERARIO", sistema: false }, abertoEm: "2026-11-16T08:00:00Z",
+    responsavel: { nome: "Eng Beltrano", sistema: false }, assumidoEm: "2026-11-16T08:10:00Z",
+    finalizadoEm: "2026-11-16T09:00:00Z", solucao: "Sensor trocado.",
+    historico: [],
+  },
+];
+
 beforeEach(() => {
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
@@ -192,6 +229,11 @@ beforeEach(() => {
     }
     if (url.startsWith("/api/maquinas")) {
       return { data: structuredClone(MAQUINAS_DE_TESTE) };
+    }
+    const chamados = url.match(/^\/api\/chamados(?:\?maquinaId=([^&]+))?$/);
+    if (chamados) {
+      const lista = CHAMADOS_DE_TESTE.filter((c) => !chamados[1] || c.maquinaId === chamados[1]);
+      return { data: structuredClone(lista) };
     }
     if (url === "/api/indicadores/resumo") {
       return { data: structuredClone(RESUMO_DE_TESTE) };

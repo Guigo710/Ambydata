@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { renderizarApp, salvarSessao } from "../test/utils";
 
 const MENU_ESPERADO = {
-  OPERARIO: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Meu perfil"],
-  ENGENHEIRO: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Energia", "Máquinas", "Meu perfil"],
-  DIRETOR: ["Painel principal", "Status da Máquina", "OEE", "Produtividade", "Energia", "Custos e Lucros", "Máquinas", "Meu perfil"],
+  OPERARIO: ["Painel principal", "Status da Máquina", "Report de Manutenção", "OEE", "Produtividade", "Meu perfil"],
+  ENGENHEIRO: ["Painel principal", "Status da Máquina", "Report de Manutenção", "OEE", "Produtividade", "Energia", "Máquinas", "Meu perfil"],
+  DIRETOR: ["Painel principal", "Status da Máquina", "Report de Manutenção", "OEE", "Produtividade", "Energia", "Custos e Lucros", "Máquinas", "Meu perfil"],
   ADMIN: ["Usuários", "Meu perfil"],
 };
 
@@ -28,7 +28,7 @@ describe("menu lateral", () => {
     salvarSessao("DIRETOR");
     renderizarApp("/painel");
     const menu = screen.getByRole("navigation", { name: "Menu principal" });
-    for (const ausente of ["Parâmetros com IA", "Configurações", "Report de Manutenção"]) {
+    for (const ausente of ["Parâmetros com IA", "Configurações"]) {
       expect(within(menu).queryByText(ausente)).toBeNull();
     }
   });

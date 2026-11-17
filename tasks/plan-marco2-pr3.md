@@ -50,7 +50,7 @@ chamado sozinha. O OEE ganha o MTTR para ENGENHEIRO e DIRETOR.
 - [x] Testes verdes; com o simulador rodando local, o Forno 02 abre um chamado automático CRÍTICO e não duplica
 
 ### Phase 2: Frontend
-- [ ] Task 5: Serviço de chamados, rota e menu "Report de Manutenção", kanban com os cards (M)
+- [x] Task 5: Serviço de chamados, rota e menu "Report de Manutenção", kanban com os cards (M)
 - [ ] Task 6: Abrir chamado; assumir, finalizar e cancelar (engenheiro); detalhe com histórico (M)
 - [ ] Task 7: Sino de notificações na barra superior (S)
 - [ ] Task 8: MTTR na tela de OEE para ENGENHEIRO e DIRETOR (S)

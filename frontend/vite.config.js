@@ -8,5 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: false,
     setupFiles: ['./src/test/setup.js'],
+    // Datas e horas dos testes no mesmo fuso em qualquer máquina (local ou CI).
+    env: { TZ: 'UTC' },
   },
 })

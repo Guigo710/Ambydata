@@ -22,12 +22,12 @@ import java.util.ArrayList;
 import java.util.DoubleSummaryStatistics;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Set;
 
-// Monta o agregado de cada hora fechada. Regra (SPEC-simulacao e plano do PR 2):
-// hora com leitura de dispositivo → só as leituras gravadas; senão, com o simulador ligado,
-// o gerador recalcula a hora (determinístico: dá o mesmo que teria sido gravado, mesmo se o
-// backend estava dormindo); senão fica como lacuna. Nada antes de `emOperacaoDesde`.
+// Monta o agregado de cada hora fechada a partir das leituras gravadas; as horas (ou os blocos)
+// em que o backend dormiu são completados pelo gerador quando a máquina é simulada (ver agregar).
 @Component
 public class AgregadorHoras {
 
@@ -53,7 +53,7 @@ public class AgregadorHoras {
     // Agregado de uma hora; null se não houver base (lacuna ou antes de a máquina existir).
     public IndicadorHora agregar(Maquina maquina, Instant instante) {
         Instant inicio = instante.truncatedTo(ChronoUnit.HOURS);
-        return agregar(maquina, inicio, !horasComDispositivo(maquina.getId(), inicio, inicio.plus(HORA)).isEmpty());
+        return agregar(maquina, inicio, gravadas(maquina.getId(), inicio, inicio.plus(HORA)));
     }
 
     // Job da hora fechada: regrava (upsert) a hora anterior de cada máquina ativa.
@@ -78,11 +78,13 @@ public class AgregadorHoras {
         int criados = 0;
         for (Maquina maquina : maquinas.listar(true)) {
             Set<String> existentes = idsExistentes(maquina.getId(), inicio, fim);
-            Set<Instant> comDispositivo = horasComDispositivo(maquina.getId(), inicio, fim);
+            // Leituras brutas só existem nas últimas 48 h (TTL): uma consulta por máquina.
+            Map<Instant, List<Leitura>> porHora = gravadas(maquina.getId(), inicio, fim).stream()
+                    .collect(Collectors.groupingBy(l -> l.getInstante().truncatedTo(ChronoUnit.HOURS)));
             List<IndicadorHora> faltando = new ArrayList<>();
             for (Instant hora = inicio; hora.isBefore(fim); hora = hora.plus(HORA)) {
                 if (!existentes.contains(IndicadorHora.idDe(maquina.getId(), hora))) {
-                    IndicadorHora agregado = agregar(maquina, hora, comDispositivo.contains(hora));
+                    IndicadorHora agregado = agregar(maquina, hora, porHora.getOrDefault(hora, List.of()));
                     if (agregado != null) {
                         faltando.add(agregado);
                     }
@@ -93,25 +95,32 @@ public class AgregadorHoras {
         return criados;
     }
 
-    private IndicadorHora agregar(Maquina maquina, Instant inicio, boolean comDispositivo) {
-        if (maquina.getEmOperacaoDesde() != null && inicio.isBefore(maquina.getEmOperacaoDesde())) {
+    // Leituras gravadas mandam (são o que de fato aconteceu, mesmo que a máquina tenha mudado de
+    // configuração depois). Hora com dispositivo: só elas; os buracos são lacunas reais. Hora sem
+    // dispositivo e com o simulador ligado: o gerador completa só os blocos de 10 s que faltam.
+    // Nada antes de emOperacaoDesde (a hora em que a máquina foi criada conta a partir dali).
+    private IndicadorHora agregar(Maquina maquina, Instant inicio, List<Leitura> gravadas) {
+        Instant desde = maquina.getEmOperacaoDesde();
+        if (desde != null && !inicio.plus(HORA).isAfter(desde)) {
             return null;
         }
-        List<Leitura> leituras;
-        FonteAgregado fonte;
-        if (comDispositivo) {
-            leituras = mongoTemplate.find(Query.query(Criteria.where("maquinaId").is(maquina.getId())
-                    .and("instante").gte(inicio).lt(inicio.plus(HORA))), Leitura.class);
-            fonte = FonteAgregado.LEITURAS;
-        } else if (simulacao.ativo()) {
-            leituras = new ArrayList<>(360);
+        List<Leitura> leituras = new ArrayList<>(gravadas.stream()
+                .filter(l -> desde == null || !l.getInstante().isBefore(desde)).toList());
+        boolean comDispositivo = leituras.stream().anyMatch(l -> l.getOrigem() == OrigemLeitura.DISPOSITIVO);
+        if (!comDispositivo && simulacao.ativo()) {
+            Set<Long> blocosGravados = new HashSet<>();
+            leituras.forEach(l -> blocosGravados.add(Math.floorDiv(l.getInstante().getEpochSecond(), GeradorLeituras.SEGUNDOS_POR_BLOCO)));
             for (Instant t = inicio; t.isBefore(inicio.plus(HORA)); t = t.plusSeconds(GeradorLeituras.SEGUNDOS_POR_BLOCO)) {
-                leituras.add(gerador.gerar(maquina, t));
+                boolean antesDeExistir = desde != null && t.isBefore(desde);
+                if (!antesDeExistir && !blocosGravados.contains(Math.floorDiv(t.getEpochSecond(), GeradorLeituras.SEGUNDOS_POR_BLOCO))) {
+                    leituras.add(gerador.gerar(maquina, t));
+                }
             }
-            fonte = FonteAgregado.GERADOR;
-        } else {
+        }
+        if (leituras.isEmpty()) {
             return null;
         }
+        FonteAgregado fonte = gravadas.isEmpty() ? FonteAgregado.GERADOR : FonteAgregado.LEITURAS;
         Totais t = Totais.de(leituras);
         DoubleSummaryStatistics temperatura = leituras.stream().mapToDouble(Leitura::getTemperatura).summaryStatistics();
         return new IndicadorHora(IndicadorHora.idDe(maquina.getId(), inicio), maquina.getId(), inicio, fonte,
@@ -120,14 +129,9 @@ public class AgregadorHoras {
                 temperatura.getAverage(), temperatura.getMin(), temperatura.getMax());
     }
 
-    // Horas (início) em que houve leitura de dispositivo; leituras só existem nas últimas 48 h.
-    private Set<Instant> horasComDispositivo(String maquinaId, Instant inicio, Instant fim) {
-        Query query = Query.query(Criteria.where("maquinaId").is(maquinaId).and("origem").is(OrigemLeitura.DISPOSITIVO)
-                .and("instante").gte(inicio).lt(fim));
-        query.fields().include("instante");
-        Set<Instant> horas = new HashSet<>();
-        mongoTemplate.find(query, Leitura.class).forEach(l -> horas.add(l.getInstante().truncatedTo(ChronoUnit.HOURS)));
-        return horas;
+    private List<Leitura> gravadas(String maquinaId, Instant inicio, Instant fim) {
+        return mongoTemplate.find(Query.query(Criteria.where("maquinaId").is(maquinaId)
+                .and("instante").gte(inicio).lt(fim)), Leitura.class);
     }
 
     private Set<String> idsExistentes(String maquinaId, Instant inicio, Instant fim) {

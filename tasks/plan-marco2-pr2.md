@@ -16,10 +16,10 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 - **Agregados por hora** na coleção `indicador_hora` (`<maquinaId>:<hora>`, TTL de 90 dias),
   gravados por um job a cada hora fechada. As leituras brutas (48 h) servem só para a hora
   corrente e para o gráfico de temperatura.
-- **Horas em que o Render dormiu:** para máquina simulada, o agregado é recalculado pelo
-  próprio gerador (é determinístico, então dá o mesmo que teria sido gravado); a subida preenche
-  assim os últimos 7 dias que faltarem (~1 mil agregados, em memória, ~1 s). Para máquina com
-  dispositivo, hora sem leitura fica como lacuna, não como máquina parada.
+- **Horas em que o Render dormiu:** as leituras gravadas mandam; para máquina simulada, o gerador
+  completa só os blocos de 10 s que faltam (revisão: a máquina pode ter mudado de configuração, e
+  as leituras antigas são o que de fato aconteceu); a subida preenche assim os últimos 7 dias
+  (~1 mil agregados, ~1 s). Para máquina com dispositivo, hora sem leitura fica como lacuna.
 - **Tempo planejado = tempo dentro do turno:** leituras FORA_DO_TURNO não entram em nenhum
   indicador. "Paradas" = quantas vezes a máquina passou de operando para parada.
 - **API em `/api/indicadores`** como na spec; `financeiro` só para DIRETOR. Respostas já trazem
@@ -54,7 +54,7 @@ bloco "Sobre estes dados" (fonte, frequência, última leitura e fórmula), atua
 - [x] Task 9c: Campos de energia no formulário de máquina e painel Energia (ENGENHEIRO e DIRETOR; tarifas editáveis pelo ENGENHEIRO) (M)
 
 ### Phase 3: Fechamento
-- [ ] Task 10: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)
+- [x] Task 10: Navegador ponta a ponta, READMEs, revisões (code-reviewer, security-auditor) e PR (S)
 
 - **Energia calculada, não medida:** consumo = potência × tempo operando dos agregados por hora,
   sem mudar leituras nem o gerador. Quando o ESP32 medir kWh, a leitura ganha esse campo (Marco 6).

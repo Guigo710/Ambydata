@@ -81,11 +81,22 @@ class IndicadoresServiceTests {
         gravar(envasadora, AGORA.minusSeconds(3600 - 10), AGORA);
         Instant meioDia = Instant.parse("2026-11-10T12:00:00Z");
         mongoTemplate.remove(Query.query(Criteria.where("_id").is(IndicadorHora.idDe(envasadora.getId(), meioDia))), IndicadorHora.class);
-        gravar(envasadora, meioDia, meioDia.plusSeconds(3590));
+        // Leituras diferentes das do gerador: o resultado tem de vir delas, não do agregado.
+        List<Leitura> doMeioDia = new ArrayList<>();
+        for (Instant t = meioDia; t.isBefore(meioDia.plusSeconds(3600)); t = t.plusSeconds(10)) {
+            doMeioDia.add(new Leitura(Leitura.idDe(envasadora.getId(), t), envasadora.getId(), t,
+                    com.ambydata.ambydata_backend.simulacao.StatusMaquina.OPERANDO, 24.0, 9, 9, 0,
+                    com.ambydata.ambydata_backend.simulacao.OrigemLeitura.SIMULADOR));
+        }
+        mongoTemplate.insertAll(doMeioDia);
 
         AgoraMaquina agora = servico.agora(envasadora.getId(), AGORA);
 
-        assertThat(agora.turno().totais()).isEqualTo(Totais.de(geradas(envasadora, INICIO_TURNO, AGORA)));
+        List<Leitura> esperadas = new ArrayList<>(geradas(envasadora, INICIO_TURNO, AGORA));
+        esperadas.removeIf(l -> !l.getInstante().isBefore(meioDia) && l.getInstante().isBefore(meioDia.plusSeconds(3600)));
+        esperadas.addAll(doMeioDia);
+        assertThat(agora.turno().totais()).isEqualTo(Totais.de(esperadas));
+        assertThat(agora.turno().totais().pecasProduzidas()).isNotEqualTo(Totais.de(geradas(envasadora, INICIO_TURNO, AGORA)).pecasProduzidas());
     }
 
     @Test
@@ -100,6 +111,22 @@ class IndicadoresServiceTests {
         assertThat(agora.turno().fim()).isEqualTo(fim);
         assertThat(agora.turno().totais()).isEqualTo(Totais.de(geradas(envasadora, INICIO_TURNO, fim.minusSeconds(10))));
         assertThat(agora.ultimaLeitura()).isNull(); // nenhuma leitura bruta gravada
+    }
+
+    @Test
+    void turnoDaNoiteSomaAsHorasDeAntesEDepoisDaMeiaNoite() {
+        envasadora.setTurnoPlanejado(new com.ambydata.ambydata_backend.maquina.Turno("22:00", "06:00"));
+        mongoTemplate.save(envasadora);
+        Instant madrugada = Instant.parse("2026-11-11T05:30:00Z");     // 02:30 em SP
+        Instant inicio = Instant.parse("2026-11-11T01:00:00Z");        // 22:00 em SP do dia 10
+        agregador.preencher(madrugada);
+        gravar(envasadora, Instant.parse("2026-11-11T05:00:00Z"), madrugada);
+
+        AgoraMaquina agora = servico.agora(envasadora.getId(), madrugada);
+
+        assertThat(agora.turno().inicio()).isEqualTo(inicio);
+        assertThat(agora.turno().totais()).isEqualTo(Totais.de(geradas(envasadora, inicio, madrugada)));
+        assertThat(agora.turno().totais().segundosPlanejados()).isEqualTo(4 * 3600 + 30 * 60 + 10);
     }
 
     private void gravar(Maquina m, Instant de, Instant ate) {

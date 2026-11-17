@@ -23,7 +23,7 @@ export default function GraficoProducaoHoras({ maquina, historico }) {
     <figure className="grafico-temperatura">
       <div role="img" aria-label={descrever(maquina, historico)} className="grafico-area">
         <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={dados} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+          <BarChart data={dados} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} accessibilityLayer={false}>
             <CartesianGrid stroke="#e6eaf5" vertical={false} />
             <XAxis dataKey="hora" tick={{ fontSize: 12, fill: "#6b7bb6" }} interval={2} />
             <YAxis tick={{ fontSize: 12, fill: "#6b7bb6" }} width={56} tickFormatter={numero} />

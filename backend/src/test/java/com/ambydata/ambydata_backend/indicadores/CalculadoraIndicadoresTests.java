@@ -122,6 +122,25 @@ class CalculadoraIndicadoresTests {
     }
 
     @Test
+    void operandoSemProduzirTemOeeZero() {
+        // Máquina travada marcando OPERANDO: P = 0 e Q não tem base, mas o OEE é 0, não "—".
+        Indicadores i = CalculadoraIndicadores.calcular(new Totais(3600, 3600, 0, 0, 0, 0), 60);
+
+        assertThat(i.performance()).isZero();
+        assertThat(i.qualidade()).isNull();
+        assertThat(i.oee()).isZero();
+    }
+
+    @Test
+    void lacunaEntreHorasQuebraAParada() {
+        Totais terminaParada = new Totais(3600, 3000, 600, 1, 2700, 2430, false, true);
+        Totais comecaParada = new Totais(3600, 3000, 600, 1, 2700, 2430, true, false);
+
+        assertThat(terminaParada.somar(comecaParada).paradas()).isEqualTo(1);           // horas seguidas
+        assertThat(terminaParada.semBordaFinal().somar(comecaParada).paradas()).isEqualTo(2); // hora sem dados no meio
+    }
+
+    @Test
     void semParadasNaoHaMtbf() {
         Indicadores i = CalculadoraIndicadores.calcular(new Totais(600, 600, 0, 0, 540, 540), 60);
 

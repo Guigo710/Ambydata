@@ -57,7 +57,7 @@ export default function GraficoTemperatura({ maquina, pontos, periodo = "2 h" })
           <p className="tabela-vazia">Sem leituras neste período.</p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={dados} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+            <LineChart data={dados} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} accessibilityLayer={false}>
               <CartesianGrid stroke="#e6eaf5" vertical={false} />
               <XAxis dataKey="ms" type="number" domain={["dataMin", "dataMax"]} scale="time" tickFormatter={hora}
                 tick={{ fontSize: 12, fill: "#6b7bb6" }} minTickGap={40} />

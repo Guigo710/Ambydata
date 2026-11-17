@@ -55,6 +55,7 @@ public class HistoricoService {
             IndicadorHora h = agregados.get(hora);
             if (h == null) {
                 pontos.add(new PontoHistorico(hora, true, null, null, null, null, null, null));
+                total = total.semBordaFinal(); // a lacuna separa as paradas de antes e de depois
                 continue;
             }
             pontos.add(new PontoHistorico(hora, false, h.getFonte(), h.totais(),
@@ -110,16 +111,26 @@ public class HistoricoService {
                 porLinha.entrySet().stream().map(e -> new FinanceiroGrupo(e.getKey(), e.getValue())).toList(), total);
     }
 
-    // Máquinas ativas (na ordem linha, nome) com a soma das suas horas no período, em ordem de hora.
+    // Máquinas (na ordem linha, nome) com a soma das suas horas no período, em ordem de hora:
+    // as ativas e as desativadas que tiveram horas no período (desativar preserva o histórico).
     Map<Maquina, Totais> totaisPorMaquina(Instant inicio, Instant fim) {
-        List<Maquina> ativas = maquinas.listar(true);
-        Map<String, List<IndicadorHora>> porMaquina = agregados(ativas.stream().map(Maquina::getId).toList(), inicio, fim)
+        List<Maquina> todas = maquinas.listar(false);
+        Map<String, List<IndicadorHora>> porMaquina = agregados(todas.stream().map(Maquina::getId).toList(), inicio, fim)
                 .stream().collect(Collectors.groupingBy(IndicadorHora::getMaquinaId));
         Map<Maquina, Totais> totais = new LinkedHashMap<>();
-        for (Maquina m : ativas) {
+        for (Maquina m : todas) {
+            List<IndicadorHora> horas = porMaquina.getOrDefault(m.getId(), List.of());
+            if (!m.isAtiva() && horas.isEmpty()) {
+                continue;
+            }
             Totais soma = Totais.VAZIO;
-            for (IndicadorHora h : porMaquina.getOrDefault(m.getId(), List.of())) {
+            Instant anterior = null;
+            for (IndicadorHora h : horas) {
+                if (anterior != null && !h.getHora().equals(anterior.plus(HORA))) {
+                    soma = soma.semBordaFinal();
+                }
                 soma = soma.somar(h.totais());
+                anterior = h.getHora();
             }
             totais.put(m, soma);
         }

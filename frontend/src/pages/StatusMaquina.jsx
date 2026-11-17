@@ -7,19 +7,20 @@ import { mensagemDeErro } from "../services/api";
 import { formatarMinutos, tempoDesde, useAgora, useLeituras, useRelogio } from "../services/indicadores";
 import { formatarNumero, textoFaixa, useMaquinaSelecionada } from "../services/maquinas";
 
-// Aviso quando a temperatura sai da faixa (alerta) ou passa do limite crítico.
+// Aviso quando a temperatura sai da faixa (alerta) ou passa do limite crítico. O texto só muda
+// quando a situação muda (o valor fica no cartão de temperatura), para o leitor de tela não
+// repetir o aviso a cada atualização de 10 s.
 function avisoDeTemperatura(maquina, leitura) {
   if (!leitura) return null;
-  const temperatura = `${formatarNumero(leitura.temperatura)} °C`;
   const { limiteCritico: critico } = maquina;
   if (leitura.situacaoTemperatura === "CRITICO") {
     const lado = leitura.temperatura > critico.max
       ? `acima de ${formatarNumero(critico.max)} °C`
       : `abaixo de ${formatarNumero(critico.min)} °C`;
-    return `Temperatura além do limite crítico: ${temperatura} (crítico ${lado}).`;
+    return `Temperatura além do limite crítico (crítico ${lado}).`;
   }
   if (leitura.situacaoTemperatura === "ALERTA") {
-    return `Temperatura fora da faixa permitida: ${temperatura} (faixa ${textoFaixa(maquina.faixaTemperatura)}).`;
+    return `Temperatura fora da faixa permitida (${textoFaixa(maquina.faixaTemperatura)}).`;
   }
   return null;
 }
@@ -68,7 +69,7 @@ function StatusDaMaquina({ maquina }) {
   return (
     <>
       {aviso && (
-        <div role="alert" className={`aviso-temperatura aviso-${agora.data.ultimaLeitura.situacaoTemperatura.toLowerCase()}`}>
+        <div role="status" className={`aviso-temperatura aviso-${agora.data.ultimaLeitura.situacaoTemperatura.toLowerCase()}`}>
           {aviso}
         </div>
       )}

@@ -86,6 +86,13 @@ public record Totais(
                 pecasProduzidas + outra.pecasProduzidas, pecasBoas + outra.pecasBoas);
     }
 
+    // Antes de somar uma hora que não é a seguinte (lacuna no meio): a parada do fim deste
+    // intervalo não continua na próxima.
+    public Totais semBordaFinal() {
+        return new Totais(segundosPlanejados, segundosOperando, segundosParado, paradas, pecasProduzidas, pecasBoas,
+                comecaParada, false);
+    }
+
     private boolean vazio() {
         return segundosPlanejados == 0 && !comecaParada && !terminaParada;
     }

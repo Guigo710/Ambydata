@@ -17,8 +17,9 @@ describe("Status da Máquina", () => {
     expect(within(atual).getByText("7")).toBeTruthy(); // paradas no turno
     expect(within(atual).getByText("parado 5 min · MTBF 55 min")).toBeTruthy();
 
-    expect(screen.getByRole("alert").textContent)
-      .toBe("Temperatura além do limite crítico: 225 °C (crítico acima de 220 °C).");
+    // role="status" com texto estável: o leitor de tela não reanuncia a cada 10 s.
+    const aviso = screen.getByText("Temperatura além do limite crítico (crítico acima de 220 °C).");
+    expect(aviso.getAttribute("role")).toBe("status");
   });
 
   it("máquina parada e na faixa não mostra aviso", async () => {
@@ -28,7 +29,7 @@ describe("Status da Máquina", () => {
     const atual = await screen.findByRole("region", { name: "Situação atual de Envasadora 04" });
     expect(within(atual).getByText("Parada")).toBeTruthy();
     expect(within(atual).getByText("Na faixa")).toBeTruthy();
-    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.queryByText(/^Temperatura (além|fora)/)).toBeNull();
   });
 
   it("gráfico das últimas 2 h descrito em texto, com a faixa e o limite crítico", async () => {

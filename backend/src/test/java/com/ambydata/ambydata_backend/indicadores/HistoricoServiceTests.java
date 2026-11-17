@@ -129,6 +129,17 @@ class HistoricoServiceTests {
     }
 
     @Test
+    void maquinaDesativadaContinuaNoHistoricoDoPeriodo() {
+        Maquina seladora = maquina("Seladora 05");
+        seladora.setAtiva(false);
+        mongoTemplate.save(seladora);
+
+        assertThat(servico.financeiro("24h", AGORA).maquinas()).extracting(FinanceiroMaquina::nome).contains("Seladora 05");
+        assertThat(servico.comparativo("24h", "maquina", AGORA).grupos()).extracting(GrupoComparativo::grupo)
+                .contains("Seladora 05");
+    }
+
+    @Test
     void periodoEAgrupamentoInvalidosSaoRecusados() {
         assertThatThrownBy(() -> servico.comparativo("30d", "linha", AGORA))
                 .isInstanceOf(CampoInvalidoException.class).hasFieldOrPropertyWithValue("campo", "periodo");

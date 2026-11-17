@@ -31,8 +31,8 @@ public final class CalculadoraIndicadores {
         Double oee;
         if (disponibilidade == null) {
             oee = null;
-        } else if (disponibilidade == 0) {
-            oee = 0.0; // parada o tempo todo: não produziu nada
+        } else if (disponibilidade == 0 || (performance != null && performance == 0)) {
+            oee = 0.0; // parada o tempo todo, ou operando sem produzir nada
         } else {
             oee = performance == null || qualidade == null ? null : disponibilidade * performance * qualidade;
         }

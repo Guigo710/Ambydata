@@ -88,6 +88,27 @@ class AgregadorHorasTests {
     }
 
     @Test
+    void horaComLeiturasGravadasUsaAsGravadasEOGeradorSoNosBlocosQueFaltam() {
+        // Leituras gravadas com outra configuração (ou semente antiga) mandam: o gerador só completa.
+        List<Leitura> gravadas = new ArrayList<>();
+        for (Instant t = HORA; t.isBefore(HORA.plusSeconds(1800)); t = t.plusSeconds(10)) {
+            gravadas.add(new Leitura(Leitura.idDe(forno.getId(), t), forno.getId(), t, StatusMaquina.OPERANDO, 199.0,
+                    7, 7, 0, OrigemLeitura.SIMULADOR));
+        }
+        mongoTemplate.insertAll(gravadas);
+
+        IndicadorHora hora = agregador.agregar(forno, HORA);
+
+        List<Leitura> esperadas = new ArrayList<>(gravadas);
+        for (Instant t = HORA.plusSeconds(1800); t.isBefore(HORA.plus(Duration.ofHours(1))); t = t.plusSeconds(10)) {
+            esperadas.add(gerador.gerar(forno, t));
+        }
+        assertThat(hora.totais()).isEqualTo(Totais.de(esperadas));
+        assertThat(hora.getLeituras()).isEqualTo(360);
+        assertThat(hora.getFonte()).isEqualTo(FonteAgregado.LEITURAS);
+    }
+
+    @Test
     void comOSimuladorDesligadoHoraSemDispositivoFicaComoLacuna() {
         AgregadorHoras semSimulador = new AgregadorHoras(mongoTemplate, maquinas, gerador,
                 new SimulacaoProperties(false, "America/Sao_Paulo", 60));
@@ -126,9 +147,12 @@ class AgregadorHorasTests {
 
         agregador.preencher(AGORA);
 
-        // horas 14:00 e 15:00 UTC; a das 13:00 começou antes de a máquina existir
+        // horas 13:00 (só a partir de 13:30), 14:00 e 15:00 UTC; nada antes de a máquina existir
         assertThat(mongoTemplate.count(Query.query(Criteria.where("maquinaId").is(forno.getId())), IndicadorHora.class))
-                .isEqualTo(2);
+                .isEqualTo(3);
+        IndicadorHora parcial = mongoTemplate.findById(IndicadorHora.idDe(forno.getId(), Instant.parse("2026-11-10T13:00:00Z")),
+                IndicadorHora.class);
+        assertThat(parcial.getLeituras()).isEqualTo(180);
     }
 
     @Test

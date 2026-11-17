@@ -222,9 +222,11 @@ Fórmulas e telas em [`SPEC-indicadores.md`](../SPEC-indicadores.md). Como funci
 
 - **Agregados por hora** (`indicador_hora`, apagados após 90 dias): a cada hora fechada o backend
   grava os totais de cada máquina (tempo planejado, operando e parado, paradas, peças, temperatura).
-  Na subida, preenche os últimos 7 dias que faltarem: hora com leitura de dispositivo usa as leituras
-  gravadas; sem dispositivo, o gerador recalcula a hora (dá o mesmo que teria sido gravado, mesmo com
-  o Render dormindo); com o simulador desligado, a hora fica como lacuna.
+  Na subida, preenche os últimos 7 dias que faltarem. As leituras gravadas sempre mandam; numa hora
+  sem dispositivo, com o simulador ligado, o gerador completa só os blocos de 10 s que faltam (as
+  horas em que o Render dormiu); hora com dispositivo fica só com o que chegou, e com o simulador
+  desligado a hora sem leituras vira lacuna. O job roda 6 min depois da virada da hora, para pegar
+  leituras de dispositivo que chegam com atraso.
 - **Agora** (última hora e turno): última hora sai das leituras brutas; o turno soma os agregados das
   horas fechadas com as leituras da hora corrente. Fora do turno, vale o último turno completo.
 - Só conta tempo dentro do turno planejado. Uma parada que atravessa a virada da hora conta uma vez.

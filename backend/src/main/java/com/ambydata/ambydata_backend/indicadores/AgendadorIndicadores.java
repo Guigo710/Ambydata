@@ -38,8 +38,9 @@ public class AgendadorIndicadores implements ApplicationRunner {
         }
     }
 
-    // 5 s depois da virada da hora, para a última leitura da hora já estar gravada.
-    @Scheduled(cron = "5 0 * * * *")
+    // 6 min depois da virada da hora: um dispositivo pode mandar leituras com até 5 min de atraso
+    // (IngestaoController.JANELA_PASSADO), e elas precisam entrar no agregado da hora.
+    @Scheduled(cron = "0 6 * * * *")
     public void horaFechada() {
         agregador.agregarHoraFechada(Instant.now());
     }

@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "maquina")
@@ -18,7 +17,7 @@ public class Maquina {
     @Id
     private String id;
 
-    @Indexed(unique = true)
+    // Único sem diferenciar maiúsculas: índice com collation criado pela M002.
     private String nome;
 
     private TipoMaquina tipo;

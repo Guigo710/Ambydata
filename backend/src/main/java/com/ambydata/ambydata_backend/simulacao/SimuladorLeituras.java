@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.mongodb.BulkOperationException;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -29,6 +31,7 @@ public class SimuladorLeituras implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SimuladorLeituras.class);
     private static final Duration DISPOSITIVO_RECENTE = Duration.ofMinutes(5);
+    private static final int CHAVE_REPETIDA = 11000;
 
     private final GeradorLeituras gerador;
     private final MaquinaService maquinas;
@@ -43,14 +46,20 @@ public class SimuladorLeituras implements ApplicationRunner {
         this.propriedades = propriedades;
     }
 
+    // Um erro aqui não pode impedir a API de subir: o simulador é acessório.
     @Override
     public void run(ApplicationArguments args) {
         if (propriedades.ativo()) {
-            preencherLacunas(Instant.now());
+            try {
+                preencherLacunas(Instant.now());
+            } catch (RuntimeException e) {
+                log.error("Simulador: falha ao preencher lacunas; segue só com o job de 10 s", e);
+            }
         }
     }
 
-    @Scheduled(fixedRate = 10_000, initialDelay = 10_000)
+    // Cron alinhado ao relógio (:00, :10, :20...): um bloco por disparo, sem deriva que pule bloco.
+    @Scheduled(cron = "*/10 * * * * *")
     public void tick() {
         if (propriedades.ativo()) {
             registrar(Instant.now());
@@ -59,7 +68,11 @@ public class SimuladorLeituras implements ApplicationRunner {
 
     public void registrar(Instant agora) {
         for (Maquina maquina : simuladas(agora)) {
-            mongoTemplate.save(gerador.gerar(maquina, agora));
+            try {
+                mongoTemplate.save(gerador.gerar(maquina, agora)); // id por bloco: regravar é idempotente
+            } catch (RuntimeException e) {
+                log.warn("Simulador: leitura de {} não gravada: {}", maquina.getNome(), e.getMessage());
+            }
         }
     }
 
@@ -73,10 +86,27 @@ public class SimuladorLeituras implements ApplicationRunner {
             }
             Set<String> existentes = idsExistentes(doIntervalo.stream().map(Leitura::getId).toList());
             List<Leitura> faltando = doIntervalo.stream().filter(l -> !existentes.contains(l.getId())).toList();
-            mongoTemplate.insertAll(faltando);
-            criadas += faltando.size();
+            criadas += inserirIgnorandoRepetidas(faltando);
         }
         log.info("Simulador: {} leituras preenchidas desde {}", criadas, inicio);
+    }
+
+    // Insere sem ordem e ignora só as repetidas (código 11000): se o job gravou um bloco entre a
+    // conferência e a inserção, o resto do lote entra mesmo assim.
+    int inserirIgnorandoRepetidas(List<Leitura> leituras) {
+        if (leituras.isEmpty()) {
+            return 0;
+        }
+        try {
+            return mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, Leitura.class)
+                    .insert(leituras).execute().getInsertedCount();
+        } catch (BulkOperationException e) {
+            boolean soRepetidas = e.getErrors().stream().allMatch(erro -> erro.getCode() == CHAVE_REPETIDA);
+            if (!soRepetidas) {
+                throw e;
+            }
+            return e.getResult().getInsertedCount();
+        }
     }
 
     private List<Maquina> simuladas(Instant agora) {

@@ -6,7 +6,10 @@ import com.ambydata.ambydata_backend.maquina.LimitesAlerta;
 import com.ambydata.ambydata_backend.maquina.Maquina;
 import com.ambydata.ambydata_backend.maquina.TipoMaquina;
 import com.ambydata.ambydata_backend.maquina.Turno;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.Index;
+import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
@@ -28,6 +31,10 @@ public class M002MaquinasIniciais implements Migracao {
 
     @Override
     public void aplicar(MongoTemplate mongoTemplate) {
+        // Nome único sem diferenciar maiúsculas nem acentos ("Forno 02" = "FORNO 02"). É o banco que
+        // garante: a checagem do serviço sozinha deixaria passar dois cadastros simultâneos.
+        mongoTemplate.indexOps(Maquina.class).createIndex(new Index("nome", Sort.Direction.ASC)
+                .named("nome").unique().collation(Collation.of("pt").strength(Collation.ComparisonLevel.primary())));
         for (Maquina maquina : maquinas()) {
             boolean existe = mongoTemplate.exists(Query.query(Criteria.where("nome").is(maquina.getNome())), Maquina.class);
             if (!existe) {

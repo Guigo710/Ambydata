@@ -1,6 +1,7 @@
 package com.ambydata.ambydata_backend.maquina;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -17,7 +18,7 @@ public record MaquinaRequest(
         @NotNull @Min(1) @Max(10_000) Integer cadenciaIdeal,
         @NotNull @Valid FaixaTemperatura faixaTemperatura,
         @NotNull @Valid LimitesAlerta alertas,
-        @NotNull @DecimalMin("0") Double custoHora,
-        @NotNull @DecimalMin("0") Double valorPorPeca,
+        @NotNull @DecimalMin("0") @DecimalMax("1000000") Double custoHora,
+        @NotNull @DecimalMin("0") @DecimalMax("1000000") Double valorPorPeca,
         @NotNull @Valid Turno turnoPlanejado) {
 }

@@ -17,6 +17,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import java.time.Duration;
+import java.time.Instant;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -81,12 +84,65 @@ class IngestaoDispositivoTests {
                 .andExpect(jsonPath("$.campos.pecasBoas").isNotEmpty());
     }
 
+    @Test
+    void semChaveNemOCorpoEValidado() throws Exception {
+        // A chave é conferida antes de ler o corpo: sem ela, nada de 400 descrevendo os campos.
+        mvc.perform(post("/api/leituras").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void instanteForaDaJanelaDevolve400() throws Exception {
+        // Futuro: nunca expiraria pelo TTL e desligaria o simulador. Passado: reescreveria o histórico.
+        mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "185.5", "\"instante\":\"2100-01-01T00:00:00Z\",")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.instante").isNotEmpty());
+        String antigo = Instant.now().minus(Duration.ofHours(1)).toString();
+        mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "185.5", "\"instante\":\"" + antigo + "\",")))
+                .andExpect(status().isBadRequest());
+        assertThat(mongoTemplate.count(new Query(), Leitura.class)).isZero();
+    }
+
+    @Test
+    void segundaLeituraDoMesmoBlocoDevolve409SemSobrescrever() throws Exception {
+        String instante = Instant.now().minusSeconds(30).toString();
+        mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "185.5", "\"instante\":\"" + instante + "\",")))
+                .andExpect(status().isCreated());
+        mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "999.0", "\"instante\":\"" + instante + "\",")))
+                .andExpect(status().isConflict());
+        assertThat(mongoTemplate.findOne(new Query(), Leitura.class).getTemperatura()).isEqualTo(185.5);
+    }
+
+    @Test
+    void maquinaInativaNaoRecebeLeitura() throws Exception {
+        Maquina m = mongoTemplate.findById(forno, Maquina.class);
+        m.setAtiva(false);
+        mongoTemplate.save(m);
+        mvc.perform(leitura(CHAVE, forno, 5, 5))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.maquinaId").isNotEmpty());
+    }
+
+    @Test
+    void temperaturaInfinitaDevolve400() throws Exception {
+        mvc.perform(leitura(CHAVE, corpo(forno, 5, 5, "1e999", "")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.temperatura").isNotEmpty());
+    }
+
     private static MockHttpServletRequestBuilder leitura(String chave, String maquinaId, int produzidas, int boas) {
-        MockHttpServletRequestBuilder requisicao = post("/api/leituras").contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"maquinaId":"%s","status":"OPERANDO","temperatura":185.5,
-                         "pecasProduzidas":%d,"pecasBoas":%d,"segundosParado":0}
-                        """.formatted(maquinaId, produzidas, boas));
+        return leitura(chave, corpo(maquinaId, produzidas, boas, "185.5", ""));
+    }
+
+    private static String corpo(String maquinaId, int produzidas, int boas, String temperatura, String extra) {
+        return """
+                {%s"maquinaId":"%s","status":"OPERANDO","temperatura":%s,
+                 "pecasProduzidas":%d,"pecasBoas":%d,"segundosParado":0}
+                """.formatted(extra, maquinaId, temperatura, produzidas, boas);
+    }
+
+    private static MockHttpServletRequestBuilder leitura(String chave, String json) {
+        MockHttpServletRequestBuilder requisicao = post("/api/leituras").contentType(MediaType.APPLICATION_JSON).content(json);
         return chave == null ? requisicao : requisicao.header("X-Device-Key", chave);
     }
 }

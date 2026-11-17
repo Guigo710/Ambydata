@@ -44,9 +44,15 @@ public class GeradorLeituras {
         }
 
         double ideal = maquina.getCadenciaIdeal() * SEGUNDOS_POR_BLOCO / 60.0;
-        double ritmo = (maquina.getCenario() == CenarioSimulacao.PARADAS_FREQUENTES ? 0.90 : 0.95)
-                + (aleatorio.nextDouble() - 0.5) * 0.06;
-        int produzidas = (int) Math.max(0, Math.round(ideal * ritmo));
+        // Ritmo calibrado para os OEE da SPEC-simulacao (saudável ~85%, paradas frequentes ~55%).
+        double ritmo = switch (maquina.getCenario()) {
+            case SAUDAVEL -> 0.89;
+            case PARADAS_FREQUENTES -> 0.90;
+            default -> 0.95;
+        } + (aleatorio.nextDouble() - 0.5) * 0.06;
+        // Arredondamento sorteado: em média produz exatamente ideal × ritmo, qualquer que seja a cadência.
+        double esperado = Math.max(0, ideal * ritmo);
+        int produzidas = (int) Math.floor(esperado) + (aleatorio.nextDouble() < esperado - Math.floor(esperado) ? 1 : 0);
         double taxaDefeitos = switch (maquina.getCenario()) {
             case DEFEITOS_ALTOS -> 0.12;
             case SAUDAVEL -> 0.012;
@@ -68,7 +74,7 @@ public class GeradorLeituras {
     private static boolean emParada(Maquina maquina, long bloco) {
         long janela = Math.floorDiv(bloco, BLOCOS_POR_JANELA_DE_PARADA);
         double chance = switch (maquina.getCenario()) {
-            case PARADAS_FREQUENTES -> 0.30;
+            case PARADAS_FREQUENTES -> 0.37;
             case SAUDAVEL -> 0.03;
             default -> 0.06;
         };

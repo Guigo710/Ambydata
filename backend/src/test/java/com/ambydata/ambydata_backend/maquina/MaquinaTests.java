@@ -14,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +27,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -128,11 +132,37 @@ class MaquinaTests {
     }
 
     @Test
+    void bancoRecusaNomeRepetidoMesmoComOutraCaixa() {
+        // A checagem do serviço tem corrida (dois POSTs juntos); quem garante é o índice do banco.
+        Maquina copia = mongoTemplate.findOne(Query.query(Criteria.where("nome").is("Forno 02")), Maquina.class);
+        copia.setId(null);
+        copia.setNome("FORNO 02");
+        assertThatThrownBy(() -> mongoTemplate.insert(copia)).isInstanceOf(DuplicateKeyException.class);
+    }
+
+    @Test
     void faixaInvalidaDevolve400NoCampo() throws Exception {
         mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
                         .content(maquina("Nova 07", 30, 30, 50)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.faixaTemperatura").isNotEmpty());
+    }
+
+    @Test
+    void temperaturaInfinitaOuForaDaFaixaFisicaDevolve400() throws Exception {
+        // 1e999 vira Infinity no Jackson: sem limite, o crítico viraria ±∞ e nunca dispararia.
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
+                        .content(maquina("Nova 09", 10, 30, 50).replace("\"max\":30.0", "\"max\":1e999")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['faixaTemperatura.max']").isNotEmpty());
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
+                        .content(maquina("Nova 10", -500, 30, 50)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['faixaTemperatura.min']").isNotEmpty());
+        mvc.perform(como(Perfil.ENGENHEIRO, post("/api/maquinas")).contentType(MediaType.APPLICATION_JSON)
+                        .content(maquina("Nova 11", 10, 30, 50).replace("\"custoHora\":100", "\"custoHora\":1e999")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.custoHora").isNotEmpty());
     }
 
     @Test

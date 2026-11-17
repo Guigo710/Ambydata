@@ -41,6 +41,6 @@ public class Leitura {
     private OrigemLeitura origem;
 
     public static String idDe(String maquinaId, Instant instante) {
-        return maquinaId + ":" + Math.floorDiv(instante.getEpochSecond(), 10);
+        return maquinaId + ":" + Math.floorDiv(instante.getEpochSecond(), GeradorLeituras.SEGUNDOS_POR_BLOCO);
     }
 }

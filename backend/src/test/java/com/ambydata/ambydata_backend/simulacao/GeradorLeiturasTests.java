@@ -81,14 +81,29 @@ class GeradorLeiturasTests {
         assertThat(dia).allMatch(l -> l.getTemperatura() >= 10 && l.getTemperatura() <= 30);
     }
 
+    // Os critérios da SPEC-simulacao valem para qualquer id de máquina, não só para um id de sorte:
+    // a média de vários ids precisa cair na faixa, e nenhum id pode fugir muito dela.
+    private static final List<String> IDS = List.of("6745a1f0c2e4b81d9a3f0011", "6745a1f0c2e4b81d9a3f0012",
+            "6745a1f0c2e4b81d9a3f0013", "6745a1f0c2e4b81d9a3f0014", "6745a1f0c2e4b81d9a3f0015",
+            "6745a1f0c2e4b81d9a3f0016", "6745a1f0c2e4b81d9a3f0017", "6745a1f0c2e4b81d9a3f0018");
+
     @Test
-    void paradasFrequentesDerrubamADisponibilidade() {
-        assertThat(disponibilidade(dia(maquina("envasadora", CenarioSimulacao.PARADAS_FREQUENTES)))).isLessThan(0.8);
+    void saudavelFicaPertoDe85PorCentoDeOee() {
+        assertThat(media(IDS, id -> oee(dia(maquina(id, CenarioSimulacao.SAUDAVEL))))).isBetween(0.82, 0.88);
     }
 
     @Test
-    void defeitosAltosDerrubamAQualidade() {
-        assertThat(qualidade(dia(maquina("seladora", CenarioSimulacao.DEFEITOS_ALTOS)))).isLessThan(0.92);
+    void paradasFrequentesFicamPertoDe55PorCentoDeOeeComDisponibilidadeBaixa() {
+        assertThat(media(IDS, id -> oee(dia(maquina(id, CenarioSimulacao.PARADAS_FREQUENTES))))).isBetween(0.50, 0.60);
+        for (String id : IDS) {
+            assertThat(disponibilidade(dia(maquina(id, CenarioSimulacao.PARADAS_FREQUENTES)))).as(id).isLessThan(0.75);
+        }
+        assertThat(media(IDS, id -> disponibilidade(dia(maquina(id, CenarioSimulacao.PARADAS_FREQUENTES))))).isLessThan(0.70);
+    }
+
+    @Test
+    void defeitosAltosFicamPertoDe88PorCentoDeQualidade() {
+        assertThat(media(IDS, id -> qualidade(dia(maquina(id, CenarioSimulacao.DEFEITOS_ALTOS))))).isBetween(0.86, 0.90);
     }
 
     @Test
@@ -116,6 +131,16 @@ class GeradorLeiturasTests {
 
     private static double disponibilidade(List<Leitura> leituras) {
         return leituras.stream().filter(l -> l.getStatus() == StatusMaquina.OPERANDO).count() / (double) leituras.size();
+    }
+
+    // OEE = peças boas / peças que a cadência ideal faria no tempo de turno (60/min = 10 por bloco).
+    private static double oee(List<Leitura> leituras) {
+        int boas = leituras.stream().mapToInt(Leitura::getPecasBoas).sum();
+        return boas / (leituras.size() * 10.0);
+    }
+
+    private static double media(List<String> ids, java.util.function.ToDoubleFunction<String> valor) {
+        return ids.stream().mapToDouble(valor).average().orElseThrow();
     }
 
     private static double qualidade(List<Leitura> leituras) {

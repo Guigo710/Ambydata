@@ -65,6 +65,24 @@ class SimuladorTests {
     }
 
     @Test
+    void preenchimentoNaoQuebraSeOTickGravarNoMeioDoCaminho() {
+        // Corrida real: entre conferir o que existe e inserir, o job (ou a instância antiga num
+        // deploy) grava o mesmo bloco. O preenchimento precisa seguir, e a subida não pode cair.
+        Leitura doTick = mongoTemplate.findAll(Leitura.class).stream().findFirst().orElse(null);
+        assertThat(doTick).isNull();
+        Instant t = AGORA.minus(Duration.ofMinutes(10));
+        java.util.List<Leitura> lote = new ArrayList<>();
+        for (Maquina m : mongoTemplate.findAll(Maquina.class)) {
+            lote.add(new GeradorLeituras(java.time.ZoneId.of("America/Sao_Paulo")).gerar(m, t));
+        }
+        mongoTemplate.insert(lote.get(0));
+
+        simulador.inserirIgnorandoRepetidas(lote);
+
+        assertThat(mongoTemplate.count(new Query(), Leitura.class)).isEqualTo(lote.size());
+    }
+
+    @Test
     void leituraPreenchidaEIgualAQueSeriaGravadaNaHora() {
         Instant antes = AGORA.minus(Duration.ofMinutes(30));
         simulador.preencherLacunas(AGORA);

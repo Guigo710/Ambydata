@@ -1,9 +1,14 @@
 package com.ambydata.ambydata_backend.maquina;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
-// Faixa de temperatura permitida (°C). Fora dela é alerta.
-public record FaixaTemperatura(@NotNull Double min, @NotNull Double max) {
+// Faixa de temperatura permitida (°C). Fora dela é alerta. Os limites físicos (−100 a 1000 °C)
+// também barram 1e999, que o Jackson converte em Infinity.
+public record FaixaTemperatura(
+        @NotNull @DecimalMin("-100") @DecimalMax("1000") Double min,
+        @NotNull @DecimalMin("-100") @DecimalMax("1000") Double max) {
 
     public double largura() {
         return max - min;

@@ -31,14 +31,26 @@ muitos defeitos.
 | Resfriador 03 | saudável com oscilação | temperatura perto do limite da faixa |
 
 - **Fora do turno planejado** a máquina fica PARADA sem contar como downtime.
-- **Agendamento:** um job a cada 10 s grava a leitura do instante atual de cada máquina ativa.
-  Na subida, preenche as leituras da última hora e os agregados horários dos últimos 7 dias
-  que faltarem.
+- **Agendamento:** um job alinhado ao relógio (a cada 10 s: :00, :10, :20...) grava a leitura
+  do instante atual de cada máquina ativa. Na subida, preenche as leituras da última hora que
+  faltarem; uma falha no preenchimento só é registrada em log, nunca impede a API de subir.
+  Os agregados horários dos últimos 7 dias (e o preenchimento deles) chegam no PR 2, com
+  `indicadores`: como o Render free dorme a noite toda, os indicadores tratam horas sem leitura
+  como lacuna, não como máquina parada.
 - **Retenção (Atlas free, 512 MB):** leituras brutas por 48 h (índice TTL); agregados por hora
   (`indicador_hora`) por 90 dias. Estimativa: < 20 MB.
 - **Ingestão de dispositivos:** `POST /api/leituras` com o header `X-Device-Key` (variável
-  `DEVICE_KEY`), mesmo formato da leitura com `origem = DISPOSITIVO`. Uma máquina que recebe
-  leitura de dispositivo deixa de ser simulada por 5 minutos.
+  `DEVICE_KEY`, 32+ caracteres; vazia desliga a rota), mesmo formato da leitura com
+  `origem = DISPOSITIVO`. Uma máquina que recebe leitura de dispositivo deixa de ser simulada
+  por 5 minutos. Regras da rota:
+  - a chave é conferida antes de ler o corpo (sem chave: 401, nunca 400);
+  - `instante` opcional, aceito só entre 5 min atrás e 30 s à frente (senão 400): um instante
+    no futuro escaparia do TTL e desligaria o simulador; um no passado reescreveria o histórico;
+  - no máximo uma leitura por máquina a cada 10 s; a segunda do mesmo bloco recebe 409 e não
+    sobrescreve a primeira;
+  - máquina inativa não recebe leitura (400); temperatura entre −100 e 1000 °C.
+  - Marco 6 (ESP32): trocar a chave única por uma chave por dispositivo, guardada como hash e
+    ligada às máquinas que ele pode reportar.
 - **Liga/desliga:** `SIMULADOR_ATIVO` (padrão `true`).
 
 ## Success Criteria
@@ -50,7 +62,7 @@ muitos defeitos.
 4. Ao longo de 24 h simuladas, cada cenário produz o comportamento da tabela (teste com
    faixas: ex.: Envasadora 04 com Disponibilidade < 70%).
 5. `POST /api/leituras` sem chave ou com chave errada → 401; com chave certa → 201.
-6. O índice TTL das leituras e o dos agregados existem.
+6. O índice TTL das leituras existe (o dos agregados entra no PR 2, com `indicadores`).
 
 ## Boundaries
 

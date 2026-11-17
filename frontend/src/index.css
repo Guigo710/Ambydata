@@ -994,3 +994,8 @@ body,
     width: 100%;
   }
 }
+
+.lista-erros {
+  margin: 0;
+  padding-left: 18px;
+}

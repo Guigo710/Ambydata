@@ -1,5 +1,6 @@
 // Consulta das máquinas (GET /api/maquinas) e textos derivados delas.
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "./api";
 
@@ -56,12 +57,21 @@ export function useMaquinaSelecionada({ permitirTodas = false } = {}) {
   const pedida = parametros.get("maquina");
   const maquina = maquinas.find((m) => m.id === pedida) ?? (permitirTodas ? null : maquinas[0] ?? null);
 
-  const escolher = (id) => {
-    const novos = new URLSearchParams(parametros);
-    if (id) novos.set("maquina", id);
-    else novos.delete("maquina");
-    setParametros(novos, { replace: true });
-  };
+  const escolher = useCallback((id) => {
+    setParametros((atuais) => {
+      const novos = new URLSearchParams(atuais);
+      if (id) novos.set("maquina", id);
+      else novos.delete("maquina");
+      return novos;
+    }, { replace: true });
+  }, [setParametros]);
+
+  // ?maquina= de máquina inexistente ou desativada: a tela mostra a padrão e a URL é corrigida,
+  // para o menu não levar adiante um id que não vale.
+  const pedidaInvalida = consulta.isSuccess && pedida !== null && !maquinas.some((m) => m.id === pedida);
+  useEffect(() => {
+    if (pedidaInvalida) escolher(null);
+  }, [pedidaInvalida, escolher]);
 
   return { maquina, maquinas, carregando: consulta.isPending, erro: consulta.isError, escolher };
 }

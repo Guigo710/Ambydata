@@ -54,7 +54,9 @@ export default function Maquinas() {
           key={painel.maquina?.id ?? "nova"}
           maquina={painel.maquina}
           pendente={salvar.isPending}
-          erro={salvar.isError ? mensagemDeErro(salvar.error) : null}
+          erro={salvar.isError
+            ? { mensagem: mensagemDeErro(salvar.error), campos: salvar.error?.response?.data?.campos }
+            : null}
           onEnviar={(dados) => salvar.mutate(dados)}
           onCancelar={() => abrir(null)}
         />

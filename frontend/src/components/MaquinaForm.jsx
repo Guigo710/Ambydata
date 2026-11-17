@@ -1,6 +1,26 @@
 import { useState } from "react";
 import { TIPOS_DE_MAQUINA, faixaCritica, formatarNumero } from "../services/maquinas";
 
+// Campos numéricos: rótulo, caminho no JSON da API e limites (os mesmos do backend).
+// Validar aqui evita mandar null (Number("") vira NaN, que o JSON transforma em null).
+const NUMERICOS = {
+  cadenciaIdeal: { rotulo: "Cadência ideal (peças/min)", api: "cadenciaIdeal", min: 1, max: 10000, inteiro: true },
+  custoHora: { rotulo: "Custo por hora (R$)", api: "custoHora", min: 0, max: 1000000 },
+  valorPorPeca: { rotulo: "Valor por peça (R$)", api: "valorPorPeca", min: 0, max: 1000000 },
+  tempMin: { rotulo: "Temperatura mínima (°C)", api: "faixaTemperatura.min", min: -100, max: 1000 },
+  tempMax: { rotulo: "Temperatura máxima (°C)", api: "faixaTemperatura.max", min: -100, max: 1000 },
+  percentualCritico: { rotulo: "Crítico além da faixa (%)", api: "alertas.percentualCritico", min: 1, max: 500, inteiro: true },
+  minutosParadoMax: { rotulo: "Parada crítica após (min)", api: "alertas.minutosParadoMax", min: 1, max: 480, inteiro: true },
+  taxaDefeitosMax: { rotulo: "Defeitos críticos acima de (%)", api: "alertas.taxaDefeitosMax", min: 0.1, max: 100 },
+};
+
+// Rótulo de cada campo que o backend pode recusar (chave de `campos` na resposta de erro).
+const ROTULOS_DA_API = {
+  nome: "Nome", tipo: "Tipo", setor: "Setor", linha: "Linha",
+  faixaTemperatura: "Faixa de temperatura",
+  turnoPlanejado: "Turno", "turnoPlanejado.inicio": "Início do turno", "turnoPlanejado.fim": "Fim do turno",
+  ...Object.fromEntries(Object.values(NUMERICOS).map((c) => [c.api, c.rotulo])),
+};
 
 const PADRAO = {
   nome: "", tipo: "OUTRA", setor: "", linha: "", cadenciaIdeal: "60",
@@ -22,48 +42,74 @@ function camposDe(maquina) {
   };
 }
 
-const numero = (texto) => (texto === "" ? NaN : Number(String(texto).replace(",", ".")));
+// "2,5" e "2.5" valem 2,5; vazio ou texto vira NaN.
+const numero = (texto) => (String(texto).trim() === "" ? NaN : Number(String(texto).trim().replace(",", ".")));
+
+function problemaNumerico({ min, max, inteiro }, valor) {
+  const valido = Number.isFinite(valor) && valor >= min && valor <= max && (!inteiro || Number.isInteger(valor));
+  if (valido) return null;
+  return inteiro
+    ? `informe um número inteiro de ${min} a ${max}.`
+    : `informe um número de ${formatarNumero(min)} a ${formatarNumero(max)}.`;
+}
+
+function validar(campos, valores) {
+  const problemas = [];
+  if (!campos.nome.trim() || !campos.setor.trim() || !campos.linha.trim()) {
+    problemas.push("Preencha nome, setor e linha.");
+  }
+  for (const [nome, definicao] of Object.entries(NUMERICOS)) {
+    const problema = problemaNumerico(definicao, valores[nome]);
+    if (problema) problemas.push(`${definicao.rotulo}: ${problema}`);
+  }
+  if (Number.isFinite(valores.tempMin) && Number.isFinite(valores.tempMax) && valores.tempMin >= valores.tempMax) {
+    problemas.push("A temperatura mínima precisa ser menor que a máxima.");
+  }
+  if (campos.turnoInicio === campos.turnoFim) {
+    problemas.push("O início e o fim do turno precisam ser diferentes.");
+  }
+  return problemas;
+}
+
+// Mensagens do backend: a geral e, abaixo, cada campo recusado com o nome usado no formulário.
+function problemasDoBackend(erro) {
+  if (!erro) return [];
+  const { mensagem, campos = {} } = erro;
+  const porCampo = Object.entries(campos)
+    .filter(([, texto]) => texto !== mensagem)
+    .map(([campo, texto]) => `${ROTULOS_DA_API[campo] ?? campo}: ${texto}`);
+  return [mensagem, ...porCampo];
+}
 
 // Cadastro e edição de máquina pelo ENGENHEIRO: identificação, produção, temperatura e
 // os limites que transformam um alerta em crítico (chamado automático).
 export default function MaquinaForm({ maquina, pendente, erro, onEnviar, onCancelar }) {
   const [campos, setCampos] = useState(() => camposDe(maquina));
-  const [erroLocal, setErroLocal] = useState(null);
+  const [problemasLocais, setProblemasLocais] = useState([]);
   const alterar = (nome) => (e) => setCampos({ ...campos, [nome]: e.target.value });
 
-  const min = numero(campos.tempMin);
-  const max = numero(campos.tempMax);
-  const percentual = numero(campos.percentualCritico);
-  const previa = !Number.isNaN(min) && !Number.isNaN(max) && min < max && percentual > 0
+  const valores = Object.fromEntries(Object.keys(NUMERICOS).map((nome) => [nome, numero(campos[nome])]));
+  const { tempMin: min, tempMax: max, percentualCritico: percentual } = valores;
+  const previa = Number.isFinite(min) && Number.isFinite(max) && min < max && percentual > 0
     ? faixaCritica({ min, max }, percentual)
     : null;
 
   const enviar = (evento) => {
     evento.preventDefault();
-    if (!campos.nome.trim() || !campos.setor.trim() || !campos.linha.trim()) {
-      setErroLocal("Preencha nome, setor e linha.");
-      return;
-    }
-    if (Number.isNaN(min) || Number.isNaN(max) || min >= max) {
-      setErroLocal("A temperatura mínima precisa ser menor que a máxima.");
-      return;
-    }
-    if (!(percentual >= 1 && percentual <= 500)) {
-      setErroLocal("O percentual crítico precisa estar entre 1% e 500%.");
-      return;
-    }
-    setErroLocal(null);
+    const problemas = validar(campos, valores);
+    setProblemasLocais(problemas);
+    if (problemas.length > 0) return;
     onEnviar({
       ...(maquina && { id: maquina.id }),
       nome: campos.nome.trim(), tipo: campos.tipo, setor: campos.setor.trim(), linha: campos.linha.trim(),
-      cadenciaIdeal: numero(campos.cadenciaIdeal),
+      cadenciaIdeal: valores.cadenciaIdeal,
       faixaTemperatura: { min, max },
       alertas: {
         percentualCritico: percentual,
-        minutosParadoMax: numero(campos.minutosParadoMax),
-        taxaDefeitosMax: numero(campos.taxaDefeitosMax),
+        minutosParadoMax: valores.minutosParadoMax,
+        taxaDefeitosMax: valores.taxaDefeitosMax,
       },
-      custoHora: numero(campos.custoHora), valorPorPeca: numero(campos.valorPorPeca),
+      custoHora: valores.custoHora, valorPorPeca: valores.valorPorPeca,
       turnoPlanejado: { inicio: campos.turnoInicio, fim: campos.turnoFim },
     });
   };
@@ -74,18 +120,28 @@ export default function MaquinaForm({ maquina, pendente, erro, onEnviar, onCance
       <input id={id} value={campos[nome]} onChange={alterar(nome)} {...props} />
     </div>
   );
+  // Texto livre: o teclado numérico do iOS (inputMode decimal) não tem sinal de menos.
+  const numerico = (id, nome, props = {}) => campo(id, NUMERICOS[nome].rotulo, nome, { autoComplete: "off", ...props });
 
-  const mensagem = erroLocal ?? erro;
+  const mensagens = problemasLocais.length > 0 ? problemasLocais : problemasDoBackend(erro);
 
   return (
     <section className="card painel-form" aria-labelledby="titulo-form-maquina">
       <h2 id="titulo-form-maquina" className="card-title">{maquina ? `Editar ${maquina.nome}` : "Nova máquina"}</h2>
       <form onSubmit={enviar} noValidate>
-        {mensagem && <div className="error-message" role="alert">{mensagem}</div>}
+        {mensagens.length > 0 && (
+          <div className="error-message" role="alert">
+            {mensagens.length === 1 ? mensagens[0] : (
+              <ul className="lista-erros">
+                {mensagens.map((texto) => <li key={texto}>{texto}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
 
         <h3 className="form-secao">Identificação</h3>
         <div className="form-colunas">
-          {campo("maquina-nome", "Nome", "nome")}
+          {campo("maquina-nome", "Nome", "nome", { autoFocus: true, maxLength: 60 })}
           <div className="input-group">
             <label htmlFor="maquina-tipo">Tipo</label>
             <select id="maquina-tipo" value={campos.tipo} onChange={alterar("tipo")}>
@@ -94,28 +150,28 @@ export default function MaquinaForm({ maquina, pendente, erro, onEnviar, onCance
               ))}
             </select>
           </div>
-          {campo("maquina-setor", "Setor", "setor")}
-          {campo("maquina-linha", "Linha", "linha")}
+          {campo("maquina-setor", "Setor", "setor", { maxLength: 40 })}
+          {campo("maquina-linha", "Linha", "linha", { maxLength: 40 })}
         </div>
 
         <h3 className="form-secao">Produção</h3>
         <div className="form-colunas">
-          {campo("maquina-cadencia", "Cadência ideal (peças/min)", "cadenciaIdeal", { inputMode: "numeric" })}
+          {numerico("maquina-cadencia", "cadenciaIdeal", { inputMode: "numeric" })}
           {campo("maquina-turno-inicio", "Início do turno", "turnoInicio", { type: "time" })}
           {campo("maquina-turno-fim", "Fim do turno", "turnoFim", { type: "time" })}
-          {campo("maquina-custo", "Custo por hora (R$)", "custoHora", { inputMode: "decimal" })}
-          {campo("maquina-valor", "Valor por peça (R$)", "valorPorPeca", { inputMode: "decimal" })}
+          {numerico("maquina-custo", "custoHora")}
+          {numerico("maquina-valor", "valorPorPeca")}
         </div>
 
         <h3 className="form-secao">Temperatura e alertas</h3>
         <div className="form-colunas">
-          {campo("maquina-temp-min", "Temperatura mínima (°C)", "tempMin", { inputMode: "decimal" })}
-          {campo("maquina-temp-max", "Temperatura máxima (°C)", "tempMax", { inputMode: "decimal" })}
-          {campo("maquina-percentual", "Crítico além da faixa (%)", "percentualCritico", { inputMode: "numeric" })}
-          {campo("maquina-parada", "Parada crítica após (min)", "minutosParadoMax", { inputMode: "numeric" })}
-          {campo("maquina-defeitos", "Defeitos críticos acima de (%)", "taxaDefeitosMax", { inputMode: "decimal" })}
+          {numerico("maquina-temp-min", "tempMin")}
+          {numerico("maquina-temp-max", "tempMax")}
+          {numerico("maquina-percentual", "percentualCritico", { inputMode: "numeric", "aria-describedby": "previa-critico" })}
+          {numerico("maquina-parada", "minutosParadoMax", { inputMode: "numeric" })}
+          {numerico("maquina-defeitos", "taxaDefeitosMax")}
         </div>
-        <p className="form-ajuda" aria-live="polite">
+        <p className="form-ajuda" id="previa-critico">
           <strong>
             {previa
               ? `Crítico abaixo de ${formatarNumero(previa.min)} °C ou acima de ${formatarNumero(previa.max)} °C`

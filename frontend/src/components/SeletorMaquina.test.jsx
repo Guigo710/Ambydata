@@ -39,6 +39,14 @@ describe("seletor de máquina ao lado do título", () => {
     expect(await screen.findByRole("region", { name: "Máquina Envasadora 04" })).toBeTruthy();
   });
 
+  it("?maquina= de uma máquina que não existe (ou foi desativada) cai na primeira", async () => {
+    salvarSessao("ENGENHEIRO");
+    renderizarApp("/status-maquina?maquina=nao-existe");
+
+    expect((await seletor()).value).toBe("m1");
+    expect(await screen.findByText("Cozimento · Linha A")).toBeTruthy();
+  });
+
   it("Status da Máquina sem escolha mostra a primeira máquina e a faixa permitida", async () => {
     salvarSessao("ENGENHEIRO");
     renderizarApp("/status-maquina");

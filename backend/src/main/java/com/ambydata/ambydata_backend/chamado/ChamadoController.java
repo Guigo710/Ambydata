@@ -33,6 +33,12 @@ public class ChamadoController {
         return servico.listar(status, maquinaId, Instant.now());
     }
 
+    // Só ENGENHEIRO e DIRETOR (SecurityConfig).
+    @GetMapping("/mttr")
+    public MttrResponse mttr(@RequestParam(required = false) String maquinaId, @RequestParam(defaultValue = "7") int dias) {
+        return servico.mttr(maquinaId, dias, Instant.now());
+    }
+
     @GetMapping("/{id}")
     public Chamado buscar(@PathVariable String id) {
         return servico.buscar(id);

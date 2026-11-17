@@ -83,6 +83,23 @@ public class ChamadoService {
         return mongoTemplate.find(query, Chamado.class);
     }
 
+    public MttrResponse mttr(String maquinaId, int dias, Instant agora) {
+        if (dias < 1 || dias > 30) {
+            throw new CampoInvalidoException("dias", "Informe de 1 a 30 dias.");
+        }
+        Query query = Query.query(Criteria.where("status").is(StatusChamado.FINALIZADO)
+                .and("finalizadoEm").gte(agora.minus(Duration.ofDays(dias))));
+        if (maquinaId != null && !maquinaId.isBlank()) {
+            query.addCriteria(Criteria.where("maquinaId").is(maquinaId));
+        }
+        query.fields().include("abertoEm").include("finalizadoEm");
+        List<Chamado> finalizados = mongoTemplate.find(query, Chamado.class);
+        Double media = finalizados.isEmpty() ? null : finalizados.stream()
+                .mapToDouble(c -> Duration.between(c.getAbertoEm(), c.getFinalizadoEm()).toSeconds() / 60.0)
+                .average().orElseThrow();
+        return new MttrResponse(maquinaId, dias, finalizados.size(), media);
+    }
+
     public Chamado buscar(String id) {
         Chamado c = mongoTemplate.findById(id, Chamado.class);
         if (c == null) {

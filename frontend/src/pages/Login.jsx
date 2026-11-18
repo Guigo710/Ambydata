@@ -30,7 +30,10 @@ export default function Login() {
     <div className="login-container">
       <div className="login-box">
         <div className="login-logo">
-          <img src="/ambydata-logo.webp" alt="Logo Ambydata Technology" className="login-logo-img" fetchPriority="high"/>
+          <img src="/ambydata-logo.webp" alt="Logo Ambydata Technology" className="login-logo-img"
+            width="180"
+            height="60"
+            fetchPriority="high" />
         </div>
 
         <form onSubmit={entrar} className="login-form">

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import CartaoMaquina from "../components/CartaoMaquina";
 import GraficoProducaoHoras from "../components/GraficoProducaoHoras";
 import SeletorMaquina from "../components/SeletorMaquina";
@@ -9,10 +10,11 @@ import { percentual, textoPeriodo, useAgora, useComparativo, useHistorico } from
 import { useMaquinaSelecionada } from "../services/maquinas";
 
 const numero = (n) => Math.round(n).toLocaleString("pt-BR");
-const PERIODOS = [["24h", "24 horas"], ["7d", "7 dias"]];
-const AGRUPAMENTOS = [["linha", "Linha"], ["setor", "Setor"], ["maquina", "Máquina"]];
+const PERIODOS = [["24h", "filters.24hours"], ["7d", "filters.7days"]];
+const AGRUPAMENTOS = [["linha", "filters.line"], ["setor", "filters.sector"], ["maquina", "filters.machine"]];
 
 function Comparativo({ maquina }) {
+  const { t, i18n } = useTranslation();
   const [periodo, setPeriodo] = useState("24h");
   const [por, setPor] = useState("linha");
   const comparativo = useComparativo(periodo, por);
@@ -20,26 +22,26 @@ function Comparativo({ maquina }) {
   return (
     <section className="card comparativo" aria-labelledby="titulo-comparativo">
       <div className="comparativo-topo">
-        <h2 id="titulo-comparativo" className="card-title">Comparativo</h2>
+        <h2 id="titulo-comparativo" className="card-title">{t("pages.productivity.comparison")}</h2>
         <div className="comparativo-filtros">
-          <SeletorOpcoes legenda="Agrupar por" nome="comparativo-por" opcoes={AGRUPAMENTOS} valor={por} onChange={setPor} />
-          <SeletorOpcoes legenda="Período" nome="comparativo-periodo" opcoes={PERIODOS} valor={periodo} onChange={setPeriodo} />
+          <SeletorOpcoes legenda="filters.groupBy" nome="comparativo-por" opcoes={AGRUPAMENTOS} valor={por} onChange={setPor} />
+          <SeletorOpcoes legenda="common.period" nome="comparativo-periodo" opcoes={PERIODOS} valor={periodo} onChange={setPeriodo} />
         </div>
       </div>
-      {comparativo.isPending && <p className="tabela-vazia">Carregando comparativo...</p>}
+      {comparativo.isPending && <p className="tabela-vazia">{t("pages.productivity.loadingComparison")}</p>}
       {comparativo.isError && <p className="tabela-vazia">{mensagemDeErro(comparativo.error)}</p>}
       {comparativo.isSuccess && (
         <>
           <div className="tabela-rolagem">
-            <table className="tabela" aria-label="Comparativo de produtividade">
+            <table className="tabela" aria-label={t("pages.productivity.comparisonTable")}>
               <thead>
                 <tr>
                   <th scope="col">{AGRUPAMENTOS.find(([v]) => v === por)[1]}</th>
-                  <th scope="col">Produzidas</th>
-                  <th scope="col">Boas</th>
-                  <th scope="col">Defeituosas</th>
-                  <th scope="col">Defeitos</th>
-                  <th scope="col">Peças/h</th>
+                  <th scope="col">{t("pages.productivity.produced")}</th>
+                  <th scope="col">{t("pages.productivity.good")}</th>
+                  <th scope="col">{t("pages.productivity.defective")}</th>
+                  <th scope="col">{t("pages.productivity.defects")}</th>
+                  <th scope="col">{t("pages.productivity.piecesPerHour")}</th>
                   <th scope="col">OEE</th>
                 </tr>
               </thead>
@@ -56,7 +58,7 @@ function Comparativo({ maquina }) {
                       <td>{numero(g.totais.pecasBoas)}</td>
                       <td>{numero(defeituosas)}</td>
                       <td>{percentual(g.indicadores.qualidade === null ? null : 1 - g.indicadores.qualidade)}</td>
-                      <td>{g.indicadores.pecasPorHora === null ? "—" : numero(g.indicadores.pecasPorHora)}</td>
+                      <td>{g.indicadores.pecasPorHora === null ? "—" : g.indicadores.pecasPorHora.toLocaleString(i18n.resolvedLanguage ?? "pt-BR", { maximumFractionDigits: 0 })}</td>
                       <td>{percentual(g.indicadores.oee)}</td>
                     </tr>
                   );
@@ -64,7 +66,7 @@ function Comparativo({ maquina }) {
               </tbody>
             </table>
           </div>
-          <p className="stat-detalhe">{`Horas fechadas de ${textoPeriodo(comparativo.data.inicio, comparativo.data.fim)}.`}</p>
+          <p className="stat-detalhe">{t("pages.productivity.closedHours", { period: textoPeriodo(comparativo.data.inicio, comparativo.data.fim) })}</p>
         </>
       )}
     </section>
@@ -72,9 +74,10 @@ function Comparativo({ maquina }) {
 }
 
 function ProducaoDaMaquina({ maquina }) {
+  const { t, i18n } = useTranslation();
   const agora = useAgora(maquina.id);
   const historico = useHistorico(maquina.id, 24);
-  if (agora.isPending) return <p className="tabela-vazia">Carregando indicadores...</p>;
+  if (agora.isPending) return <p className="tabela-vazia">{t("pages.oee.loading")}</p>;
   if (agora.isError) return <div className="error-message" role="alert">{mensagemDeErro(agora.error)}</div>;
 
   const { totais, indicadores } = agora.data.ultimaHora;
@@ -82,31 +85,31 @@ function ProducaoDaMaquina({ maquina }) {
   const taxaDefeitos = totais.pecasProduzidas > 0 ? defeituosas / totais.pecasProduzidas : null;
   return (
     <>
-      <section className="stats-row" aria-label={`Produção de ${maquina.nome}`}>
+      <section className="stats-row" aria-label={t("pages.productivity.production", { name: maquina.nome })}>
         <div className="stat-card">
-          <span className="stat-label">Peças por hora</span>
-          <span className="stat-value">{indicadores.pecasPorHora === null ? "—" : numero(indicadores.pecasPorHora)}</span>
-          <span className="stat-detalhe">última hora · ideal {numero(maquina.cadenciaIdeal * 60)}</span>
+          <span className="stat-label">{t("pages.productivity.piecesPerHour")}</span>
+          <span className="stat-value">{indicadores.pecasPorHora === null ? "—" : indicadores.pecasPorHora.toLocaleString(i18n.resolvedLanguage ?? "pt-BR")}</span>
+          <span className="stat-detalhe">{t("pages.productivity.idealLastHour", { count: numero(maquina.cadenciaIdeal * 60) })}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Peças boas</span>
+          <span className="stat-label">{t("pages.productivity.good")}</span>
           <span className="stat-value">{numero(totais.pecasBoas)}</span>
-          <span className="stat-detalhe">última hora</span>
+          <span className="stat-detalhe">{t("pages.productivity.lastHour")}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Peças defeituosas</span>
+          <span className="stat-label">{t("pages.productivity.defective")}</span>
           <span className="stat-value">{numero(defeituosas)}</span>
-          <span className="stat-detalhe">{`${percentual(taxaDefeitos)} de defeitos`}</span>
+          <span className="stat-detalhe">{t("pages.productivity.defectsRate", { value: percentual(taxaDefeitos) })}</span>
         </div>
         <div className="stat-card">
-          <span className="stat-label">Peças no turno</span>
+          <span className="stat-label">{t("pages.productivity.piecesOnShift")}</span>
           <span className="stat-value">{numero(agora.data.turno.totais.pecasProduzidas)}</span>
-          <span className="stat-detalhe">{`${numero(agora.data.turno.totais.pecasBoas)} boas`}</span>
+          <span className="stat-detalhe">{t("pages.productivity.goodCount", { count: numero(agora.data.turno.totais.pecasBoas) })}</span>
         </div>
       </section>
       <section className="card" aria-labelledby="titulo-producao-24h">
-        <h2 id="titulo-producao-24h" className="card-title">Peças boas e defeituosas nas últimas 24 h</h2>
-        {historico.isPending && <p className="tabela-vazia">Carregando histórico...</p>}
+        <h2 id="titulo-producao-24h" className="card-title">{t("pages.productivity.chartTitle")}</h2>
+        {historico.isPending && <p className="tabela-vazia">{t("pages.productivity.loadingHistory")}</p>}
         {historico.isError && <p className="tabela-vazia">{mensagemDeErro(historico.error)}</p>}
         {historico.isSuccess && <GraficoProducaoHoras maquina={maquina} historico={historico.data} />}
       </section>
@@ -120,13 +123,14 @@ function ProducaoDaMaquina({ maquina }) {
 // Produção da máquina escolhida (peças por hora, boas × defeituosas) e o comparativo por
 // linha, setor ou máquina em 24 h e 7 dias.
 export default function Produtividade() {
+  const { t } = useTranslation();
   const selecao = useMaquinaSelecionada();
   return (
     <>
       <div className="page-header cabecalho-com-seletor">
         <div>
-          <h1 className="page-title">Produtividade</h1>
-          <p className="page-greeting">Peças por hora, boas e defeituosas</p>
+          <h1 className="page-title">{t("pages.productivity.title")}</h1>
+          <p className="page-greeting">{t("pages.productivity.subtitle")}</p>
         </div>
         <SeletorMaquina selecao={selecao} />
       </div>

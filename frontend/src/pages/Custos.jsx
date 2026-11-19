@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import SeletorOpcoes from "../components/SeletorOpcoes";
 import SobreEstesDados from "../components/SobreEstesDados";
 import { mensagemDeErro } from "../services/api";
@@ -19,6 +20,7 @@ function Valores({ financeiro }) {
 
 // Custo, receita e lucro por máquina, por linha e da fábrica (só DIRETOR), com a conta.
 export default function Custos() {
+  const { t } = useTranslation();
   const [periodo, setPeriodo] = useState("24h");
   const financeiro = useFinanceiro(periodo);
   const dados = financeiro.data;
@@ -27,37 +29,37 @@ export default function Custos() {
     <>
       <div className="page-header cabecalho-com-seletor">
         <div>
-          <h1 className="page-title">Custos e Lucros</h1>
-          <p className="page-greeting">Por máquina e por linha</p>
+          <h1 className="page-title">{t("pages.costs.title")}</h1>
+          <p className="page-greeting">{t("pages.costs.subtitle")}</p>
         </div>
-        <SeletorOpcoes legenda="Período" nome="periodo-custos" opcoes={[["24h", "24 horas"], ["7d", "7 dias"]]}
+        <SeletorOpcoes legenda="common.period" nome="periodo-custos" opcoes={[["24h", "filters.24hours"], ["7d", "filters.7days"]]}
           valor={periodo} onChange={setPeriodo} />
       </div>
 
-      {financeiro.isPending && <p className="tabela-vazia">Carregando custos...</p>}
+      {financeiro.isPending && <p className="tabela-vazia">{t("pages.costs.loading")}</p>}
       {financeiro.isError && <div className="error-message" role="alert">{mensagemDeErro(financeiro.error)}</div>}
       {financeiro.isSuccess && (
         <>
-          <section className="stats-row stats-row-3" aria-label="Total da fábrica">
+          <section className="stats-row stats-row-3" aria-label={t("common.totalFactory")}>
             <div className="stat-card">
-              <span className="stat-label">Custo</span>
+              <span className="stat-label">{t("common.cost")}</span>
               <span className="stat-value">{dinheiro(dados.total.custo)}</span>
             </div>
             <div className="stat-card">
-              <span className="stat-label">Receita</span>
+              <span className="stat-label">{t("common.revenue")}</span>
               <span className="stat-value">{dinheiro(dados.total.receita)}</span>
             </div>
             <div className="stat-card stat-destaque">
-              <span className="stat-label">Lucro</span>
+              <span className="stat-label">{t("common.profit")}</span>
               <span className="stat-value">{dinheiro(dados.total.lucro)}</span>
             </div>
           </section>
 
           <section className="card">
-            <h2 className="card-title">Por linha</h2>
-            <table className="tabela" aria-label="Por linha">
+            <h2 className="card-title">{t("common.byLine")}</h2>
+            <table className="tabela" aria-label={t("common.byLine")}>
               <thead>
-                <tr><th scope="col">Linha</th><th scope="col">Custo</th><th scope="col">Receita</th><th scope="col">Lucro</th></tr>
+                <tr><th scope="col">{t("common.line")}</th><th scope="col">{t("common.cost")}</th><th scope="col">{t("common.revenue")}</th><th scope="col">{t("common.profit")}</th></tr>
               </thead>
               <tbody>
                 {dados.linhas.map((l) => (
@@ -68,13 +70,13 @@ export default function Custos() {
           </section>
 
           <section className="card espaco-acima">
-            <h2 className="card-title">Por máquina</h2>
+            <h2 className="card-title">{t("common.byMachine")}</h2>
             <div className="tabela-rolagem">
-              <table className="tabela" aria-label="Por máquina">
+              <table className="tabela" aria-label={t("common.byMachine")}>
                 <thead>
                   <tr>
-                    <th scope="col">Máquina</th><th scope="col">Horas no turno</th><th scope="col">Peças boas</th>
-                    <th scope="col">Custo</th><th scope="col">Receita</th><th scope="col">Lucro</th>
+                    <th scope="col">{t("common.machine")}</th><th scope="col">{t("pages.costs.hoursOnShift")}</th><th scope="col">{t("common.goodPieces")}</th>
+                    <th scope="col">{t("common.cost")}</th><th scope="col">{t("common.revenue")}</th><th scope="col">{t("common.profit")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -84,7 +86,12 @@ export default function Custos() {
                         {m.nome}
                         <span className="tabela-detalhe">{`${m.setor} · ${m.linha}`}</span>
                         <span className="tabela-detalhe">
-                          {`${numero(m.pecasBoas)} × ${dinheiro(m.valorPorPeca)} − ${dinheiro(m.custoHora)} × ${horas(m.horasPlanejadas)}`}
+                          {t("pages.costs.piecesFormula", {
+                            good: numero(m.pecasBoas),
+                            pieceValue: dinheiro(m.valorPorPeca),
+                            hourlyCost: dinheiro(m.custoHora),
+                            hours: horas(m.horasPlanejadas),
+                          })}
                         </span>
                       </th>
                       <td>{horas(m.horasPlanejadas)}</td>
@@ -97,8 +104,9 @@ export default function Custos() {
             </div>
           </section>
 
-          <SobreEstesDados maquina={`Todas as máquinas (${dados.maquinas.length})`} fonte="Agregados por hora das leituras"
-            frequencia="a cada hora fechada" periodo={textoPeriodo(dados.inicio, dados.fim)} formulas={["lucro"]} />
+          <SobreEstesDados maquina={t("pages.costs.allMachinesData", { count: dados.maquinas.length })}
+            fonte={t("pages.costs.source")} frequencia={t("pages.costs.frequency")}
+            periodo={textoPeriodo(dados.inicio, dados.fim)} formulas={["lucro"]} />
         </>
       )}
     </>

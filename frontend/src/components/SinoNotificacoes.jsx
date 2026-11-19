@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { api } from "../services/api";
 import { tempoDesde, useRelogio } from "../services/indicadores";
@@ -8,6 +9,7 @@ import { CHAVE_NOTIFICACOES, linkSeguro, useNotificacoes } from "../services/not
 // Sino da barra superior (OPERARIO, ENGENHEIRO, DIRETOR): número de não lidas e a lista; clicar
 // num aviso marca como lido e abre o chamado. Esc ou clique fora fecham.
 export default function SinoNotificacoes() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const relogio = useRelogio(30_000);
   const [aberto, setAberto] = useState(false);
@@ -38,7 +40,7 @@ export default function SinoNotificacoes() {
     };
   }, [aberto]);
 
-  const rotulo = naoLidas === 0 ? "Notificações" : `Notificações, ${naoLidas} ${naoLidas === 1 ? "não lida" : "não lidas"}`;
+  const rotulo = naoLidas === 0 ? t("notifications.buttonZero") : t("notifications.button", { count: naoLidas });
 
   return (
     <div className="sino" ref={caixa}>
@@ -53,15 +55,15 @@ export default function SinoNotificacoes() {
       </button>
 
       {aberto && (
-        <section id="painel-notificacoes" className="card painel-notificacoes" aria-label="Notificações">
+        <section id="painel-notificacoes" className="card painel-notificacoes" aria-label={t("notifications.title")}>
           <header className="painel-notificacoes-topo">
-            <h2 className="card-title">Notificações</h2>
+            <h2 className="card-title">{t("notifications.title")}</h2>
             {naoLidas > 0 && (
-              <button type="button" className="btn-link" onClick={() => marcarTodas.mutate()}>Marcar todas como lidas</button>
+              <button type="button" className="btn-link" onClick={() => marcarTodas.mutate()}>{t("notifications.markAllRead")}</button>
             )}
           </header>
           {itens.length === 0 ? (
-            <p className="tabela-vazia">Nenhuma notificação.</p>
+            <p className="tabela-vazia">{t("notifications.empty")}</p>
           ) : (
             <ul className="lista-notificacoes">
               {itens.map((n) => (
@@ -70,9 +72,9 @@ export default function SinoNotificacoes() {
                     if (!n.lida) marcarLida.mutate(n.id);
                     setAberto(false);
                   }}>
-                    {n.lida ? n.texto : <><span className="sr-only">Não lida: </span>{n.texto}</>}
+                    {n.lida ? n.texto : <><span className="sr-only">{t("notifications.unread")}</span>{n.texto}</>}
                   </Link>
-                  <span className="notificacao-quando">{tempoDesde(n.criadaEm, relogio)}</span>
+                  <span className="notificacao-quando">{tempoDesde(n.criadaEm, relogio, t)}</span>
                 </li>
               ))}
             </ul>

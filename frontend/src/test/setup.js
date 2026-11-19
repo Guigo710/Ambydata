@@ -5,6 +5,7 @@
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 import { CHAVE_SESSAO } from "../auth/sessao";
+import i18n from "../i18n";
 import { api } from "../services/api";
 
 // Duas máquinas de exemplo, uma por linha, no formato de GET /api/maquinas.
@@ -232,7 +233,8 @@ export const NOTIFICACOES_DE_TESTE = {
   ],
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  await i18n.changeLanguage("pt-BR");
   vi.spyOn(api, "get").mockImplementation(async (url) => {
     if (url === "/api/auth/me") {
       return { data: JSON.parse(localStorage.getItem(CHAVE_SESSAO))?.usuario };

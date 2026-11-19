@@ -1,15 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import i18n from "../i18n";
 import { api } from "../services/api";
 import { AuthContext } from "./contexto";
 import { EVENTO_SESSAO_EXPIRADA, apagarSessao, gravarSessao, lerSessaoSalva } from "./sessao";
 
-const SESSAO_EXPIROU = "Sua sessão expirou. Faça login de novo.";
+const sessaoExpirou = () => i18n.t("errors.sessionExpired");
 
 // Lido uma vez ao abrir o app: a sessão salva e se ela já tinha vencido.
 function estadoInicial() {
   const { sessao, expirada } = lerSessaoSalva();
-  return { sessao, aviso: expirada ? SESSAO_EXPIROU : null };
+  return { sessao, aviso: expirada ? sessaoExpirou() : null };
 }
 
 // Guarda quem está logado. Único lugar do app que lê ou grava a sessão.
@@ -50,7 +51,7 @@ export function AuthProvider({ children }) {
 
   // O backend recusou o token durante o uso (evento disparado pelo cliente da API).
   useEffect(() => {
-    const aoExpirar = () => logout(SESSAO_EXPIROU);
+    const aoExpirar = () => logout(sessaoExpirou());
     window.addEventListener(EVENTO_SESSAO_EXPIRADA, aoExpirar);
     return () => window.removeEventListener(EVENTO_SESSAO_EXPIRADA, aoExpirar);
   }, [logout]);
@@ -62,7 +63,7 @@ export function AuthProvider({ children }) {
       return undefined;
     }
     const restante = new Date(expiraEm).getTime() - Date.now();
-    const temporizador = setTimeout(() => logout(SESSAO_EXPIROU), Math.max(restante, 0));
+    const temporizador = setTimeout(() => logout(sessaoExpirou()), Math.max(restante, 0));
     return () => clearTimeout(temporizador);
   }, [expiraEm, logout]);
 

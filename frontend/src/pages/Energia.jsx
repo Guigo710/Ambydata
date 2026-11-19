@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/contexto";
 import SeletorOpcoes from "../components/SeletorOpcoes";
 import SobreEstesDados from "../components/SobreEstesDados";
@@ -17,6 +18,7 @@ function Cartao({ titulo, valor, detalhe, destaque = false }) {
 }
 
 function LinhaMaquina({ maquina }) {
+  const { t } = useTranslation();
   const b = maquina.balanco;
   const nome = (
     <th scope="row">
@@ -28,7 +30,7 @@ function LinhaMaquina({ maquina }) {
     return (
       <tr>
         {nome}
-        <td colSpan={5} className="tabela-aviso">Potência não cadastrada</td>
+        <td colSpan={5} className="tabela-aviso">{t("pages.energy.missingPower")}</td>
       </tr>
     );
   }
@@ -38,7 +40,7 @@ function LinhaMaquina({ maquina }) {
       {nome}
       <td>{`${kw(b.potenciaKw)} × ${horas(b.horasOperando)} = ${kwh(b.consumoKwh)}`}</td>
       <td>{dinheiro(b.custoEntrada)}</td>
-      <td>{regenera ? `${kw(b.potenciaRegeneradaKw)} × ${horas(b.horasRegeneracao)} = ${kwh(b.energiaInjetadaKwh)}` : "não regenera"}</td>
+      <td>{regenera ? `${kw(b.potenciaRegeneradaKw)} × ${horas(b.horasRegeneracao)} = ${kwh(b.energiaInjetadaKwh)}` : t("pages.energy.noRegeneration")}</td>
       <td>{regenera ? dinheiro(b.valorInjetado) : "—"}</td>
       <td className="valor-destaque">{dinheiro(b.custoLiquido)}</td>
     </tr>
@@ -48,6 +50,7 @@ function LinhaMaquina({ maquina }) {
 // Custo de energia (ENGENHEIRO e DIRETOR): balanço de cada máquina, das linhas e da fábrica,
 // com as tarifas usadas. Informativo: não entra no lucro de Custos e Lucros.
 export default function Energia() {
+  const { t } = useTranslation();
   const { perfil } = useAuth();
   const [periodo, setPeriodo] = useState("24h");
   const energia = useEnergia(periodo);
@@ -57,37 +60,41 @@ export default function Energia() {
     <>
       <div className="page-header cabecalho-com-seletor">
         <div>
-          <h1 className="page-title">Energia</h1>
-          <p className="page-greeting">Consumo, energia devolvida à rede e custo líquido</p>
+          <h1 className="page-title">{t("pages.energy.title")}</h1>
+          <p className="page-greeting">{t("pages.energy.subtitle")}</p>
         </div>
-        <SeletorOpcoes legenda="Período" nome="periodo-energia" opcoes={[["24h", "24 horas"], ["7d", "7 dias"]]}
+        <SeletorOpcoes legenda="common.period" nome="periodo-energia" opcoes={[["24h", "filters.24hours"], ["7d", "filters.7days"]]}
           valor={periodo} onChange={setPeriodo} />
       </div>
 
-      {energia.isPending && <p className="tabela-vazia">Carregando energia...</p>}
+      {energia.isPending && <p className="tabela-vazia">{t("pages.energy.loading")}</p>}
       {energia.isError && <div className="error-message" role="alert">{mensagemDeErro(energia.error)}</div>}
       {energia.isSuccess && (
         <>
-          <section className="stats-row stats-row-5" aria-label="Total da fábrica">
-            <Cartao titulo="Consumo" valor={kwh(dados.total.maquinas.consumoKwh)} detalhe="todas as máquinas" />
-            <Cartao titulo="Custo de entrada" valor={dinheiro(dados.total.maquinas.custoEntrada)}
-              detalhe={`consumo × ${tarifa(dados.tarifas.tarifaCheia)}/kWh`} />
-            <Cartao titulo="Crédito da energia injetada" valor={dinheiro(dados.total.maquinas.valorInjetado)}
-              detalhe={`${kwh(dados.total.maquinas.energiaInjetadaKwh)} × ${tarifa(dados.tarifas.tarifaCompensavel)}/kWh`} />
-            <Cartao titulo="Encargos/demanda" valor={dinheiro(dados.total.encargosDemanda)}
-              detalhe={`${kw(dados.tarifas.demandaContratadaKw)} × ${dinheiro(dados.tarifas.tarifaDemanda)} × ${horas(dados.total.horasPeriodo)} ÷ 720`} />
-            <Cartao titulo="Custo líquido" valor={dinheiro(dados.total.custoLiquido)} detalhe="entrada − crédito + encargos" destaque />
+          <section className="stats-row stats-row-5" aria-label={t("common.totalFactory")}>
+            <Cartao titulo={t("common.consumption")} valor={kwh(dados.total.maquinas.consumoKwh)} detalhe={t("pages.energy.allMachines")} />
+            <Cartao titulo={t("common.inputCost")} valor={dinheiro(dados.total.maquinas.custoEntrada)}
+              detalhe={t("pages.energy.inputDetail", { rate: tarifa(dados.tarifas.tarifaCheia) })} />
+            <Cartao titulo={t("pages.energy.injectedCredit")} valor={dinheiro(dados.total.maquinas.valorInjetado)}
+              detalhe={t("pages.energy.creditDetail", { energy: kwh(dados.total.maquinas.energiaInjetadaKwh), rate: tarifa(dados.tarifas.tarifaCompensavel) })} />
+            <Cartao titulo={t("pages.energy.demandCharges")} valor={dinheiro(dados.total.encargosDemanda)}
+              detalhe={t("pages.energy.demandDetail", {
+                demand: kw(dados.tarifas.demandaContratadaKw),
+                rate: dinheiro(dados.tarifas.tarifaDemanda),
+                hours: horas(dados.total.horasPeriodo),
+              })} />
+            <Cartao titulo={t("common.netCost")} valor={dinheiro(dados.total.custoLiquido)} detalhe={t("pages.energy.netDetail")} destaque />
           </section>
-          <p className="stat-detalhe">Informativo: o custo de energia não entra no lucro de Custos e Lucros.</p>
+          <p className="stat-detalhe">{t("pages.energy.informative")}</p>
 
           <section className="card espaco-acima">
-            <h2 className="card-title">Por máquina</h2>
+            <h2 className="card-title">{t("pages.energy.byMachine")}</h2>
             <div className="tabela-rolagem">
-              <table className="tabela" aria-label="Por máquina">
+              <table className="tabela" aria-label={t("pages.energy.byMachine")}>
                 <thead>
                   <tr>
-                    <th scope="col">Máquina</th><th scope="col">Consumo</th><th scope="col">Custo de entrada</th>
-                    <th scope="col">Energia injetada</th><th scope="col">Crédito</th><th scope="col">Custo líquido</th>
+                    <th scope="col">{t("common.machine")}</th><th scope="col">{t("common.consumption")}</th><th scope="col">{t("common.inputCost")}</th>
+                    <th scope="col">{t("common.exportedEnergy")}</th><th scope="col">{t("common.credit")}</th><th scope="col">{t("common.netCost")}</th>
                   </tr>
                 </thead>
                 <tbody>{dados.maquinas.map((m) => <LinhaMaquina key={m.id} maquina={m} />)}</tbody>
@@ -96,12 +103,12 @@ export default function Energia() {
           </section>
 
           <section className="card espaco-acima">
-            <h2 className="card-title">Por linha</h2>
-            <table className="tabela" aria-label="Por linha">
+            <h2 className="card-title">{t("pages.energy.byLine")}</h2>
+            <table className="tabela" aria-label={t("pages.energy.byLine")}>
               <thead>
                 <tr>
-                  <th scope="col">Linha</th><th scope="col">Consumo</th><th scope="col">Custo de entrada</th>
-                  <th scope="col">Crédito</th><th scope="col">Custo líquido</th>
+                  <th scope="col">{t("common.line")}</th><th scope="col">{t("common.consumption")}</th><th scope="col">{t("common.inputCost")}</th>
+                  <th scope="col">{t("common.credit")}</th><th scope="col">{t("common.netCost")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,13 +123,13 @@ export default function Energia() {
                 ))}
               </tbody>
             </table>
-            <p className="stat-detalhe">Os encargos de demanda entram só no total da fábrica, que é quem contrata a demanda.</p>
+            <p className="stat-detalhe">{t("pages.energy.injectionChargesNote")}</p>
           </section>
 
           <TarifasEnergia tarifas={dados.tarifas} podeEditar={perfil === "ENGENHEIRO"} />
 
-          <SobreEstesDados maquina={`Todas as máquinas (${dados.maquinas.length})`}
-            fonte="Tempo operando dos agregados por hora × potência da máquina" frequencia="a cada hora fechada"
+          <SobreEstesDados maquina={t("pages.energy.allMachinesData", { count: dados.maquinas.length })}
+            fonte={t("pages.energy.source")} frequencia={t("pages.energy.frequency")}
             periodo={textoPeriodo(dados.inicio, dados.fim)}
             formulas={["consumo", "custoEntrada", "energiaInjetada", "valorInjetado", "encargos", "custoLiquido"]} />
         </>

@@ -1,6 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import ReactDOM from "react-dom/client";
+import './i18n'   // antes do render do <App />
 import App from "./App";
 import { AuthProvider } from "./auth/AuthContext";
 import { criarQueryClient } from "./services/queryClient";

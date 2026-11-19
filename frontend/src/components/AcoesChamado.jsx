@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useId, useState } from "react";
 import { api, mensagemDeErro } from "../services/api";
 import { CHAVE_CHAMADOS } from "../services/chamados";
@@ -8,6 +9,7 @@ import { CHAVE_CHAMADOS } from "../services/chamados";
 // por exemplo se outro engenheiro assumiu antes. A mensagem vai para a tela (onErro), porque o
 // card pode mudar de coluna (e ser remontado) quando a lista é atualizada.
 export default function AcoesChamado({ chamado, onErro }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const id = useId();
   const [modo, setModo] = useState(null); // null | "finalizar" | "cancelar"
@@ -34,7 +36,7 @@ export default function AcoesChamado({ chamado, onErro }) {
 
   const confirmar = () => {
     if (!texto.trim()) {
-      setFaltando(modo === "finalizar" ? "Descreva a solução." : "Informe o motivo.");
+      setFaltando(modo === "finalizar" ? t("chamados.describeSolution") : t("chamados.provideReason"));
       return;
     }
     setFaltando(null);
@@ -49,14 +51,14 @@ export default function AcoesChamado({ chamado, onErro }) {
     <div className="acoes-chamado">
       {modo ? (
         <div className="acoes-chamado-texto">
-          <label htmlFor={`${id}-texto`}>{modo === "finalizar" ? "Solução" : "Motivo do cancelamento"}</label>
+          <label htmlFor={`${id}-texto`}>{modo === "finalizar" ? t("chamados.solution") : t("chamados.cancelReason")}</label>
           <textarea id={`${id}-texto`} rows={2} maxLength={modo === "finalizar" ? 1000 : 500} value={texto}
             onChange={(e) => setTexto(e.target.value)} />
           {faltando && <p className="erro-campo" role="alert">{faltando}</p>}
           <div className="acoes-chamado-botoes">
-            <button type="button" className="btn-link" onClick={() => setModo(null)}>Voltar</button>
+            <button type="button" className="btn-link" onClick={() => setModo(null)}>{t("common.back")}</button>
             <button type="button" className="btn-primario btn-pequeno" disabled={acao.isPending} onClick={confirmar}>
-              {modo === "finalizar" ? "Confirmar finalização" : "Confirmar cancelamento"}
+              {modo === "finalizar" ? t("chamados.confirmFinish") : t("chamados.confirmCancel")}
             </button>
           </div>
         </div>
@@ -64,12 +66,12 @@ export default function AcoesChamado({ chamado, onErro }) {
         <div className="acoes-chamado-botoes">
           {chamado.status === "ABERTO" && (
             <button type="button" className="btn-primario btn-pequeno" disabled={acao.isPending}
-              onClick={() => { acao.reset(); acao.mutate({ caminho: "assumir" }); }}>Assumir</button>
+              onClick={() => { acao.reset(); acao.mutate({ caminho: "assumir" }); }}>{t("chamados.assume")}</button>
           )}
           {chamado.status === "EM_ANDAMENTO" && (
-            <button type="button" className="btn-primario btn-pequeno" onClick={() => abrirModo("finalizar")}>Finalizar</button>
+            <button type="button" className="btn-primario btn-pequeno" onClick={() => abrirModo("finalizar")}>{t("chamados.finish")}</button>
           )}
-          <button type="button" className="btn-link" onClick={() => abrirModo("cancelar")}>Cancelar chamado</button>
+          <button type="button" className="btn-link" onClick={() => abrirModo("cancelar")}>{t("chamados.cancelAction")}</button>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import logoAmbydata from "../assets/ambydata-logo.png";
 import { useAuth } from "../auth/contexto";
@@ -6,6 +7,7 @@ import { rotaInicial } from "../auth/permissoes";
 import { mensagemDeErro } from "../services/api";
 
 export default function Login() {
+  const { t } = useTranslation();
   const { login, aviso } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -31,22 +33,22 @@ export default function Login() {
     <div className="login-container">
       <div className="login-box">
         <div className="login-logo">
-          <img src={logoAmbydata} alt="Logo Ambydata Technology" className="login-logo-img" />
+          <img src={logoAmbydata} alt={t("login.logoAlt")} className="login-logo-img" />
         </div>
 
         <form onSubmit={entrar} className="login-form">
-          <h3>Acesso ao Sistema</h3>
-          <p className="login-subtitle">Monitore seus dados em tempo real</p>
+          <h3>{t("login.title")}</h3>
+          <p className="login-subtitle">{t("login.subtitle")}</p>
 
           {aviso && !erro && <div className="info-message">{aviso}</div>}
           {erro && <div className="error-message" role="alert">{erro}</div>}
 
           <div className="input-group">
-            <label htmlFor="email">Usuário (E-mail)</label>
+            <label htmlFor="email">{t("login.emailLabel")}</label>
             <input
               type="email"
               id="email"
-              placeholder="Digite seu e-mail"
+              placeholder={t("login.emailPlaceholder")}
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -55,11 +57,11 @@ export default function Login() {
           </div>
 
           <div className="input-group">
-            <label htmlFor="senha">Senha</label>
+            <label htmlFor="senha">{t("login.password")}</label>
             <input
               type="password"
               id="senha"
-              placeholder="Digite sua senha"
+              placeholder={t("login.passwordPlaceholder")}
               autoComplete="current-password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
@@ -69,14 +71,14 @@ export default function Login() {
 
           <div className="login-actions">
             <button type="button" className="forgot-link"
-              onClick={() => setInformacao("Procure seu gestor para redefinir sua senha.")}>
-              Esqueci minha senha
+              onClick={() => setInformacao(t("login.forgotInfo"))}>
+              {t("login.forgot")}
             </button>
           </div>
           {informacao && <div className="info-message">{informacao}</div>}
 
           <button type="submit" className="login-btn" disabled={carregando}>
-            {carregando ? "Entrando..." : "Entrar"}
+            {carregando ? t("login.loading") : t("login.submit")}
           </button>
         </form>
       </div>

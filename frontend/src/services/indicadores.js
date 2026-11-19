@@ -99,13 +99,17 @@ export function percentual(valor) {
   return `${(valor * 100).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
 }
 
-export function tempoDesde(instante, agora = Date.now()) {
-  if (!instante) return "sem leituras";
+export function tempoDesde(instante, agora = Date.now(), t) {
+  if (!instante) return t ? t("time.noReadings") : "sem leituras";
   const segundos = Math.round((agora - new Date(instante).getTime()) / 1000);
-  if (segundos < 1) return "agora";
-  if (segundos < 60) return `há ${segundos} s`;
-  if (segundos < 3600) return `há ${Math.floor(segundos / 60)} min`;
-  return `há ${Math.floor(segundos / 3600)} h`;
+  if (segundos < 1) return t ? t("time.now") : "agora";
+  if (segundos < 60) return t ? t("time.seconds", { count: segundos }) : `há ${segundos} s`;
+  if (segundos < 3600) {
+    const minutos = Math.floor(segundos / 60);
+    return t ? t("time.minutes", { count: minutos }) : `há ${minutos} min`;
+  }
+  const horas = Math.floor(segundos / 3600);
+  return t ? t("time.hours", { count: horas }) : `há ${horas} h`;
 }
 
 // "R$ 51.926,80".

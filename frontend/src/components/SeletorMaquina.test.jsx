@@ -1,6 +1,7 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import i18n from "../i18n";
 import { renderizarApp, salvarSessao } from "../test/utils";
 
 async function seletor() {
@@ -8,6 +9,15 @@ async function seletor() {
 }
 
 describe("seletor de máquina ao lado do título", () => {
+  it("mostra os textos traduzidos quando o idioma muda para inglês", async () => {
+    await i18n.changeLanguage("en");
+    salvarSessao("OPERARIO");
+    renderizarApp("/painel");
+
+    const lista = await screen.findByRole("combobox", { name: "Machine" });
+    expect(within(lista).getByRole("option", { name: "All machines" })).toBeTruthy();
+  });
+
   it("no Painel lista 'Todas as máquinas' e as máquinas agrupadas por linha", async () => {
     salvarSessao("OPERARIO");
     renderizarApp("/painel");

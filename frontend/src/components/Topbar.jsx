@@ -1,15 +1,16 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/contexto";
-import { NOME_DO_PERFIL } from "../auth/permissoes";
 import SinoNotificacoes from "./SinoNotificacoes";
 
 // Barra superior: sino de notificações (produção), quem está logado, "Meu perfil" e Sair.
 export default function Topbar() {
+  const { t, i18n } = useTranslation();
   const { usuario, perfil, logout } = useAuth();
   const navigate = useNavigate();
-  const etiqueta = NOME_DO_PERFIL[perfil]
-    ? { nome: NOME_DO_PERFIL[perfil], classe: `tag-${perfil.toLowerCase()}` }
-    : { nome: "Sem perfil", classe: "tag-padrao" };
+  const etiqueta = perfil
+    ? { nome: t(`users.roles.${perfil}`, { defaultValue: t("users.noRole") }), classe: `tag-${perfil.toLowerCase()}` }
+    : { nome: t("users.noRole"), classe: "tag-padrao" };
 
   const sair = () => {
     logout();
@@ -22,7 +23,18 @@ export default function Topbar() {
 
       <div className="topbar-right">
         {["OPERARIO", "ENGENHEIRO", "DIRETOR"].includes(perfil) && <SinoNotificacoes />}
-        <Link to="/meu-perfil" className="user-profile-box" title="Meu perfil">
+        <label className="seletor-idioma">
+          <span className="sr-only">{t("common.language")}</span>
+          <select
+            aria-label={t("common.language")}
+            value={i18n.resolvedLanguage ?? i18n.language}
+            onChange={(evento) => i18n.changeLanguage(evento.target.value)}
+          >
+            <option value="pt-BR">Português</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <Link to="/meu-perfil" className="user-profile-box" title={t("users.myProfile")}>
           <div className="user-text-info">
             <span className="user-name">{usuario?.nome}</span>
             <span className={`user-role-badge ${etiqueta.classe}`}>{etiqueta.nome}</span>
@@ -36,7 +48,7 @@ export default function Topbar() {
           </span>
         </Link>
 
-        <button type="button" className="topbar-icon" title="Sair" aria-label="Sair" onClick={sair}>
+        <button type="button" className="topbar-icon" title={t("nav.sair")} aria-label={t("nav.sair")} onClick={sair}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
             strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

@@ -1,12 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useAuth } from "../auth/contexto";
 import MaquinaForm from "../components/MaquinaForm";
 import { api, mensagemDeErro } from "../services/api";
-import { CHAVE_MAQUINAS, TIPOS_DE_MAQUINA, formatarNumero, textoFaixa, useMaquinas } from "../services/maquinas";
+import { CHAVE_MAQUINAS, TIPOS_DE_MAQUINA, formatarNumero, useMaquinas } from "../services/maquinas";
 
 // Cadastro das máquinas: o ENGENHEIRO cria, edita e desativa; o DIRETOR só consulta.
 export default function Maquinas() {
+  const { t } = useTranslation();
   const { perfil } = useAuth();
   const podeEditar = perfil === "ENGENHEIRO";
   const queryClient = useQueryClient();
@@ -24,7 +26,7 @@ export default function Maquinas() {
     mutationFn: ({ id, ...dados }) => (id ? api.put(`/api/maquinas/${id}`, dados) : api.post("/api/maquinas", dados)),
     onSuccess: (_, { id }) => {
       setPainel(null);
-      setAviso(id ? "Máquina atualizada." : "Máquina criada.");
+      setAviso(id ? t("pages.machines.updated") : t("pages.machines.created"));
       return atualizar();
     },
   });
@@ -44,10 +46,10 @@ export default function Maquinas() {
     <>
       <div className="page-header usuarios-cabecalho">
         <div>
-          <h1 className="page-title">Máquinas</h1>
-          <p className="page-greeting">Parâmetros de produção e limites de alerta de cada máquina.</p>
+          <h1 className="page-title">{t("pages.machines.title")}</h1>
+          <p className="page-greeting">{t("pages.machines.subtitle")}</p>
         </div>
-        {podeEditar && <button type="button" className="btn-primario" onClick={() => abrir({})}>Nova máquina</button>}
+        {podeEditar && <button type="button" className="btn-primario" onClick={() => abrir({})}>{t("pages.machines.new")}</button>}
       </div>
 
       {aviso && <div className="success-message" role="status">{aviso}</div>}
@@ -67,19 +69,19 @@ export default function Maquinas() {
       )}
 
       <section className="card">
-        {lista.isPending && <p className="tabela-vazia">Carregando máquinas...</p>}
+        {lista.isPending && <p className="tabela-vazia">{t("pages.machines.loading")}</p>}
         {lista.isError && <div className="error-message" role="alert">{mensagemDeErro(lista.error)}</div>}
         {lista.isSuccess && (
           <table className="tabela">
             <thead>
               <tr>
-                <th scope="col">Máquina</th>
-                <th scope="col">Setor</th>
-                <th scope="col">Linha</th>
-                <th scope="col">Faixa permitida</th>
-                <th scope="col">Crítico</th>
-                <th scope="col">Situação</th>
-                {podeEditar && <th scope="col"><span className="sr-only">Ações</span></th>}
+                <th scope="col">{t("common.machine")}</th>
+                <th scope="col">{t("common.sector")}</th>
+                <th scope="col">{t("common.line")}</th>
+                <th scope="col">{t("machines.allowedRange")}</th>
+                <th scope="col">{t("machines.critical")}</th>
+                <th scope="col">{t("common.situation")}</th>
+                {podeEditar && <th scope="col"><span className="sr-only">{t("common.actions")}</span></th>}
               </tr>
             </thead>
             <tbody>
@@ -87,21 +89,31 @@ export default function Maquinas() {
                 <tr key={m.id} className={m.ativa ? "" : "linha-inativa"}>
                   <td>
                     {m.nome}
-                    <span className="tabela-detalhe">{TIPOS_DE_MAQUINA[m.tipo] ?? m.tipo} · {m.cadenciaIdeal} peças/min</span>
+                    <span className="tabela-detalhe">
+                      {t(`machines.types.${m.tipo}`, { defaultValue: TIPOS_DE_MAQUINA[m.tipo] ?? m.tipo })} · {m.cadenciaIdeal} {t("machines.piecesPerMinute")}
+                    </span>
                   </td>
                   <td>{m.setor}</td>
                   <td>{m.linha}</td>
-                  <td>{textoFaixa(m.faixaTemperatura)}</td>
-                  <td>{`abaixo de ${formatarNumero(m.limiteCritico.min)} / acima de ${formatarNumero(m.limiteCritico.max)} °C`}</td>
+                  <td>{t("machines.rangeValue", {
+                    min: formatarNumero(m.faixaTemperatura.min),
+                    max: formatarNumero(m.faixaTemperatura.max),
+                  })}</td>
+                  <td>{t("pages.machines.critical", {
+                    min: formatarNumero(m.limiteCritico.min),
+                    max: formatarNumero(m.limiteCritico.max),
+                  })}</td>
                   <td>
-                    <span className={`situacao ${m.ativa ? "situacao-ativo" : "situacao-inativo"}`}>{m.ativa ? "Ativa" : "Inativa"}</span>
+                    <span className={`situacao ${m.ativa ? "situacao-ativo" : "situacao-inativo"}`}>
+                      {m.ativa ? t("pages.machines.active") : t("pages.machines.inactive")}
+                    </span>
                   </td>
                   {podeEditar && (
                     <td className="tabela-acoes">
-                      <button type="button" className="btn-link" onClick={() => abrir({ maquina: m })}>Editar</button>
+                      <button type="button" className="btn-link" onClick={() => abrir({ maquina: m })}>{t("pages.machines.edit")}</button>
                       <button type="button" className="btn-link" disabled={alternarAtiva.isPending}
                         onClick={() => { setAviso(null); alternarAtiva.mutate(m); }}>
-                        {m.ativa ? "Desativar" : "Ativar"}
+                        {m.ativa ? t("pages.machines.deactivate") : t("pages.machines.activate")}
                       </button>
                     </td>
                   )}

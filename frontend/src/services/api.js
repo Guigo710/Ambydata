@@ -1,6 +1,7 @@
 // Cliente único da API. Toda chamada ao backend passa por aqui: o endereço vem de
 // VITE_API_URL, o token da sessão é anexado sozinho e um 401 encerra a sessão.
 import axios from "axios";
+import i18n from "../i18n";
 
 // Em desenvolvimento, sem VITE_API_URL, usa o backend local. Em produção, nunca:
 // sem a variável as chamadas vão para a própria origem e falham, em vez de mandar
@@ -54,5 +55,5 @@ export function mensagemDeErro(erro) {
   if (doServidor) {
     return doServidor;
   }
-  return "Não foi possível conectar ao servidor. Tente mais tarde.";
+  return i18n.t("errors.connection");
 }

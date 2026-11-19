@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useAuth } from "../auth/contexto";
-import { NOME_DO_PERFIL } from "../auth/permissoes";
 import RedefinirSenhaForm from "../components/RedefinirSenhaForm";
 import UsuarioForm from "../components/UsuarioForm";
 import { api, mensagemDeErro } from "../services/api";
@@ -10,6 +10,7 @@ const CHAVE = ["usuarios"];
 
 // Gestão de usuários pelo ADMIN: lista, criação, edição, ativação e redefinição de senha.
 export default function Usuarios() {
+  const { t } = useTranslation();
   const { usuario: eu, atualizarUsuario } = useAuth();
   const queryClient = useQueryClient();
   // null | { tipo: "novo" } | { tipo: "editar", usuario } | { tipo: "senha", usuario }
@@ -30,7 +31,7 @@ export default function Usuarios() {
         atualizarUsuario(resposta.data); // o ADMIN editou a si mesmo: topo e menu acompanham
       }
       setPainel(null);
-      setAviso(id ? "Usuário atualizado." : "Usuário criado.");
+      setAviso(id ? t("pages.users.updated") : t("pages.users.created"));
       return atualizarLista();
     },
   });
@@ -43,7 +44,7 @@ export default function Usuarios() {
   const redefinir = useMutation({
     mutationFn: ({ id, novaSenha }) => api.put(`/api/usuarios/${id}/senha`, { novaSenha }),
     onSuccess: (_, { nome }) => {
-      setAviso(`Senha de ${nome} redefinida. Informe a nova senha à pessoa.`);
+      setAviso(t("pages.users.passwordReset", { name: nome }));
       setPainel(null);
     },
   });
@@ -60,10 +61,10 @@ export default function Usuarios() {
     <>
       <div className="page-header usuarios-cabecalho">
         <div>
-          <h1 className="page-title">Usuários</h1>
-          <p className="page-greeting">Cadastre, edite e desative quem acessa o AmbyData.</p>
+          <h1 className="page-title">{t("pages.users.title")}</h1>
+          <p className="page-greeting">{t("pages.users.subtitle")}</p>
         </div>
-        <button type="button" className="btn-primario" onClick={() => abrir({ tipo: "novo" })}>Novo usuário</button>
+        <button type="button" className="btn-primario" onClick={() => abrir({ tipo: "novo" })}>{t("users.new")}</button>
       </div>
 
       {aviso && <div className="success-message" role="status">{aviso}</div>}
@@ -91,17 +92,17 @@ export default function Usuarios() {
       )}
 
       <section className="card">
-        {lista.isPending && <p className="tabela-vazia">Carregando usuários...</p>}
+        {lista.isPending && <p className="tabela-vazia">{t("pages.users.loading")}</p>}
         {lista.isError && <div className="error-message" role="alert">{mensagemDeErro(lista.error)}</div>}
         {lista.isSuccess && (
           <table className="tabela">
             <thead>
               <tr>
-                <th scope="col">Nome</th>
-                <th scope="col">E-mail</th>
-                <th scope="col">Perfil</th>
-                <th scope="col">Situação</th>
-                <th scope="col"><span className="sr-only">Ações</span></th>
+                <th scope="col">{t("users.name")}</th>
+                <th scope="col">{t("users.email")}</th>
+                <th scope="col">{t("users.role")}</th>
+                <th scope="col">{t("pages.users.situation")}</th>
+                <th scope="col"><span className="sr-only">{t("common.actions")}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -111,27 +112,27 @@ export default function Usuarios() {
                   <tr key={usuario.id} className={usuario.ativo ? "" : "linha-inativa"}>
                     <td>{usuario.nome}</td>
                     <td>{usuario.email}</td>
-                    <td>{NOME_DO_PERFIL[usuario.perfil] ?? usuario.perfil}</td>
+                    <td>{t(`users.roles.${usuario.perfil}`, { defaultValue: usuario.perfil })}</td>
                     <td>
                       <span className={`situacao ${usuario.ativo ? "situacao-ativo" : "situacao-inativo"}`}>
-                        {usuario.ativo ? "Ativo" : "Inativo"}
+                        {usuario.ativo ? t("pages.users.active") : t("pages.users.inactive")}
                       </span>
                     </td>
                     <td className="tabela-acoes">
                       <button type="button" className="btn-link" onClick={() => abrir({ tipo: "editar", usuario })}>
-                        Editar
+                        {t("pages.users.edit")}
                       </button>
                       <button type="button" className="btn-link" onClick={() => abrir({ tipo: "senha", usuario })}>
-                        Redefinir senha
+                        {t("pages.users.resetPassword")}
                       </button>
                       <button
                         type="button"
                         className="btn-link"
                         disabled={souEu || alternarAtivo.isPending}
-                        title={souEu ? "Você não pode desativar o próprio usuário." : undefined}
+                        title={souEu ? t("pages.users.cannotDeactivateSelf") : undefined}
                         onClick={() => { setAviso(null); alternarAtivo.mutate(usuario); }}
                       >
-                        {usuario.ativo ? "Desativar" : "Ativar"}
+                        {usuario.ativo ? t("pages.users.deactivate") : t("pages.users.activate")}
                       </button>
                     </td>
                   </tr>

@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
-import { NOME_DO_PERFIL, PERFIS } from "../auth/permissoes";
+import { PERFIS } from "../auth/permissoes";
 
 // Formulário de criação e edição de usuário pelo ADMIN. Na criação pede a senha
 // inicial; na edição a senha muda só por "Redefinir senha".
 export default function UsuarioForm({ usuario, pendente, erro, onEnviar, onCancelar }) {
+  const { t } = useTranslation();
   const criando = !usuario;
   const [campos, setCampos] = useState({
     nome: usuario?.nome ?? "",
@@ -19,11 +21,11 @@ export default function UsuarioForm({ usuario, pendente, erro, onEnviar, onCance
     evento.preventDefault();
     const dados = { nome: campos.nome.trim(), email: campos.email.trim(), perfil: campos.perfil };
     if (!dados.nome || !dados.email) {
-      setErroLocal("Preencha nome e e-mail.");
+      setErroLocal(t("users.fillNameEmail"));
       return;
     }
     if (criando && (campos.senha.length < 8 || campos.senha.length > 72)) {
-      setErroLocal("A senha precisa ter entre 8 e 72 caracteres.");
+      setErroLocal(t("users.passwordLength"));
       return;
     }
     setErroLocal(null);
@@ -34,38 +36,40 @@ export default function UsuarioForm({ usuario, pendente, erro, onEnviar, onCance
 
   return (
     <section className="card painel-form" aria-labelledby="titulo-form-usuario">
-      <h2 id="titulo-form-usuario" className="card-title">{criando ? "Novo usuário" : `Editar ${usuario.nome}`}</h2>
+      <h2 id="titulo-form-usuario" className="card-title">
+        {criando ? t("users.new") : t("users.edit", { name: usuario.nome })}
+      </h2>
       <form onSubmit={enviar} noValidate>
         {mensagem && <div className="error-message" role="alert">{mensagem}</div>}
         <div className="form-colunas">
           <div className="input-group">
-            <label htmlFor="usuario-nome">Nome</label>
+            <label htmlFor="usuario-nome">{t("users.name")}</label>
             <input id="usuario-nome" value={campos.nome} onChange={alterar("nome")} required />
           </div>
           <div className="input-group">
-            <label htmlFor="usuario-email">E-mail</label>
+            <label htmlFor="usuario-email">{t("users.email")}</label>
             <input id="usuario-email" type="email" value={campos.email} onChange={alterar("email")} required />
           </div>
           <div className="input-group">
-            <label htmlFor="usuario-perfil">Perfil</label>
+            <label htmlFor="usuario-perfil">{t("users.role")}</label>
             <select id="usuario-perfil" value={campos.perfil} onChange={alterar("perfil")}>
               {PERFIS.map((perfil) => (
-                <option key={perfil} value={perfil}>{NOME_DO_PERFIL[perfil]}</option>
+                <option key={perfil} value={perfil}>{t(`users.roles.${perfil}`, { defaultValue: perfil })}</option>
               ))}
             </select>
           </div>
           {criando && (
             <div className="input-group">
-              <label htmlFor="usuario-senha">Senha inicial</label>
+              <label htmlFor="usuario-senha">{t("users.initialPassword")}</label>
               <input id="usuario-senha" type="password" autoComplete="new-password"
                 value={campos.senha} onChange={alterar("senha")} required />
             </div>
           )}
         </div>
         <div className="form-acoes">
-          <button type="button" className="btn-secundario" onClick={onCancelar}>Cancelar</button>
+          <button type="button" className="btn-secundario" onClick={onCancelar}>{t("users.cancel")}</button>
           <button type="submit" className="btn-primario" disabled={pendente}>
-            {pendente ? "Salvando..." : "Salvar"}
+            {pendente ? t("users.saving") : t("users.save")}
           </button>
         </div>
       </form>

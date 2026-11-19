@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/contexto";
 import AcoesChamado from "../components/AcoesChamado";
@@ -11,23 +12,24 @@ import { colunasDoKanban, useChamados } from "../services/chamados";
 import { useMaquinaSelecionada } from "../services/maquinas";
 
 const COLUNAS = [
-  ["abertos", "Abertos"],
-  ["emAndamento", "Em andamento"],
-  ["finalizados", "Finalizados"],
+  ["abertos", "pages.maintenance.open"],
+  ["emAndamento", "pages.maintenance.inProgress"],
+  ["finalizados", "pages.maintenance.completed"],
 ];
 
 function Coluna({ titulo, chamados, podeAgir, onVer, onErro }) {
+  const { t } = useTranslation();
   return (
-    <section className="coluna-kanban" aria-label={titulo}>
+    <section className="coluna-kanban" aria-label={t(titulo)}>
       <h2 className="coluna-kanban-titulo">
-        {titulo} <span className="coluna-kanban-contador">{chamados.length}</span>
+        {t(titulo)} <span className="coluna-kanban-contador">{chamados.length}</span>
       </h2>
       {chamados.length === 0
-        ? <p className="tabela-vazia">Nenhum chamado</p>
+        ? <p className="tabela-vazia">{t("pages.maintenance.empty")}</p>
         : chamados.map((c) => (
           <CartaoChamado key={c.id} chamado={c}>
             <div className="cartao-chamado-rodape">
-              <button type="button" className="btn-link" onClick={() => onVer(c.id)}>Ver detalhes</button>
+              <button type="button" className="btn-link" onClick={() => onVer(c.id)}>{t("pages.maintenance.details")}</button>
             </div>
             {podeAgir && <AcoesChamado chamado={c} onErro={onErro} />}
           </CartaoChamado>
@@ -40,6 +42,7 @@ function Coluna({ titulo, chamados, podeAgir, onVer, onErro }) {
 // conforme o status; a tela busca de novo a cada 10 s. ?chamado=<id> abre o detalhe (link das
 // notificações).
 export default function Manutencao() {
+  const { t } = useTranslation();
   const { perfil } = useAuth();
   const selecao = useMaquinaSelecionada({ permitirTodas: true });
   const chamados = useChamados(selecao.maquina?.id);
@@ -70,13 +73,13 @@ export default function Manutencao() {
     <>
       <div className="page-header cabecalho-com-seletor">
         <div>
-          <h1 className="page-title">Report de Manutenção</h1>
-          <p className="page-greeting">Chamados abertos, em andamento e finalizados nos últimos 7 dias</p>
+          <h1 className="page-title">{t("pages.maintenance.title")}</h1>
+          <p className="page-greeting">{t("pages.maintenance.subtitle")}</p>
         </div>
         <div className="cabecalho-acoes">
           {podeAbrir && (
             <button type="button" ref={botaoAbrir} className="btn-primario" aria-expanded={formAberto} aria-controls="form-chamado"
-              onClick={() => { setAviso(null); setFormAberto(true); }}>Abrir chamado</button>
+              onClick={() => { setAviso(null); setFormAberto(true); }}>{t("chamados.open")}</button>
           )}
           <SeletorMaquina selecao={selecao} permitirTodas />
         </div>
@@ -86,10 +89,10 @@ export default function Manutencao() {
       {erroAcao && <div className="error-message" role="alert">{erroAcao}</div>}
       {formAberto && (
         <FormChamado maquinas={selecao.maquinas} maquinaInicial={selecao.maquina?.id} onFechar={fecharForm}
-          onAberto={() => { fecharForm(); setAviso("Chamado aberto."); }} />
+          onAberto={() => { fecharForm(); setAviso(t("pages.maintenance.opened")); }} />
       )}
 
-      {chamados.isPending && <p className="tabela-vazia">Carregando chamados...</p>}
+      {chamados.isPending && <p className="tabela-vazia">{t("pages.maintenance.loading")}</p>}
       {chamados.isError && <div className="error-message" role="alert">{mensagemDeErro(chamados.error)}</div>}
       {colunas && (
         <div className="kanban">

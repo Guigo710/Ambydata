@@ -1,6 +1,20 @@
 import { NavLink, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/contexto";
 import { telasDoMenu } from "../auth/permissoes";
+
+const ROTULOS_DAS_TELAS = {
+  "/painel": "nav.items.dashboard",
+  "/status-maquina": "nav.items.machineStatus",
+  "/manutencao": "nav.items.maintenance",
+  "/oee": "nav.items.oee",
+  "/produtividade": "nav.items.productivity",
+  "/energia": "nav.items.energy",
+  "/custos": "nav.items.costs",
+  "/maquinas": "nav.items.machines",
+  "/usuarios": "nav.items.users",
+  "/meu-perfil": "nav.items.profile",
+};
 
 // Ícone de cada tela do menu (traço 2px, 16x16, cor do texto).
 const ICONES = {
@@ -80,6 +94,7 @@ function Icone({ rota }) {
 
 // Menu lateral: mostra só as telas que o perfil logado pode abrir (auth/permissoes.js).
 export default function Sidebar() {
+  const { t } = useTranslation();
   const { perfil } = useAuth();
   const [parametros] = useSearchParams();
   const maquina = parametros.get("maquina");
@@ -101,7 +116,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <nav className="sidebar-nav" aria-label="Menu principal">
+      <nav className="sidebar-nav" aria-label={t("nav.menu")}>
         {telasDoMenu(perfil).map((tela) => (
           <NavLink
             key={tela.rota}
@@ -109,7 +124,7 @@ export default function Sidebar() {
             className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
           >
             <Icone rota={tela.rota} />
-            {tela.titulo}
+            {t(ROTULOS_DAS_TELAS[tela.rota] ?? tela.titulo)}
           </NavLink>
         ))}
       </nav>

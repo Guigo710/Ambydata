@@ -50,6 +50,18 @@ describe("barra superior", () => {
     expect(within(topo).getByText("Engenheiro")).toBeTruthy();
   });
 
+  it("troca o idioma pela barra superior", async () => {
+    salvarSessao("ADMIN");
+    renderizarApp("/usuarios");
+
+    const seletor = screen.getByRole("combobox", { name: "Idioma" });
+    await userEvent.selectOptions(seletor, "en");
+
+    expect(await screen.findByRole("navigation", { name: "Main menu" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Log out" })).toBeTruthy();
+    expect(seletor.value).toBe("en");
+  });
+
   it("Sair encerra a sessão e volta ao login", async () => {
     salvarSessao("ADMIN");
     renderizarApp("/usuarios");
